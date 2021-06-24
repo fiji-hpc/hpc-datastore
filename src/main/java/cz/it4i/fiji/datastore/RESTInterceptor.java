@@ -7,6 +7,7 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
@@ -18,6 +19,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 @TimeoutingRequest
 @Interceptor
+@Priority(1)
 public class RESTInterceptor {
 
 	@Inject

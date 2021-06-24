@@ -2,12 +2,6 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.scijava</groupId>
-        <artifactId>pom-scijava</artifactId>
-        <version>30.0.0</version>
-        <relativePath />
-    </parent>
     <groupId>cz.it4i.fiji</groupId>
     <artifactId>hpc-datastore</artifactId>
 
@@ -65,6 +59,7 @@
     </ciManagement>
     <properties>
         <package-name>HPCDataStore</package-name>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
         <license.licenseName>bsd_2</license.licenseName>
         <license.copyrightOwners>SciJava developers.</license.copyrightOwners>
@@ -114,25 +109,6 @@
             <activation>
 		      <activeByDefault>true</activeByDefault>
 		    </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-enforcer-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>enforce-rules</id>
-                                <goals>
-                                    <goal>enforce</goal>
-                                </goals>
-                                <configuration>
-                                    <skip>false</skip>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
     <dependencyManagement>
@@ -144,6 +120,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+               <groupId>org.scijava</groupId>
+		       <artifactId>pom-scijava</artifactId>
+		       <version>30.0.0</version>
+		       <type>pom</type>
+               <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -154,6 +137,17 @@
             <scope>provided</scope>
         </dependency>
 
+		<!-- https://mvnrepository.com/artifact/org.janelia.saalfeldlab/n5 -->
+        <dependency>
+            <groupId>org.janelia.saalfeldlab</groupId>
+            <artifactId>n5</artifactId>
+        </dependency>
+     
+        <dependency>
+            <groupId>sc.fiji</groupId>
+            <artifactId>bigdataviewer-core</artifactId>
+        </dependency>
+     
 		<!-- https://mvnrepository.com/artifact/xalan/xalan -->
 		<dependency>
 		    <groupId>xalan</groupId>
@@ -164,65 +158,25 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
             <exclusions>
-                <exclusion>
-                    <groupId>org.jboss.slf4j</groupId>
-                    <artifactId>slf4j-jboss-logmanager</artifactId>
-                </exclusion>
+            	<exclusion>
+            		<groupId>org.jboss.slf4j</groupId>
+    				<artifactId>slf4j-jboss-logmanager</artifactId>
+            	</exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.sun.activation</groupId>
-                    <artifactId>jakarta.activation</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jboss.spec.javax.ws.rs</groupId>
-                    <artifactId>jboss-jaxrs-api_2.3_spec</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jboss.spec.javax.xml.bind</groupId>
-                    <artifactId>jboss-jaxb-api_2.3_spec</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy-jackson</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>jakarta.activation</groupId>
-                    <artifactId>jakarta.activation-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.glassfish.jaxb</groupId>
-                    <artifactId>jaxb-runtime</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jboss.spec.javax.xml.bind</groupId>
-                    <artifactId>jboss-jaxb-api_2.3_spec</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
-					
-		
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>jakarta.activation</groupId>
-                    <artifactId>jakarta.activation-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>jakarta.xml.bind</groupId>
-                    <artifactId>jakarta.xml.bind-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -234,28 +188,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>jakarta.activation</groupId>
-                    <artifactId>jakarta.activation-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.glassfish.jaxb</groupId>
-                    <artifactId>txw2</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.istack</groupId>
-                    <artifactId>istack-commons-runtime</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.glassfish.jaxb</groupId>
-                    <artifactId>jaxb-runtime</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jboss.spec.javax.xml.bind</groupId>
-                    <artifactId>jboss-jaxb-api_2.3_spec</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
 
@@ -264,9 +196,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm-panache</artifactId>
         </dependency>
-
-
-
 
 
         <!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-jdbc-h2 -->
@@ -279,93 +208,31 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-config-yaml</artifactId>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.cxf/cxf-rt-rs-client -->
+        
         <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-rs-client</artifactId>
-            <version>3.4.2</version>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit5</artifactId>
+            <scope>test</scope>
             <exclusions>
-                <exclusion>
-                    <groupId>org.apache.geronimo.specs</groupId>
-                    <artifactId>geronimo-jta_1.1_spec</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.glassfish.jaxb</groupId>
-                    <artifactId>txw2</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.istack</groupId>
-                    <artifactId>istack-commons-runtime</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.activation</groupId>
-                    <artifactId>jakarta.activation</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.glassfish.jaxb</groupId>
-                    <artifactId>jaxb-runtime</artifactId>
-                </exclusion>
-                <exclusion>
-                	<groupId>jakarta.ws.rs</groupId>
-    				<artifactId>jakarta.ws.rs-api</artifactId>
-                </exclusion>
+            	<exclusion>
+            		<groupId>org.jboss.slf4j</groupId>
+    				<artifactId>slf4j-jboss-logmanager</artifactId>
+            	</exclusion>
             </exclusions>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.cxf/cxf-rt-rs-extension-providers -->
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-rs-extension-providers</artifactId>
-            <version>3.4.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.geronimo.specs</groupId>
-                    <artifactId>geronimo-jta_1.1_spec</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.activation</groupId>
-                    <artifactId>jakarta.activation</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+        
 
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>
         </dependency>
 
-
-
-        <!-- https://mvnrepository.com/artifact/org.janelia.saalfeldlab/n5 -->
+        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <dependency>
-            <groupId>org.janelia.saalfeldlab</groupId>
-            <artifactId>n5</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.imagej</groupId>
-            <artifactId>imagej-common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>sc.fiji</groupId>
-            <artifactId>spim_data</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>sc.fiji</groupId>
-            <artifactId>bigdataviewer-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>sc.fiji</groupId>
-            <artifactId>bigdataviewer_fiji</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>xpp3</groupId>
-                    <artifactId>xpp3</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
+        	<groupId>com.google.guava</groupId>
+    		<artifactId>guava</artifactId>
+    	</dependency>
+       
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -394,41 +261,6 @@
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.14.0</version>
         </dependency>
-
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jboss.slf4j</groupId>
-                    <artifactId>slf4j-jboss-logmanager</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jboss.logging</groupId>
-                    <artifactId>commons-logging-jboss-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>xpp3</groupId>
-                    <artifactId>xpp3_min</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej</artifactId>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.servlet</groupId>
-    				<artifactId>javax.servlet-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>regexp</groupId>
-  					<artifactId>regexp</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
     </dependencies>
     <build>
         <plugins>
@@ -448,25 +280,10 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/assembly/bin.xml</descriptor>
-                    </descriptors>
-                    <finalName>module-assembly</finalName>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
+            	<groupId>org.apache.maven.plugins</groupId>
+            	<artifactId>maven-surefire-plugin</artifactId>
+            	<version>2.22.2</version>
+        	</plugin>
         </plugins>
         <resources>
             <resource>
