@@ -197,6 +197,13 @@ public class DatasetRegisterServiceEndpoint {
 		}
 		return Response.ok().build();
 	}
+	@GET
+	@Path("datasets/{" + UUID + "}/delete")
+	public Response deleteDataset_viaGet(@PathParam(UUID) String uuid) {
+		log.info("deleting (GET) dataset=" + uuid);
+		return deleteDataset(uuid);
+	}
+
 //@formatter:off
 	@DELETE
 	@Path("datasets/{" + UUID + "}" +
@@ -221,7 +228,20 @@ public class DatasetRegisterServiceEndpoint {
 		}
 		return Response.ok().build();
 	}
-	
+//@formatter:off
+	@GET
+	@Path("datasets/{" + UUID + "}" +
+			  "/{" + VERSION_PARAM + "}"+
+			  "{" + VERSION_PARAMS + ":/?.*}/delete")
+//@formatter:on
+	public Response deleteDatasetVersions_viaGet(@PathParam(UUID) String uuid,
+		@PathParam(VERSION_PARAM) String version,
+		@PathParam(VERSION_PARAMS) String versions)
+	{
+		log.info("deleting (GET) versions from dataset=" + uuid);
+		return deleteDatasetVersions(uuid,version,versions);
+	}
+
 	@GET
 	@Path("datasets/{" + UUID + "}/common-metadata")
 	public Response getCommonMetadata(@PathParam(UUID) String uuid) {
