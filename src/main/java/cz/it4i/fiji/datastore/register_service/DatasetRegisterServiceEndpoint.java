@@ -61,7 +61,7 @@ public class DatasetRegisterServiceEndpoint {
 			+ "/{" + R_X_PARAM + "}"
 			+ "/{" + R_Y_PARAM + "}"
 			+ "/{" + R_Z_PARAM +	"}"
-			+ "/{" + VERSION_PARAM + "}" 
+			+ "/{" + VERSION_PARAM + "}"
 			+ "/{" + MODE_PARAM +"}")
 // @formatter:on
 	@GET
@@ -199,10 +199,10 @@ public class DatasetRegisterServiceEndpoint {
 	}
 //@formatter:off
 	@DELETE
-	@Path("datasets/{" + UUID + "}" + 
+	@Path("datasets/{" + UUID + "}" +
 				"/{" + VERSION_PARAM + "}"+
 			  "{" + VERSION_PARAMS + ":/?.*}")
-//@formatter:on	
+//@formatter:on
 	public Response deleteDatasetVersions(@PathParam(UUID) String uuid,
 		@PathParam(VERSION_PARAM) String version,
 		@PathParam(VERSION_PARAMS) String versions)
