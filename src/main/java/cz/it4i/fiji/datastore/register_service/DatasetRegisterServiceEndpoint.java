@@ -71,6 +71,7 @@ public class DatasetRegisterServiceEndpoint {
 		@PathParam(MODE_PARAM) String modeName,
 		@QueryParam(TIMEOUT_PARAM) Long timeout)
 	{
+		log.info("starting1 server for " + modeName + " dataset=" + uuid);
 		OperationMode opMode = OperationMode.getByUrlPath(modeName);
 
 		if (opMode == OperationMode.NOT_SUPPORTED) {
@@ -107,6 +108,7 @@ public class DatasetRegisterServiceEndpoint {
 		@PathParam(RESOLUTION_PARAM) String resolutionString,
 		@QueryParam(TIMEOUT_PARAM) Long timeout)
 	{
+		log.info("starting2 server for writing dataset=" + uuid);
 		List<int[]> resolutions = getResolutions(rX, rY, rZ, resolutionString);
 		try {
 			URL serverURL = datasetRegisterServiceImpl.start(uuid, resolutions,
@@ -136,6 +138,7 @@ public class DatasetRegisterServiceEndpoint {
 		@PathParam(R_Z_PARAM) int rZ,
 		@PathParam(RESOLUTION_PARAM) String resolutionString)
 	{
+		log.info("rebuilding for dataset=" + uuid);
 		List<int[]> resolutions = getResolutions(rX, rY, rZ, resolutionString);
 		try {
 			datasetRegisterServiceImpl.rebuild(uuid, resolutions);
@@ -152,6 +155,7 @@ public class DatasetRegisterServiceEndpoint {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response createEmptyDataset(DatasetDTO dataset)
 	{
+		log.info("creating empty dataset");
 		log.debug("dataset=" + dataset);
 		try {
 			java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
@@ -169,6 +173,7 @@ public class DatasetRegisterServiceEndpoint {
 	@GET
 	@Path("datasets/{" + UUID + "}")
 	public Response queryDataset(@PathParam(UUID) String uuid) {
+		log.info("get JSON for dataset=" + uuid);
 		DatasetDTO result;
 		try {
 			result = datasetRegisterServiceImpl.query(uuid);
@@ -188,6 +193,7 @@ public class DatasetRegisterServiceEndpoint {
 	@DELETE
 	@Path("datasets/{" + UUID + "}")
 	public Response deleteDataset(@PathParam(UUID) String uuid) {
+		log.info("deleting dataset=" + uuid);
 		try {
 			datasetRegisterServiceImpl.deleteDataset(uuid);
 		}
@@ -214,6 +220,7 @@ public class DatasetRegisterServiceEndpoint {
 		@PathParam(VERSION_PARAM) String version,
 		@PathParam(VERSION_PARAMS) String versions)
 	{
+		log.info("deleting versions from dataset=" + uuid);
 		List<Integer> versionList = new LinkedList<>();
 		versionList.add(getVersion(version));
 		versionList.addAll(extractVersions(versions).stream().filter(e -> !e
@@ -245,6 +252,7 @@ public class DatasetRegisterServiceEndpoint {
 	@GET
 	@Path("datasets/{" + UUID + "}/common-metadata")
 	public Response getCommonMetadata(@PathParam(UUID) String uuid) {
+		log.info("getting common metadata from dataset=" + uuid);
 		String result = datasetRegisterServiceImpl.getCommonMetadata(uuid);
 		return Response.ok(result).type(MediaType.TEXT_PLAIN).build();
 	}
@@ -255,6 +263,7 @@ public class DatasetRegisterServiceEndpoint {
 	public Response setCommonMetadata(@PathParam(UUID) String uuid,
 		String commonMetadata)
 	{
+		log.info("setting common metadata into dataset=" + uuid);
 		datasetRegisterServiceImpl.setCommonMetadata(uuid, commonMetadata);
 		return Response.ok().build();
 	}
