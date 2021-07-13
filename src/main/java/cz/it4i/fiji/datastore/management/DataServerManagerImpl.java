@@ -195,6 +195,7 @@ class DataServerManagerImpl implements DataServerManager {
 		ListAppender<String> appender = new ListAppender<>(commandAsList)
 				.append("java")
 				.append("-Dquarkus.http.port=" + port)
+				.append("-Dquarkus.http.host=" + getHostName())
 				.append("-Dquarkus.datasource.jdbc.url=jdbc:h2:mem:myDb;create=true")
 				.append("-Ddatastore.path=" + applicationConfiguration.getDatastorePath())
 				.append("-D" + PROPERTY_UUID + "=" + uuid)
