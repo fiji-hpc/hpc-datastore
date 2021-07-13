@@ -147,6 +147,20 @@
             <groupId>sc.fiji</groupId>
             <artifactId>bigdataviewer-core</artifactId>
         </dependency>
+        
+        <!-- https://mvnrepository.com/artifact/xerces/xercesImpl -->
+		<dependency>
+		    <groupId>xerces</groupId>
+		    <artifactId>xercesImpl</artifactId>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/com.fasterxml.woodstox/woodstox-core -->
+		<dependency>
+		    <groupId>com.fasterxml.woodstox</groupId>
+		    <artifactId>woodstox-core</artifactId>
+		</dependency>
+		
+				
      
 		<!-- https://mvnrepository.com/artifact/xalan/xalan -->
 		<dependency>
