@@ -26,7 +26,13 @@ import java.util.stream.IntStream;
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.HeuristicRollbackException;
+import javax.transaction.NotSupportedException;
+import javax.transaction.RollbackException;
+import javax.transaction.SystemException;
 import javax.transaction.Transactional;
+import javax.transaction.UserTransaction;
 import javax.ws.rs.NotFoundException;
 
 import org.apache.commons.io.FileUtils;
@@ -67,19 +73,38 @@ public class DatasetRegisterServiceImpl {
 	@Inject
 	DatasetRepository datasetDAO;
 
+	@Inject
+	UserTransaction transaction;
+
 	private Map<String, Compression> name2compression = null;
 
-	@Transactional
 	public UUID createEmptyDataset(DatasetDTO datasetDTO) throws IOException,
-		SpimDataException
+		SpimDataException, NotSupportedException, SystemException
 	{
 		UUID result = UUID.randomUUID();
 		Path path = configuration.getDatasetPath(result);
 		new CreateNewDatasetTS().run(path, convert(datasetDTO));
-		Dataset dataset = DatasetAssembler.createDomainObject(datasetDTO);
-		dataset.setUuid(result);
-		dataset.setPath(path.toString());
-		datasetDAO.persist(dataset);
+		transaction.begin();
+		boolean trxActive = true;
+		try {
+			Dataset dataset = DatasetAssembler.createDomainObject(datasetDTO);
+			dataset.setUuid(result);
+			dataset.setPath(path.toString());
+			datasetDAO.persist(dataset);
+			trxActive = false;
+			transaction.commit();
+
+		}
+		catch (SecurityException | IllegalStateException | RollbackException
+				| HeuristicMixedException | HeuristicRollbackException exc)
+		{
+			log.error("commit", exc);
+		}
+		finally {
+			if (trxActive) {
+				transaction.rollback();
+			}
+		}
 		return result;
 	}
 
