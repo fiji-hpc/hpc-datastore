@@ -40,6 +40,7 @@ import lombok.extern.log4j.Log4j2;
 @TestInstance(Lifecycle.PER_CLASS)
 public class TestDatastore {
 
+	final private long TIMEOUT = 10000l;
 	private String uuid;
 
 	@BeforeEach
@@ -66,7 +67,7 @@ public class TestDatastore {
 	@Test
 	public void writeReadOneBlock() {
 		Response result = withNoFollowRedirects().get("/datasets/" + uuid +
-			"/1/1/1/new/write?timeout=10000");
+			"/1/1/1/new/write?timeout=" + TIMEOUT);
 		assertEquals(307, result.getStatusCode(), "Should be redirected but was " +
 			result.asString());
 
@@ -80,7 +81,7 @@ public class TestDatastore {
 
 		result = with().config(RestAssuredConfig.config().redirect(RedirectConfig
 			.redirectConfig().followRedirects(false))).get("/datasets/" + uuid +
-				"/1/1/1/latest/read?timeout=10000");
+				"/1/1/1/latest/read?timeout=" + TIMEOUT);
 		assertEquals(307, result.getStatusCode(), "Should be redirected");
 		redirectedURI = result.getHeader("Location");
 		result = with().baseUri(redirectedURI).contentType(	ContentType.BINARY).get("/0/0/0/0/0/0");
@@ -93,7 +94,7 @@ public class TestDatastore {
 	@Test
 	public void writeReadTwoBlocks() {
 		Response result = withNoFollowRedirects().get("/datasets/" + uuid +
-			"/1/1/1/new/write?timeout=10000");
+			"/1/1/1/new/write?timeout=" + TIMEOUT);
 		assertEquals(307, result.getStatusCode(), "Should be redirected");
 
 		String redirectedURI = result.getHeader("Location");
@@ -106,7 +107,7 @@ public class TestDatastore {
 
 		result = with().config(RestAssuredConfig.config().redirect(RedirectConfig
 			.redirectConfig().followRedirects(false))).get("/datasets/" + uuid +
-				"/1/1/1/latest/read?timeout=10000");
+				"/1/1/1/latest/read?timeout=" + TIMEOUT);
 		assertEquals(307, result.getStatusCode(), "Should be redirected");
 		redirectedURI = result.getHeader("Location");
 		result = with().baseUri(redirectedURI).contentType(ContentType.BINARY).get(
@@ -123,14 +124,14 @@ public class TestDatastore {
 	@Test
 	public void mixedLatest() {
 		String baseURI = withNoFollowRedirects().get("/datasets/" + uuid +
-			"/1/1/1/new/write?timeout=10000").getHeader("Location");
+			"/1/1/1/new/write?timeout=" + TIMEOUT).getHeader("Location");
 		byte[] block1 = constructBlocks(1, 64);
 		with().baseUri(baseURI).contentType(ContentType.BINARY).body(block1).post(
 			"/0/0/0/0/0/0");
 		with().baseUri(baseURI).post("/stop");
 
 		baseURI = withNoFollowRedirects().get("/datasets/" + uuid +
-			"/1/1/1/new/write?timeout=10000").getHeader("Location");
+			"/1/1/1/new/write?timeout" + TIMEOUT).getHeader("Location");
 		byte[] block2 = constructBlocks(1, 64);
 
 		with().baseUri(baseURI).contentType(ContentType.BINARY).body(block2).post(
@@ -138,7 +139,7 @@ public class TestDatastore {
 		with().baseUri(baseURI).post("/stop");
 
 		baseURI = withNoFollowRedirects().get("/datasets/" + uuid +
-			"/1/1/1/mixedLatest/read?timeout=10000").getHeader(
+			"/1/1/1/mixedLatest/read?timeout=" + TIMEOUT).getHeader(
 				"Location");
 
 		byte[] sentData = new byte[block1.length + block2.length];
