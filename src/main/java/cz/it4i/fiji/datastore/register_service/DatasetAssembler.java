@@ -107,6 +107,9 @@ public class DatasetAssembler {
 	private static cz.it4i.fiji.datastore.register_service.DatasetDTO.Resolution
 		createDatatransferObject(Resolution resolution)
 	{
+		if (resolution == null) {
+			return null;
+		}
 		return new DatasetDTO.Resolution(resolution.getValue(), resolution
 			.getUnit());
 	}
