@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import net.imglib2.FinalDimensions;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 
 import org.janelia.saalfeldlab.n5.Compression;
@@ -170,7 +171,11 @@ public class CreateNewDatasetTS {
 		Collection<ViewRegistration> result = new LinkedList<>();
 		for (ViewSetup viewSetup : viewSetups) {
 			for (TimePoint timePoint : timepoints) {
-				result.add(new ViewRegistration(timePoint.getId(), viewSetup.getId()));
+				AffineTransform3D tr = new AffineTransform3D();
+				tr.scale(viewSetup.getVoxelSize().dimension(0), viewSetup.getVoxelSize()
+					.dimension(1), viewSetup.getVoxelSize().dimension(2));
+				result.add(new ViewRegistration(timePoint.getId(), viewSetup.getId(),
+					tr));
 			}
 		}
 		return result;
