@@ -166,6 +166,68 @@ public class TestDatastore {
 		assertEquals(testMetadata, readedMatadata);
 	}
 
+	@Test
+	public void readNonExistingBlock() {
+		Response result = with().config(RestAssuredConfig.config().redirect(
+			RedirectConfig.redirectConfig().followRedirects(false))).get(
+				"/datasets/" + uuid + "/1/1/1/latest/read?timeout=" + TIMEOUT);
+		assertEquals(307, result.getStatusCode(), "Should be redirected");
+		String redirectedURI = result.getHeader("Location");
+		result = with().baseUri(redirectedURI).contentType(ContentType.BINARY).get(
+			"/10/10/10/0/0/0");
+		with().baseUri(redirectedURI).post("/stop");
+		assertEquals(ContentType.BINARY.toString(), result.contentType());
+		byte[] outputData = result.getBody().asByteArray();
+		ByteBuffer bb = ByteBuffer.allocate(12);
+		bb.putInt(-1);
+		bb.putInt(-1);
+		bb.putInt(-1);
+		byte[] data = bb.array();
+		assertArrayEquals(data, outputData, "Result was: " + result.asString());
+	}
+
+	@Test
+	/**
+	 * Test reading blocks - existing, non-existing, existing
+	 */
+	public void readE_NE_E_Block() {
+		// create two blocks
+		Response result = withNoFollowRedirects().get("/datasets/" + uuid +
+			"/1/1/1/new/write?timeout=" + TIMEOUT);
+		assertEquals(307, result.getStatusCode(), "Should be redirected");
+
+		String redirectedURI = result.getHeader("Location");
+
+		byte[] data = constructBlocks(2, 64);
+
+		with().baseUri(redirectedURI).contentType(ContentType.BINARY).body(data)
+			.post("/0/0/0/0/0/0/0/1/0/0/0/0");
+		with().baseUri(redirectedURI).post("/stop");
+
+		result = with().config(RestAssuredConfig.config().redirect(
+			RedirectConfig.redirectConfig().followRedirects(false))).get(
+				"/datasets/" + uuid + "/1/1/1/latest/read?timeout=" + TIMEOUT);
+		assertEquals(307, result.getStatusCode(), "Should be redirected");
+		redirectedURI = result.getHeader("Location");
+		result = with().baseUri(redirectedURI).contentType(ContentType.BINARY).get(
+			"/0/0/0/0/0/0/10/10/10/0/0/0/0/1/0/0/0/0");
+		with().baseUri(redirectedURI).post("/stop");
+		assertEquals(ContentType.BINARY.toString(), result.contentType());
+		byte[] outputData = result.getBody().asByteArray();
+		ByteBuffer bb = ByteBuffer.allocate(12);
+		bb.putInt(-1);
+		bb.putInt(-1);
+		bb.putInt(-1);
+		byte[] nonExistingData = bb.array();
+		bb = ByteBuffer.allocate(data.length + nonExistingData.length);
+		bb.put(data, 0, data.length / 2);
+		bb.put(nonExistingData);
+		bb.put(data, data.length / 2, data.length / 2);
+		data = bb.array();
+
+		assertArrayEquals(data, outputData, "Result was: " + result.asString());
+	}
+
 	private RequestSpecification withNoFollowRedirects() {
 		return with().config(RestAssuredConfig.config().redirect(RedirectConfig
 			.redirectConfig().followRedirects(false)));
