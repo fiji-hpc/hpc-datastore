@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -108,31 +107,26 @@ public class DatasetServerEndpoint implements Serializable {
 			blocksId.add(new BlockIdentification(new long[] { x, y, z }, time,
 				channel, angle));
 			extract(blocks, blocksId);
-			List<BlockIdentification> notExistentBlocks = new LinkedList<>();
+			DataType dataType = null;
 			try (DataBlockInputStream result = new DataBlockInputStream()) {
 				for (BlockIdentification bi : blocksId) {
-					DataBlock<?> block = datasetServer.read(new long[] {
-						bi.gridPosition[0], bi.gridPosition[1], bi.gridPosition[2] },
-						bi.time, bi.channel, bi.angle);
-
+					long[] position = new long[] {
+						bi.gridPosition[0], bi.gridPosition[1], bi.gridPosition[2] };
+					DataBlock<?> block = datasetServer.read(position, bi.time, bi.channel,
+						bi.angle);
+					// block do not exist - return empty block having size [-1, -1, -1]
 					if (block == null) {
-						notExistentBlocks.add(bi);
-						continue;
-					}
-					if (!notExistentBlocks.isEmpty()) {
-						continue;
+						if (dataType == null) {
+							dataType = datasetServer.getType(time, channel, angle);
+						}
+						block = dataType.createDataBlock(new int[] { -1, -1, -1 }, position,
+							0);
 					}
 					result.add(block);
 				}
-				if (notExistentBlocks.isEmpty()) {
 					return Response.ok(result).type(MediaType.APPLICATION_OCTET_STREAM)
 						.build();
-				}
 			}
-			return Response.status(Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-				.entity("Blocks [" + String.join(",", notExistentBlocks.stream().map(
-					Object::toString).collect(Collectors.toList())) +
-					"] .").build();
 		}
 		catch (IOException | NullPointerException exc) {
 			log.warn("read", exc);
