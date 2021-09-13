@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -44,14 +45,12 @@ import org.janelia.saalfeldlab.n5.Lz4Compression;
 import org.janelia.saalfeldlab.n5.RawCompression;
 import org.janelia.saalfeldlab.n5.XzCompression;
 
-import bdv.export.ExportMipmapInfo;
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS.N5Description;
 import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
 import cz.it4i.fiji.datastore.DatasetServerImpl;
 import cz.it4i.fiji.datastore.management.DataServerManager;
-import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
@@ -90,6 +89,11 @@ public class DatasetRegisterServiceImpl {
 			Dataset dataset = DatasetAssembler.createDomainObject(datasetDTO);
 			dataset.setUuid(result);
 			dataset.setPath(path.toString());
+			dataset.setDatasetVersion(new LinkedList<>());
+			dataset.getDatasetVersion().add(DatasetVersion.builder().value(0)
+				.build());
+			dataset.getDatasetVersion().forEach(v -> datasetDAO.getEntityManager()
+				.persist(v));
 			datasetDAO.persist(dataset);
 			trxActive = false;
 			transaction.commit();
@@ -231,23 +235,11 @@ public class DatasetRegisterServiceImpl {
 				.channels(dataset.getChannels())
 				.angles(dataset.getAngles())
 				.compression(createCompression(dataset.getCompression()))
-				.mipmapInfo(createExportMipmapInfo(dataset.getResolutionLevels())).build();
+				.mipmapInfo(MipmapInfoAssembler.createExportMipmapInfo(dataset)).build();
 // @formatter:on				
 	}
 
-	private @NonNull ExportMipmapInfo createExportMipmapInfo(
-		ResolutionLevel[] resolutionLevels)
-	{
-		int[][] resolutions = new int[resolutionLevels.length][];
-		int[][] subdivisions = new int[resolutionLevels.length][];
-		for (int i = 0; i < resolutionLevels.length; i++) {
-			resolutions[i] = Arrays.copyOf(resolutionLevels[i].resolutions,
-				resolutionLevels[i].resolutions.length);
-			subdivisions[i] = Arrays.copyOf(resolutionLevels[i].blockDimensions,
-				resolutionLevels[i].blockDimensions.length);
-		}
-		return new ExportMipmapInfo(resolutions, subdivisions);
-	}
+
 
 	private @NonNull Compression createCompression(String compression) {
 		return getCompressionMapping().getOrDefault(compression.toUpperCase(),
@@ -255,10 +247,7 @@ public class DatasetRegisterServiceImpl {
 	}
 
 	private Dataset getDataset(String uuid) {
-		Dataset dataset = datasetDAO.findByUUID(UUID.fromString(uuid)).orElse(null);
-		if (dataset == null) {
-			throw new NotFoundException("Dataset with uuid=" + uuid + " not found.");
-		}
+		Dataset dataset = datasetDAO.findByUUID(UUID.fromString(uuid));
 		return dataset;
 	}
 

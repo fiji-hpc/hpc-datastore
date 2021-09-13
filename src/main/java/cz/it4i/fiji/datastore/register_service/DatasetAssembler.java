@@ -86,7 +86,7 @@ public class DatasetAssembler {
 	// @formatter:on
 	}
 
-	private static
+	public static
 		cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel[]
 		createDatatransferObject(
 		Collection<ResolutionLevel> resolutionLevel)
@@ -113,4 +113,5 @@ public class DatasetAssembler {
 		return new DatasetDTO.Resolution(resolution.getValue(), resolution
 			.getUnit());
 	}
+
 }

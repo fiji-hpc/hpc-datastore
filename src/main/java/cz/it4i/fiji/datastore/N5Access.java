@@ -34,6 +34,8 @@ import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
+import mpicbg.spim.data.generic.AbstractSpimData;
+import mpicbg.spim.data.sequence.SequenceDescription;
 import mpicbg.spim.data.sequence.ViewSetup;
 
 
@@ -62,7 +64,7 @@ public class N5Access {
 	}
 
 	private N5Writer writer;
-	private SpimData spimData;
+	private AbstractSpimData<SequenceDescription> spimData;
 	private OperationMode mode;
 	private int[] resolutionLevel;
 	private List<int[]> downsamplingResolutionsLevels;
@@ -104,7 +106,7 @@ public class N5Access {
 
 			}
 		}
-		loadFromXML(pathToXML);
+		spimData = loadFromXML(pathToXML);
 		writer = aWriter;
 		if (aMode == OperationMode.WRITE_TO_OTHER_RESOLUTIONS ||
 			aMode == OperationMode.NO_ACCESS)
@@ -189,8 +191,8 @@ public class N5Access {
 				ResolutionLevel.toString(downsamplingResolutionsLevels));
 	}
 
-	private void loadFromXML(Path path) throws SpimDataException {
-		spimData = new XmlIoSpimData().load(path.toString());
+	private SpimData loadFromXML(Path path) throws SpimDataException {
+		return new XmlIoSpimData().load(path.toString());
 	}
 
 	private void checkBlockSize(DataBlock<?> dataBlock, int[] blockSize) {
@@ -222,7 +224,8 @@ public class N5Access {
 		return constructDataBlock(gridPosition, inputStream, dataType);
 	}
 
-	private static String getPath(SpimData spimData, N5Writer writer, int time,
+	private static String getPath(AbstractSpimData<SequenceDescription> spimData,
+		N5Writer writer, int time,
 		int channel, int angle, int[] resolutionLevel)
 	{
 		ViewSetup viewSetup = getViewSetup(spimData, channel, angle);
@@ -275,7 +278,8 @@ public class N5Access {
 			subGroup, "downsamplingFactors", int[].class, () -> new int[] {}));
 	}
 
-	private static ViewSetup getViewSetup(SpimData spimData, int channel,
+	private static ViewSetup getViewSetup(
+		AbstractSpimData<SequenceDescription> spimData, int channel,
 		long angle)
 	{
 		return spimData.getSequenceDescription().getViewSetupsOrdered().stream().filter(

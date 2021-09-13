@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
+import javax.ws.rs.NotFoundException;
 
 /*import org.apache.deltaspike.data.api.AbstractEntityRepository;
 import org.apache.deltaspike.data.api.Query;
@@ -31,8 +32,25 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 
 	private static final long serialVersionUID = 7503192760728646786L;
 
-	public Optional<Dataset> findByUUID(UUID uuid) {
-		return find("from Dataset where uuid = :uuid", Parameters.with("uuid",
+	public Dataset findByUUID(UUID uuid) {
+		Optional<Dataset> result = find("from Dataset where uuid = :uuid",
+			Parameters.with("uuid",
 			uuid)).singleResultOptional();
+		if (result.isEmpty()) {
+			throw new NotFoundException("Dataset with UUID = " + uuid +
+				" not found ");
+		}
+		return result.get();
+	}
+
+	public DatasetVersion findByUUIDVersion(UUID uuid, int version) {
+		Dataset dataset = findByUUID(uuid);
+		Optional<DatasetVersion> result = dataset.getDatasetVersion().stream()
+			.filter(v -> v.getValue() == version).findAny();
+		if (result.isEmpty()) {
+			throw new NotFoundException("Dataset with UUID = " + uuid +
+				" has no version " + version);
+		}
+		return result.get();
 	}
 }

@@ -29,7 +29,8 @@ import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
-import bdv.export.ExportMipmapInfo;
+import bdv.img.hdf5.MipmapInfo;
+import bdv.img.hdf5.Util;
 import bdv.img.n5.N5ImageLoader;
 import lombok.Builder;
 import lombok.NonNull;
@@ -68,8 +69,8 @@ public class CreateNewDatasetTS {
 
 	private SpimData createNew(Path pathToDir, DataType voxelType,
 		long[] dimensions, VoxelDimensions voxelDimensions, int timepoints,
-		int channels, int angles, Compression compression,
-		ExportMipmapInfo mipmapInfo) throws IOException
+		int channels, int angles, Compression compression, MipmapInfo mipmapInfo)
+		throws IOException
 	{
 
 		final Collection<TimePoint> timepointsCol = IntStream.range(0, timepoints)
@@ -84,13 +85,13 @@ public class CreateNewDatasetTS {
 		final List<Integer> setupIds = sequenceDescription.getViewSetupsOrdered()
 			.stream().map(BasicViewSetup::getId).collect(Collectors.toList());
 		N5Writer n5 = new N5FSWriter(pathToDir.toFile().getAbsolutePath());
-		final int[][] resolutions = mipmapInfo.getExportResolutions();
+		final int[][] resolutions = Util.castToInts(mipmapInfo.getResolutions());
 		final int[][] subdivisions = mipmapInfo.getSubdivisions();
 		int n = 3;
 		// write Mipmap descriptions
 		for (final int setupId : setupIds) {
 			final String pathName = getPathName(setupId);
-			final int[][] downsamplingFactors = mipmapInfo.getExportResolutions();
+			final int[][] downsamplingFactors = resolutions;
 			n5.createGroup(pathName);
 			n5.setAttribute(pathName, DOWNSAMPLING_FACTORS_KEY, downsamplingFactors);
 			n5.setAttribute(pathName, DATA_TYPE_KEY, voxelType);
@@ -141,7 +142,7 @@ public class CreateNewDatasetTS {
 			viewSetups, new N5ImageLoader(pathToDir.toFile(), sequenceDescription));
 		SpimData result = new SpimData(pathToDir.toFile(), sequenceDescription,
 			new ViewRegistrations(generateViewRegistrations(timepointsCol,
-				viewSetups)));
+				viewSetups, getTransform(mipmapInfo))));
 		return result;
 	}
 
@@ -166,19 +167,26 @@ public class CreateNewDatasetTS {
 	}
 
 	private Collection<ViewRegistration> generateViewRegistrations(
-		Collection<TimePoint> timepoints, Collection<ViewSetup> viewSetups)
+		Collection<TimePoint> timepoints, Collection<ViewSetup> viewSetups,
+		AffineTransform3D transform)
 	{
 		Collection<ViewRegistration> result = new LinkedList<>();
 		for (ViewSetup viewSetup : viewSetups) {
 			for (TimePoint timePoint : timepoints) {
-				AffineTransform3D tr = new AffineTransform3D();
-				tr.scale(viewSetup.getVoxelSize().dimension(0), viewSetup.getVoxelSize()
-					.dimension(1), viewSetup.getVoxelSize().dimension(2));
 				result.add(new ViewRegistration(timePoint.getId(), viewSetup.getId(),
-					tr));
+					transform));
 			}
 		}
 		return result;
+	}
+
+	static private AffineTransform3D getTransform(MipmapInfo mipmapInfo) {
+		if (mipmapInfo.getTransforms() == null || mipmapInfo
+			.getTransforms().length == 0)
+		{
+			return new AffineTransform3D();
+		}
+		return mipmapInfo.getTransforms()[0];
 	}
 
 	@Builder
@@ -206,7 +214,7 @@ public class CreateNewDatasetTS {
 		private final Compression compression;
 
 		@NonNull
-		private final ExportMipmapInfo mipmapInfo;
+		private final MipmapInfo mipmapInfo;
 
 	}
 

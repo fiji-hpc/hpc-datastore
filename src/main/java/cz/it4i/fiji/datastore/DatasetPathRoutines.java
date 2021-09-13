@@ -18,7 +18,7 @@ public final class DatasetPathRoutines {
 		return baseDirectory.resolve("" + version);
 	}
 
-	static Path getXMLPath(Path baseDirectory, int version) {
+	public static Path getXMLPath(Path baseDirectory, int version) {
 		return getBasePath(baseDirectory, version).resolve("export.xml");
 	}
 
