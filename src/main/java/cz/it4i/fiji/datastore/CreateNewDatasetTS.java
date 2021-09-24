@@ -29,7 +29,7 @@ import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
-import bdv.img.hdf5.MipmapInfo;
+import bdv.export.ExportMipmapInfo;
 import bdv.img.hdf5.Util;
 import bdv.img.n5.N5ImageLoader;
 import lombok.Builder;
@@ -63,13 +63,16 @@ public class CreateNewDatasetTS {
 		Path pathToDir = DatasetPathRoutines.getDataPath(pathToXML);
 		SpimData data = createNew(pathToDir, dsc.voxelType, dsc.dimensions,
 			dsc.voxelDimensions, dsc.timepoints, dsc.channels, dsc.angles,
-			dsc.compression, dsc.mipmapInfo);
+			dsc.transforms,
+			dsc.compression, dsc.exportMipmapInfo);
 		new XmlIoSpimData().save(data, pathToXML.toString());
 	}
 
 	private SpimData createNew(Path pathToDir, DataType voxelType,
 		long[] dimensions, VoxelDimensions voxelDimensions, int timepoints,
-		int channels, int angles, Compression compression, MipmapInfo mipmapInfo)
+		int channels, int angles, AffineTransform3D[] transforms,
+		Compression compression,
+		ExportMipmapInfo mipmapInfo)
 		throws IOException
 	{
 
@@ -141,8 +144,8 @@ public class CreateNewDatasetTS {
 		sequenceDescription = new SequenceDescription(new TimePoints(timepointsCol),
 			viewSetups, new N5ImageLoader(pathToDir.toFile(), sequenceDescription));
 		SpimData result = new SpimData(pathToDir.toFile(), sequenceDescription,
-			new ViewRegistrations(generateViewRegistrations(timepointsCol,
-				viewSetups, getTransform(mipmapInfo))));
+			new ViewRegistrations(generateViewRegistrations(timepointsCol, viewSetups,
+				transforms)));
 		return result;
 	}
 
@@ -168,25 +171,16 @@ public class CreateNewDatasetTS {
 
 	private Collection<ViewRegistration> generateViewRegistrations(
 		Collection<TimePoint> timepoints, Collection<ViewSetup> viewSetups,
-		AffineTransform3D transform)
+		AffineTransform3D[] transforms)
 	{
 		Collection<ViewRegistration> result = new LinkedList<>();
 		for (ViewSetup viewSetup : viewSetups) {
 			for (TimePoint timePoint : timepoints) {
 				result.add(new ViewRegistration(timePoint.getId(), viewSetup.getId(),
-					transform));
+					transforms[viewSetup.getAngle().getId()]));
 			}
 		}
 		return result;
-	}
-
-	static private AffineTransform3D getTransform(MipmapInfo mipmapInfo) {
-		if (mipmapInfo.getTransforms() == null || mipmapInfo
-			.getTransforms().length == 0)
-		{
-			return new AffineTransform3D();
-		}
-		return mipmapInfo.getTransforms()[0];
 	}
 
 	@Builder
@@ -209,12 +203,14 @@ public class CreateNewDatasetTS {
 
 		@Builder.Default
 		private final int angles = 1;
+		
+		private final AffineTransform3D[] transforms;
 
 		@NonNull
 		private final Compression compression;
 
 		@NonNull
-		private final MipmapInfo mipmapInfo;
+		private final ExportMipmapInfo exportMipmapInfo;
 
 	}
 

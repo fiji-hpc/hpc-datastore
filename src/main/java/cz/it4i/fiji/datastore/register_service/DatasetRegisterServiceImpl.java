@@ -36,6 +36,8 @@ import javax.transaction.Transactional;
 import javax.transaction.UserTransaction;
 import javax.ws.rs.NotFoundException;
 
+import net.imglib2.realtransform.AffineTransform3D;
+
 import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.Bzip2Compression;
 import org.janelia.saalfeldlab.n5.Compression;
@@ -234,12 +236,24 @@ public class DatasetRegisterServiceImpl {
 				.timepoints(dataset.getTimepoints())
 				.channels(dataset.getChannels())
 				.angles(dataset.getAngles())
+				.transforms(createTransfoms(dataset.getAngles(), dataset.getTransformations()))
 				.compression(createCompression(dataset.getCompression()))
-				.mipmapInfo(MipmapInfoAssembler.createExportMipmapInfo(dataset)).build();
+				.exportMipmapInfo(MipmapInfoAssembler.createExportMipmapInfo(dataset)).build();
 // @formatter:on				
 	}
 
-
+	private AffineTransform3D[] createTransfoms(int angles,
+		double[][] transformations)
+	{
+		AffineTransform3D[] result = new AffineTransform3D[angles];
+		for (int i = 0; i < angles; i++) {
+			result[i] = new AffineTransform3D();
+			if (i < transformations.length && transformations[i] != null) {
+				result[i].set(transformations[i]);
+			}
+		}
+		return result;
+	}
 
 	private @NonNull Compression createCompression(String compression) {
 		return getCompressionMapping().getOrDefault(compression.toUpperCase(),
