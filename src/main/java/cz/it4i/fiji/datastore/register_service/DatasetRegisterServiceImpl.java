@@ -248,7 +248,9 @@ public class DatasetRegisterServiceImpl {
 		AffineTransform3D[] result = new AffineTransform3D[angles];
 		for (int i = 0; i < angles; i++) {
 			result[i] = new AffineTransform3D();
-			if (i < transformations.length && transformations[i] != null) {
+			if (transformations != null && i < transformations.length &&
+				transformations[i] != null)
+			{
 				result[i].set(transformations[i]);
 			}
 		}
