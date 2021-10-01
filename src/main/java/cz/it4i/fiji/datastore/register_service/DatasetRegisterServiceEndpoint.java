@@ -23,6 +23,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -266,6 +267,54 @@ public class DatasetRegisterServiceEndpoint {
 		log.info("setting common metadata into dataset=" + uuid);
 		datasetRegisterServiceImpl.setCommonMetadata(uuid, commonMetadata);
 		return Response.ok().build();
+	}
+
+	@POST
+	@Path("datasets/{" + UUID + "}/channels")
+	public Response addChannels(@PathParam(UUID) String uuid,
+		String strChannels)
+	{
+		try {
+			int channels = strChannels.isEmpty() ? 1 : Integer.parseInt(strChannels);
+			log.info("add channels " + channels + " for dataset=" + uuid);
+			datasetRegisterServiceImpl.addChannels(uuid, channels);
+		}
+		catch (NumberFormatException e) {
+			throw new IllegalArgumentException(strChannels + " is not integer");
+		}
+		catch (Exception exc) {
+			log.warn("read", exc);
+			return Response.serverError().entity(exc.getMessage()).type(
+				MediaType.TEXT_PLAIN).build();
+		}
+		return Response.status(Status.METHOD_NOT_ALLOWED).build();
+	}
+
+	@PUT
+	@DELETE
+	@Path("datasets/{" + UUID + "}/channels")
+	public Response notAllowedChannels(@PathParam(UUID) String uuid) {
+		log.info("not allowed method for channels of dataset=" + uuid);
+		return Response.status(Status.METHOD_NOT_ALLOWED).build();
+	}
+
+	@GET
+	@Path("datasets/{" + UUID + "}/channels")
+	public Response getChannels(@PathParam(UUID) String uuid)
+	{
+		DatasetDTO result;
+		try {
+			result = datasetRegisterServiceImpl.query(uuid);
+			if (result == null) {
+				return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
+					uuid + " not found.").build();
+			}
+			return Response.ok(result).entity(result.getChannels()).build();
+		}
+		catch (IOException exc) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
+				.getMessage()).build();
+		}
 	}
 
 	public List<int[]> getResolutions(int rX, int rY, int rZ,

@@ -11,6 +11,7 @@ import static bdv.img.n5.BdvN5Format.DATA_TYPE_KEY;
 import static bdv.img.n5.BdvN5Format.DOWNSAMPLING_FACTORS_KEY;
 import static bdv.img.n5.BdvN5Format.getPathName;
 import static cz.it4i.fiji.datastore.DatasetPathRoutines.getXMLPath;
+import static cz.it4i.fiji.datastore.base.Factories.constructViewSetup;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -20,7 +21,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 
@@ -30,6 +30,7 @@ import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
 import bdv.export.ExportMipmapInfo;
+import bdv.img.hdf5.MipmapInfo;
 import bdv.img.hdf5.Util;
 import bdv.img.n5.N5ImageLoader;
 import lombok.Builder;
@@ -52,6 +53,62 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 
 public class CreateNewDatasetTS {
 
+	public static void createN5Structure(Path pathToDir, DataType voxelType,
+		long[] dimensions, Compression compression, MipmapInfo mipmapInfo,
+		SequenceDescription sequenceDescription, final List<Integer> setupIds,
+		final List<Integer> timepointIds) throws IOException
+	{
+		N5Writer n5 = new N5FSWriter(pathToDir.toFile().getAbsolutePath());
+		final int[][] resolutions = Util.castToInts(mipmapInfo.getResolutions());
+		final int[][] subdivisions = mipmapInfo.getSubdivisions();
+		int n = 3;
+		// write Mipmap descriptions
+		for (final int setupId : setupIds) {
+			final String pathName = getPathName(setupId);
+			final int[][] downsamplingFactors = resolutions;
+			n5.createGroup(pathName);
+			n5.setAttribute(pathName, DOWNSAMPLING_FACTORS_KEY, downsamplingFactors);
+			n5.setAttribute(pathName, DATA_TYPE_KEY, voxelType);
+		}
+		for (final int timepointId : timepointIds) {
+	
+			// assemble the viewsetups that are present in this timepoint
+			for (final int setupId : setupIds) {
+				final int numLevels = mipmapInfo.getNumLevels();
+				for (int level = 0; level < numLevels; ++level) {
+					long[] dims = new long[n];
+					final int[] factor = resolutions[level];
+					final long size = Intervals.numElements(factor);
+					final boolean fullResolution = size == 1;
+					System.arraycopy(dimensions, 0, dims, 0, n);
+					if (!fullResolution) {
+						for (int d = 0; d < n; ++d) {
+							dims[d] = Math.max(dims[d] / factor[d], 1);
+						}
+					}
+					n5.createDataset(getPathName(setupId, timepointId, level), dims,
+						subdivisions[level], voxelType, compression);
+	
+				}
+	
+				// additional attributes for paintera compatibility
+				final String pathName = getPathName(setupId, timepointId);
+				n5.createGroup(pathName);
+				n5.setAttribute(pathName, MULTI_SCALE_KEY, true);
+				final VoxelDimensions voxelSize = sequenceDescription.getViewSetups()
+					.get(setupId).getVoxelSize();
+				if (voxelSize != null) {
+					final double[] resolution = new double[voxelSize.numDimensions()];
+					voxelSize.dimensions(resolution);
+					n5.setAttribute(pathName, RESOLUTION_KEY, resolution);
+				}
+				for (int l = 0; l < resolutions.length; ++l)
+					n5.setAttribute(getPathName(setupId, timepointId, l),
+						DOWNSAMPLING_FACTORS_KEY, resolutions[l]);
+			}
+		}
+	}
+
 	private static final String MULTI_SCALE_KEY = "multiScale";
 	private static final String RESOLUTION_KEY = "resolution";
 
@@ -71,8 +128,7 @@ public class CreateNewDatasetTS {
 	private SpimData createNew(Path pathToDir, DataType voxelType,
 		long[] dimensions, VoxelDimensions voxelDimensions, int timepoints,
 		int channels, int angles, AffineTransform3D[] transforms,
-		Compression compression,
-		ExportMipmapInfo mipmapInfo)
+		Compression compression, MipmapInfo mipmapInfo)
 		throws IOException
 	{
 
@@ -87,58 +143,12 @@ public class CreateNewDatasetTS {
 
 		final List<Integer> setupIds = sequenceDescription.getViewSetupsOrdered()
 			.stream().map(BasicViewSetup::getId).collect(Collectors.toList());
-		N5Writer n5 = new N5FSWriter(pathToDir.toFile().getAbsolutePath());
-		final int[][] resolutions = Util.castToInts(mipmapInfo.getResolutions());
-		final int[][] subdivisions = mipmapInfo.getSubdivisions();
-		int n = 3;
-		// write Mipmap descriptions
-		for (final int setupId : setupIds) {
-			final String pathName = getPathName(setupId);
-			final int[][] downsamplingFactors = resolutions;
-			n5.createGroup(pathName);
-			n5.setAttribute(pathName, DOWNSAMPLING_FACTORS_KEY, downsamplingFactors);
-			n5.setAttribute(pathName, DATA_TYPE_KEY, voxelType);
-		}
 		final List<Integer> timepointIds = sequenceDescription.getTimePoints()
 			.getTimePointsOrdered().stream().map(TimePoint::getId).collect(Collectors
 				.toList());
-		for (final int timepointId : timepointIds) {
 
-			// assemble the viewsetups that are present in this timepoint
-			for (final int setupId : setupIds) {
-				final int numLevels = mipmapInfo.getNumLevels();
-				for (int level = 0; level < numLevels; ++level) {
-					long[] dims = new long[n];
-					final int[] factor = resolutions[level];
-					final long size = Intervals.numElements(factor);
-					final boolean fullResolution = size == 1;
-					System.arraycopy(dimensions, 0, dims, 0, n);
-					if (!fullResolution) {
-						for (int d = 0; d < n; ++d) {
-							dims[d] = Math.max(dims[d] / factor[d], 1);
-						}
-					}
-					n5.createDataset(getPathName(setupId, timepointId, level), dims,
-						subdivisions[level], voxelType, compression);
-
-				}
-
-				// additional attributes for paintera compatibility
-				final String pathName = getPathName(setupId, timepointId);
-				n5.createGroup(pathName);
-				n5.setAttribute(pathName, MULTI_SCALE_KEY, true);
-				final VoxelDimensions voxelSize = sequenceDescription.getViewSetups()
-					.get(setupId).getVoxelSize();
-				if (voxelSize != null) {
-					final double[] resolution = new double[voxelSize.numDimensions()];
-					voxelSize.dimensions(resolution);
-					n5.setAttribute(pathName, RESOLUTION_KEY, resolution);
-				}
-				for (int l = 0; l < resolutions.length; ++l)
-					n5.setAttribute(getPathName(setupId, timepointId, l),
-						DOWNSAMPLING_FACTORS_KEY, resolutions[l]);
-			}
-		}
+		createN5Structure(pathToDir, voxelType, dimensions, compression,
+			mipmapInfo, sequenceDescription, setupIds, timepointIds);
 
 
 		sequenceDescription = new SequenceDescription(new TimePoints(timepointsCol),
@@ -159,9 +169,8 @@ public class CreateNewDatasetTS {
 			for (int angle = 0; angle < angles; angle++) {
 				Angle angleObj = new Angle(angle);
 				Channel channelObj = new Channel(channel);
-				ViewSetup vs = new ViewSetup(setupId, "setup" + setupId,
-					new FinalDimensions(dimensions), voxelDimensions, channelObj,
-					angleObj, illumination);
+				ViewSetup vs = constructViewSetup(setupId, dimensions, voxelDimensions,
+					channelObj, angleObj, illumination);
 				viewSetups.add(vs);
 				setupId++;
 			}

@@ -115,6 +115,17 @@ public class DatasetRegisterServiceImpl {
 	}
 
 	@Transactional
+	public void addChannels(String uuid, int channels) throws SpimDataException,
+		IOException
+	{
+		Dataset dataset = getDataset(uuid);
+		log.debug("add {} channel for dataset with path ", channels, dataset
+			.getPath());
+		new AddChannelTS().run(dataset, channels, getCompressionMapping().get(
+			dataset.getCompression()));
+	}
+
+	@Transactional
 	public void deleteDataset(String uuid) throws IOException {
 		Dataset dataset = getDataset(uuid);
 		log.debug("dataset with path {} is deleted", dataset.getPath());

@@ -26,7 +26,7 @@ public final class DatasetPathRoutines {
 		return getDataPath(getXMLPath(baseDirectory, version));
 	}
 
-	static Path getDataPath(Path pathToXML) {
+	public static Path getDataPath(Path pathToXML) {
 		return Paths.get(pathToXML.toString().replaceAll("\\.xml$", ".n5"));
 	}
 }
