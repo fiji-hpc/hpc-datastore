@@ -116,31 +116,21 @@ public class DatasetRegisterServiceImpl {
 
 	@Transactional
 	public void addChannels(String uuid, int channels) throws SpimDataException,
-		IOException, NotSupportedException, SystemException
+		IOException
 	{
-		transaction.begin();
-		boolean trxActive = true;
 		try {
 			Dataset dataset = getDataset(uuid);
 			log.debug("add {} channel for dataset with path ", channels, dataset
 				.getPath());
 			new AddChannelTS().run(dataset, channels, getCompressionMapping().get(
-				dataset.getCompression()));
+				Strings.nullToEmpty(dataset.getCompression().toUpperCase())));
 			dataset.setChannels(dataset.getAngles() + channels);
 			datasetDAO.persist(dataset);
-			trxActive = false;
-			transaction.commit();
 
 		}
-		catch (SecurityException | IllegalStateException | RollbackException
-				| HeuristicMixedException | HeuristicRollbackException exc)
+		catch (SecurityException | IllegalStateException exc)
 		{
 			log.error("commit", exc);
-		}
-		finally {
-			if (trxActive) {
-				transaction.rollback();
-			}
 		}
 
 	}
