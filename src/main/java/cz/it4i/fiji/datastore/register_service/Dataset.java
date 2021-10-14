@@ -50,7 +50,7 @@ public class Dataset extends BaseEntity {
 
 	@Getter
 	@Setter
-	@OneToMany
+	@Transient
 	private Collection<DatasetVersion> datasetVersion;
 	
 	@Getter

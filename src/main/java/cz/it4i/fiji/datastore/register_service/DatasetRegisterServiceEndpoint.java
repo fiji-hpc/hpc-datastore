@@ -176,19 +176,13 @@ public class DatasetRegisterServiceEndpoint {
 	public Response queryDataset(@PathParam(UUID) String uuid) {
 		log.info("get JSON for dataset=" + uuid);
 		DatasetDTO result;
-		try {
-			result = datasetRegisterServiceImpl.query(uuid);
-			if (result == null) {
-				return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
-					uuid + " not found.").build();
-			}
-			return Response.ok(result).type(MediaType.APPLICATION_JSON_TYPE).build();
+		result = datasetRegisterServiceImpl.query(uuid);
+		if (result == null) {
+			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
+				uuid + " not found.").build();
 		}
-		catch (IOException exc) {
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
-				.getMessage())
-				.build();
-		}
+		return Response.ok(result).type(MediaType.APPLICATION_JSON_TYPE).build();
+
 	}
 
 	@DELETE
@@ -303,18 +297,12 @@ public class DatasetRegisterServiceEndpoint {
 	public Response getChannels(@PathParam(UUID) String uuid)
 	{
 		DatasetDTO result;
-		try {
-			result = datasetRegisterServiceImpl.query(uuid);
-			if (result == null) {
-				return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
-					uuid + " not found.").build();
-			}
-			return Response.ok(result).entity(result.getChannels()).build();
+		result = datasetRegisterServiceImpl.query(uuid);
+		if (result == null) {
+			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
+				uuid + " not found.").build();
 		}
-		catch (IOException exc) {
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
-				.getMessage()).build();
-		}
+		return Response.ok(result).entity(result.getChannels()).build();
 	}
 
 	public List<int[]> getResolutions(int rX, int rY, int rZ,

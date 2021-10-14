@@ -10,13 +10,18 @@ package cz.it4i.fiji.datastore.register_service;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Parameters;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.ws.rs.NotFoundException;
+
+import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
 
 /*import org.apache.deltaspike.data.api.AbstractEntityRepository;
 import org.apache.deltaspike.data.api.Query;
@@ -39,6 +44,17 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 		if (result.isEmpty()) {
 			throw new NotFoundException("Dataset with UUID = " + uuid +
 				" not found ");
+		}
+
+		DatasetFilesystemHandler dfh = new DatasetFilesystemHandler(null, result
+			.get().getPath());
+		try {
+			result.get().setDatasetVersion( dfh.getAllVersions().stream().map(v -> new DatasetVersion(v, Paths.get(
+				result.get().getPath()).resolve("" + v).toString())).collect(Collectors
+					.toList()));
+		}
+		catch (IOException exc) {
+			throw new RuntimeException(exc);
 		}
 		return result.get();
 	}

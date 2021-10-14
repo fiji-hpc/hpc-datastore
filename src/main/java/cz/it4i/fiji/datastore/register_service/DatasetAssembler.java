@@ -9,15 +9,11 @@ package cz.it4i.fiji.datastore.register_service;
 
 import com.google.common.collect.Streams;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
 
 
 
@@ -65,10 +61,8 @@ public class DatasetAssembler {
 	}
 
 	public static DatasetDTO createDatatransferObject(Dataset dataset)
-		throws IOException
 	{
-		DatasetFilesystemHandler dfh = new DatasetFilesystemHandler(null, dataset
-			.getPath());
+		
 		// @formatter:off
 		return DatasetDTO
 				.builder()
@@ -81,7 +75,7 @@ public class DatasetAssembler {
 				.angles(dataset.getAngles()).angleResolution(createDatatransferObject(dataset.getAngleResolution()))
 				.compression(dataset.getCompression())
 				.resolutionLevels(createDatatransferObject(dataset.getResolutionLevel()))
-				.versions(new LinkedList<>( dfh.getAllVersions()))
+				.versions(dataset.getDatasetVersion().stream().map(DatasetVersion::getValue).collect(Collectors.toList()))
 				.build();
 	// @formatter:on
 	}

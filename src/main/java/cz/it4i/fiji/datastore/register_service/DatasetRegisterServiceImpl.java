@@ -154,7 +154,7 @@ public class DatasetRegisterServiceImpl {
 		}
 	}
 
-	public DatasetDTO query(String uuid) throws IOException {
+	public DatasetDTO query(String uuid) {
 		Dataset dataset = getDataset(uuid);
 		return DatasetAssembler.createDatatransferObject(dataset);
 	}

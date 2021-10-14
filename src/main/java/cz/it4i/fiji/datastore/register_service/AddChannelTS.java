@@ -48,7 +48,7 @@ public class AddChannelTS {
 	{
 		for (DatasetVersion version : dataset.getDatasetVersion()) {
 			Path pathToXML = DatasetPathRoutines.getXMLPath(Paths.get(dataset
-				.getPath()), (int) version.getValue());
+				.getPath()), version.getValue());
 			Path pathToDir = DatasetPathRoutines.getDataPath(pathToXML);
 			XmlIoSpimData io = new XmlIoSpimData();
 			SpimData spimData = io.load(pathToXML.toString());
