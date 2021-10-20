@@ -5,7 +5,7 @@ The DataStore is shortest described as [BigDataServer](https://imagej.net/plugin
 that can also accept images besides serving them. In other words, it is a [REST](https://en.wikipedia.org/wiki/Representational_state_transfer)
 HTTP-based client-server for downloading/uploading chunks from images from/to a remote dataset.
 The server is storing image data using the [N5](https://github.com/saalfeldlab/n5) on disk
-in a [BigDataViewer](https://imagej.net/plugins/bdv) unique [XML/N5 dialect.](doc/imgs/bdv-n5-file-structure.png)
+in a [BigDataViewer](https://imagej.net/plugins/bdv) unique [XML/N5 dialect.](doc/DESCRIPTION.md#the-bdv-dialect)
 The server communicates with its clients using [our own simple protocol.](https://docs.google.com/document/d/1ZeLc83dyNE9USBuvSCLEVGK-zQzUKFb7VGhOlVIRBvU/edit)
 
 [Motivation, reasoning, application examples and more
