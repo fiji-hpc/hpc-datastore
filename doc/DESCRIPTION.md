@@ -1,7 +1,10 @@
 # Description
 ## Connection Scheme
+![Connection time diagram](imgs/client_server_scheme.png)
 
 ## Storage Architecture
+![Storage scheme](imgs/ways_to_access_images.png)
+
 As hinted already, the server is by default using the N5 with the
 [file-system backend](https://github.com/saalfeldlab/n5#file-system-specification).
 It is worth mentioning, that any N5 client can work directly with the data (on the
@@ -11,7 +14,7 @@ Essentially, this is two ways to reach the same data.
 It is, nevertheless, possible (thought not tested yet) to operate the server with the
 [AWS-S3 backend](https://github.com/saalfeldlab/n5-aws-s3) in N5 and use the server as
 a gateway to some S3 storage. In the later case, user's application may consume the S3
-content "directly" via its [DataStore client](https://github.com/fiji-hpc/hpc-datastore-fiji)
+content ``directly'' via its [DataStore client](https://github.com/fiji-hpc/hpc-datastore-fiji)
 and its connection to the DataStore server.
 
 
