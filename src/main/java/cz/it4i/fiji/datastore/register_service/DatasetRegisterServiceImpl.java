@@ -94,8 +94,6 @@ public class DatasetRegisterServiceImpl {
 			dataset.setDatasetVersion(new LinkedList<>());
 			dataset.getDatasetVersion().add(DatasetVersion.builder().value(0)
 				.build());
-			dataset.getDatasetVersion().forEach(v -> datasetDAO.getEntityManager()
-				.persist(v));
 			datasetDAO.persist(dataset);
 			trxActive = false;
 			transaction.commit();
