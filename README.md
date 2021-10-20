@@ -43,7 +43,7 @@ git clone https://github.com/fiji-hpc/hpc-datastore.git
 cd hpc-datastore
 git checkout -b production origin/production
 ./mvnw -Dmaven.test.skip=true clean package
-(or mvnw.cmd -Dmaven.test.skip=true clean package on Windows)
+(on Windows: mvnw.cmd -Dmaven.test.skip=true clean package)
 ./start-server
 ```
 
@@ -57,7 +57,7 @@ The server is for real started with the following command:
 ./start-server PATH HOST PORT
 ```
 One can (re)start the server on a folder with some datasets already inside,
-the server will be serving it too.
+the server will be serving them too.
 
 One probably want to execute that inside a `screen` or `tmux` environment.
 
@@ -73,7 +73,7 @@ You can pass them as a parameter to the JVM with the `-D<property.name>` constru
 # Testing server
 We are running a demo server for testing it out. Please, be nice to it :-) (don't upload tons of data).
 
-To test it out, [point your BigDataViewer](APPLICATIONS.md#bdv,-mastodon-and-friends),
+To test it out, [point your BigDataViewer](APPLICATIONS.md#bdv-mastodon-and-friends),
 which comes with [Fiji](https://imagej.net/software/fiji/downloads), to
 
 - server hostname and port: `alfeios.fi.muni.cz:9080`

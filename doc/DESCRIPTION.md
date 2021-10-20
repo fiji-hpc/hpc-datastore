@@ -23,7 +23,7 @@ Alternatively, the SPIM API may be used in the client (and pointed directly on t
 The BigDataViewer itself is the most prominent example of this approach.
 
 The official way, however, is reaching the data via the DataStore server. Here, one can use
-the BigDataViewer (or the underlying SPIM API) in [conjunction with the server](APPLICATIONS.md#bdv,-mastodon-and-friends)
+the BigDataViewer (or the underlying SPIM API) in [conjunction with the server](APPLICATIONS.md#bdv-mastodon-and-friends)
 in place of the BigDataServer itself. Or, simply any [DataStore client](#clients), such as
 the [convenient GUI client in Fiji](https://github.com/fiji-hpc/hpc-datastore-fiji), achieves
 the same but in full-duplex.

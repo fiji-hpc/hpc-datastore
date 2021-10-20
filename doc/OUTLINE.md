@@ -23,7 +23,7 @@ In this documentation of the DataStore project you can learn about the following
 
 # [Applications](APPLICATIONS.md)
 - [Gateway to S3 Storage](APPLICATIONS.md#gateway-to-s3-storage)
-- [BDV, Mastodon and Friends](APPLICATIONS.md#bdv,-mastodon-and-friends)
+- [BDV, Mastodon and Friends](APPLICATIONS.md#bdv-mastodon-and-friends)
 - [HPC Cluster](APPLICATIONS.md#hpc-cluster)
 
 
