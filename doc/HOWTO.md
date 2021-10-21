@@ -1,4 +1,4 @@
-In general, one needs to [have *HPC-DataStore* update site installed in your Fiji](doc/imgs/datastore-fiji-update-site.png)
+In general, one needs to [have *HPC-DataStore* update site installed in your Fiji](imgs/datastore-fiji-update-site.png)
 beforehand.
 
 # Creating from an Existing HDF5/XML

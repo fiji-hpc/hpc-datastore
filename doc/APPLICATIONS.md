@@ -68,7 +68,9 @@ or with
 curl http://HOST:PORT/bdv/DATASETID/V -o remote_dataset.xml
 ```
 
-or just by opening the URL in a web browser and "saving the page".
+or just by opening the URL in a web browser (and "saving the page"):
+
+![Example of a dataset XML description](imgs/example_of_dataset_xml.png)
 
 Be sure to always download an updated XML from the DataStore server
 every time the dataset "geometry" is changed, e.g.,
