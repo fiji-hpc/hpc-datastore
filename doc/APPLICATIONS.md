@@ -93,4 +93,6 @@ and open it in a web browser. It usually shows human-readable formatted text tha
 In fact, exactly this content is provided to the [browsing option above.](#bdv-browses-bds)
 
 ## HPC Cluster
+Here's the envisioned use case for HPC:
 ![DataStore within HPC context](imgs/application_context.png)
+TBA...
