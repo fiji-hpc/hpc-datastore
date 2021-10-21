@@ -83,7 +83,7 @@ We thank the challenge organizers for kindly agreeing to use their data.
 The access parameters are:
 
 - server hostname and port: `alfeios.fi.muni.cz:9080`
-- dataset id: bd2e4ae0-64bb-48d7-8154-1c9846edbff6
+- dataset id: `bd2e4ae0-64bb-48d7-8154-1c9846edbff6`
 
 ## Testing it with BigDataViewer
 To test it out, [navigate your BigDataViewer](doc/APPLICATIONS.md#bdv-mastodon-and-friends),
@@ -109,3 +109,6 @@ command reported for exactly that operation. One could cut-and-paste it as such 
 Again, the *HPC-DataStore* Fiji update site should be enabled to obtain the client plugins:
 
 ![HPC DataStore Fiji update site](doc/imgs/datastore-fiji-update-site.png)
+
+## Start with Importing Own Dataset
+[...and here's how.](doc/HOWTO.md#creating-from-an-existing-hdf5-xml)

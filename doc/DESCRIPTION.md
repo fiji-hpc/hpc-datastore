@@ -142,6 +142,7 @@ and any following chunks into the `latest` version (which happens to be the one 
 
 Also note that one does not need to create always a new version of a chunk when uploading it to the DataStore.
 It is perfectly possible to just overwrite any existing version, even an older one.
+One may also delete existing versions, leaving "holes" in the list of available versions.
 
 ## N5, Zarr and NGFF
 The server-side can be understood [as an HTTP server with own addressing scheme](https://docs.google.com/document/d/1ZeLc83dyNE9USBuvSCLEVGK-zQzUKFb7VGhOlVIRBvU/edit)
@@ -151,6 +152,9 @@ to switch to using the Zarr N5 backend in the NGFF dialect.
 ## Clients
 We anticipate an ensemble of DataStore clients written in Java, Python and C++. At the
 moment, we have a [reference Java client in the form of Fiji plugin](https://github.com/fiji-hpc/hpc-datastore-fiji).
+
+This is the current ensemble of available Fiji GUI plugins for the client side:
+![Collection of clients in the form of Fiji GUI plugins](imgs/collection_of_fiji_plugins.png)
 
 An [`imglib2`](https://imagej.net/libs/imglib2/) image data representation that would
 be backed by the DataStore server is also on our road map. This would allow the image

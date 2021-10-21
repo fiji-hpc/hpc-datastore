@@ -1,6 +1,6 @@
 # Applications:
 
-## A Storage Independent Image Fileformat
+## A Storage-Independent Image Fileformat
 Consider the following. Start a local server.
 Create there and work with some dataset on it (locally), later move the data elsewhere without
 changing the addressing path (well, except for the host, port and dataset name -- because the
@@ -68,7 +68,7 @@ or with
 curl http://HOST:PORT/bdv/DATASETID/V -o remote_dataset.xml
 ```
 
-or just by opening the URL in a web browser and "saving the page as".
+or just by opening the URL in a web browser and "saving the page".
 
 Be sure to always download an updated XML from the DataStore server
 every time the dataset "geometry" is changed, e.g.,
