@@ -17,6 +17,7 @@ In this documentation of the DataStore project you can learn about the following
 # [Features](FEATURES.md)
 - [Server-side Auto Pyramids](FEATURES.md#server-side-auto-pyramids)
 - [Mixing of Versions](FEATURES.md#mixing-of-versions)
+- [Querying the DataStore Server](FEATURES.md#querying-the-datastore-server)
 - [Adding a New Channel to Existing Dataset](FEATURES.md#adding-a-new-channel-to-existing-dataset)
 - [Zarr and NGFF Compatibility](FEATURES.md#zarr-and-ngff-compatibility)
 

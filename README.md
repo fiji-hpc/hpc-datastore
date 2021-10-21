@@ -70,20 +70,39 @@ Run the class _cz.it4i.fiji.datastore.App_. It accepts the following properties:
 
 You can pass them as a parameter to the JVM with the `-D<property.name>` construct.
 
-# Testing server
+# Public testing server
 We are running a demo server for testing it out. Please, be nice to it :-) (don't upload tons of data).
+The server is hosting, among other, a dataset that shows the first 11 time points of a
+[TRIF training video 02](http://celltrackingchallenge.net/3d-datasets/)
+from the [CellTrackingChallenge.net](http://celltrackingchallenge.net/).
+We thank the challenge organizers for kindly agreeing to use their data.
 
-To test it out, [point your BigDataViewer](APPLICATIONS.md#bdv-mastodon-and-friends),
-which comes with [Fiji](https://imagej.net/software/fiji/downloads), to
+The access parameters are:
 
 - server hostname and port: `alfeios.fi.muni.cz:9080`
 - dataset id: bd2e4ae0-64bb-48d7-8154-1c9846edbff6
 
-which looks like this:
-![Example of ](doc/imgs/bdv-connects-to-datastore.png)
+## Testing it with BigDataViewer
+To test it out, [navigate your BigDataViewer](APPLICATIONS.md#bdv-mastodon-and-friends),
+which comes with [Fiji](https://imagej.net/software/fiji/downloads), on that particular dataset.
+The outcome could look like this:
 
+![Example of BDV showing DataStore-served image](doc/imgs/bdv-connects-to-datastore.png)
 
-The image data is first 11 time points of a [TRIF training video 02](http://celltrackingchallenge.net/3d-datasets/)
-from the [CellTrackingChallenge.net](http://celltrackingchallenge.net/).
-We thank the challenge organizers for kindly agreeing to use their data.
+Choose browsing of BigDataServer, use `http://alfeios.fi.muni.cz:9080/bdv/bd2e4ae0-64bb-48d7-8154-1c9846edbff6`
+for the remote url, choose the version 0, and the BigDataViewer window should show up.
 
+## Testing it with Fiji Client
+Or, try to download one or more images from the DataStore:
+
+![Example of Fiji plugin downloading image from DataStore](doc/imgs/plugin-downloads-from-datastore.png)
+
+Here, [have *HPC-DataStore* update site installed in your Fiji](doc/imgs/datastore-fiji-update-site.png),
+then start *Request Dataset Serving* in the *HPC DataStore* menu, provide the access information (left dialog window),
+convenience dialog (right window) shows up that aids and guards the user when changing the dialog items. Eventually,
+the requested image (or its sub-region based on what chunks are requested) gets downloaded. Notice the IJM macro
+command reported for exactly that operation. One could cut-and-paste it as such or as a template into own macros.
+
+Again, the *HPC-DataStore* Fiji update site should be enabled to obtain the client plugins:
+
+![HPC DataStore Fiji update site](doc/imgs/datastore-fiji-update-site.png)
