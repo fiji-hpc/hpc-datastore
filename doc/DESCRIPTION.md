@@ -64,10 +64,50 @@ We anticipate an ensemble of DataStore clients written in Java, Python and C++. 
 moment, we have a [reference Java client in the form of Fiji plugin](https://github.com/fiji-hpc/hpc-datastore-fiji).
 
 An [`imglib2`](https://imagej.net/libs/imglib2/) image data representation that would
-be backed by the DataStore server is also on our road map. The would allow the image
-processing developer to focus solely on implementing algorithms on `imglib2`, leaving
-aside any DataStore client API.
+be backed by the DataStore server is also on our road map. This would allow the image
+processing developer to focus solely on implementing algorithms on `imglib2` -- like
+it was always the case with `imglib2`, leaving the DataStore communication entirely up
+to the particular (yet non-existent) `imglib2` storage backend.
+
+For now, we are [collecting example ImageJ macros (`.ijm` files)](https://github.com/fiji-hpc/hpc-datastore-fiji/tree/master/src/main/ijm)
+to show how various DataStore functionalities can be achieved in the batch processing mode of operation.
+
+Worth mentioning is that most GUI Fiji plugins that implement DataStore client offer *Report corresponding
+macro command* that would have done the same work. The reported command appears in the Fiji console
+(Fiji menu: *Window* -> *Console*). One could then cut-and-paste it as such or as a template into own macros.
 
 ### A Minimal Download Macro
+To download a particular chunk, block of chunks, or even full image, it is enough to insert one-liner command
+into your Fiji macro. Well, it is a rather long one-liner, I agree. For example, the command
+
+```
+run("Read Into Image", "url=alfeios.fi.muni.cz:9080 datasetid=bd2e4ae0-64bb-48d7-8154-1c9846edbff6 versionasstr=latest resolutionlevelsasstr=[[4, 4, 4]] minx=0 maxx=249 miny=0 maxy=454 minz=0 maxz=242 timepoint=3 channel=0 angle=0 timeout=180000 verboselog=false showruncmd=false");
+```
+
+opens an ImageJ image specified in the command. We believe most of the parameters are self-explanatory,
+except for which chunks are actually addressed. So, this information is hidden behind the
+`resolutionlevelsasstr`, which provides a particular chunk size used for that resolution
+level, and behind the `minx` and `maxx` (and of course also the `y`- and `z`-variants), which
+defines the ROI in pixels w.r.t. the chosen resolution level and which gets ``rounded'' to the
+smallest encompasing block of chunks. So, the fetched image may be larger than what was specified.
+
+To download one chunk that contains pixel at pixel coordinates x,y,z, it is enough to set, e.g.,
+`minx=x maxx=x` and also for the remaining axes. To download a full image, a `minx=0 maxx=999999`
+works because the plugin internally narrows-down the requested interval to keep it within the
+actual image size along each dimension.
+
+We also provide convenience short-hand variants of reading and writing full images, e.g., `run("Read Full Image",...)`
+but, at the moment, they don't function as *blocking* reads and writes.
+
+In conclusion, it is enough to replace, e.g., `open('path/to/image.tif');` one-liner with the one above
+to switch to using the DataStore. In this light, the DataStore could be understood as yet another image
+file format.
+
 
 ### GUI Enhanced Download Macro
+To turn a particular DataStore dataset into a series of TIFFs, we provide example macros with
+explicit parameters for the operation and that can be harvested using a GUI dialog. For example:
+
+![Example of Fiji macro downloading image from DataStore](imgs/macro-downloads-from-datastore.png)
+
+[The macro is to be found here.](https://github.com/fiji-hpc/hpc-datastore-fiji/tree/master/src/main/ijm)
