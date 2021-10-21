@@ -83,7 +83,7 @@ The access parameters are:
 - dataset id: bd2e4ae0-64bb-48d7-8154-1c9846edbff6
 
 ## Testing it with BigDataViewer
-To test it out, [navigate your BigDataViewer](APPLICATIONS.md#bdv-mastodon-and-friends),
+To test it out, [navigate your BigDataViewer](doc/APPLICATIONS.md#bdv-mastodon-and-friends),
 which comes with [Fiji](https://imagej.net/software/fiji/downloads), on that particular dataset.
 The outcome could look like this:
 
