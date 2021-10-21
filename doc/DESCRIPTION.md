@@ -145,7 +145,7 @@ It is perfectly possible to just overwrite any existing version, even an older o
 
 ## N5, Zarr and NGFF
 The server-side can be understood [as an HTTP server with own addressing scheme](https://docs.google.com/document/d/1ZeLc83dyNE9USBuvSCLEVGK-zQzUKFb7VGhOlVIRBvU/edit)
-that wraps around the N5 API. As hinted [above](DESCRIPTION.md#connection-scheme) it is possible
+that wraps around the N5 API. As hinted [above](#connection-scheme) it is possible
 to switch to using the Zarr N5 backend in the NGFF dialect.
 
 ## Clients

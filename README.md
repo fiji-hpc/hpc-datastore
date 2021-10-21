@@ -34,7 +34,7 @@ The repository recognizes three types of branches:
 - topic branch(es) host particular piece of development, it spins-off from the `master` and merges back.
 
 # Starting the server
-To make the DataStore act truly as [an image file format on its own](APPLICATIONS.md#a-storage-independent-image-fileformat)
+To make the DataStore act truly as [an image file format on its own](doc/APPLICATIONS.md#a-storage-independent-image-fileformat)
 with no compromise in performance, it is advisable to operate one's own DataStore server.
 In what follows is precisely how to do it.
 
