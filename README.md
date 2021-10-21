@@ -8,7 +8,7 @@ The server is storing image data using the [N5](https://github.com/saalfeldlab/n
 in a [BigDataViewer](https://imagej.net/plugins/bdv) unique [XML/N5 dialect.](doc/DESCRIPTION.md#the-bdv-dialect)
 The server communicates with its clients using [our own simple protocol.](https://docs.google.com/document/d/1ZeLc83dyNE9USBuvSCLEVGK-zQzUKFb7VGhOlVIRBvU/edit)
 
-[Motivation, reasoning, application examples and more
+[Motivation](doc/HISTORY.md) as well [some reasoning, application examples and more
 details in general can be found here.](doc/OUTLINE.md)
 
 ## Notes that shall not be overlooked...
@@ -24,8 +24,8 @@ to be active and help) -- we want to preserve [the current access scheme](doc/DE
 Everything needs its time, you know.
 
 ## Technicalities
-This repository hosts implementation of the DatasetsRegisterService
-and DatasetServer, as [discussed here](doc/DESCRIPTION.md#connection-scheme).
+This repository hosts implementation of the *DatasetsRegisterService*
+and *DatasetServer*, as [discussed here](doc/DESCRIPTION.md#connection-scheme).
 
 The repository recognizes three types of branches:
 
@@ -33,8 +33,11 @@ The repository recognizes three types of branches:
 - `master` branch hosts the current development, the `production` branch adjoins `master` from time to time,
 - topic branch(es) host particular piece of development, it spins-off from the `master` and merges back.
 
-
 # Starting the server
+To make the DataStore act truly as [an image file format on its own](APPLICATIONS.md#a-storage-independent-image-fileformat)
+with no compromise in performance, it is advisable to operate one's own DataStore server.
+In what follows is precisely how to do it.
+
 ## From command line
 The easiest way to get the server up and running is to execute the following:
 
@@ -100,7 +103,7 @@ Or, try to download one or more images from the DataStore:
 Here, [have *HPC-DataStore* update site installed in your Fiji](doc/imgs/datastore-fiji-update-site.png),
 then start *Request Dataset Serving* in the *HPC DataStore* menu, provide the access information (left dialog window),
 convenience dialog (right window) shows up that aids and guards the user when changing the dialog items. Eventually,
-the requested image (or its sub-region based on what chunks are requested) gets downloaded. Notice the IJM macro
+the requested image (or its sub-region based on what chunks are requested) gets downloaded. Notice the ImageJ macro
 command reported for exactly that operation. One could cut-and-paste it as such or as a template into own macros.
 
 Again, the *HPC-DataStore* Fiji update site should be enabled to obtain the client plugins:

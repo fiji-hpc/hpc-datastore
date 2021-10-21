@@ -1,17 +1,31 @@
 In this documentation of the DataStore project you can learn about the following topics:
 
+# [Some historical perspective](HISTORY.md)
+
+
 # [The Brief Intro aka README.md](../README.md)
+- [HPC DataStore](../README.md#hpc-datastore)
+  - [Notes that shall not be overlooked...](../README.md#notes-that-shall-not-be-overlooked)
+  - [Technicalities](../README.md#technicalities)
+- [Starting the server](../README.md#starting-the-server)
+  - [From command line](../README.md#from-command-line)
+  - [From IDE](../README.md#from-ide)
+- [Public testing server](../README.md#public-testing-server)
+  - [Testing it with BigDataViewer](../README.md#testing-it-with-bigdataviewer)
+  - [Testing it with Fiji Client](../README.md#testing-it-with-fiji-client)
+
 
 # [Description](DESCRIPTION.md)
 - [Connection Scheme](DESCRIPTION.md#connection-scheme)
 - [Storage Architecture](DESCRIPTION.md#storage-architecture)
+  - [The BDV Dialect](DESCRIPTION.md#the-bdv-dialect)
 - [Chunks](DESCRIPTION.md#chunks)
 - [Multi-resolution](DESCRIPTION.md#multi-resolution)
-- [Versions of Data](DESCRIPTION.md#cersions-of-data)
+- [Versions of Data](DESCRIPTION.md#versions-of-data)
 - [N5, Zarr and NGFF](DESCRIPTION.md#n5,-zarr-and-ngff)
 - [Clients](DESCRIPTION.md#clients)
   - [A Minimal Download Macro](DESCRIPTION.md#a-minimal-download-macro)
-  - [GUI Enhanced Download Macro](DESCRIPTION.md#GUI-enhanced-download-macro)
+  - [GUI Enhanced Download Macro](DESCRIPTION.md#gui-enhanced-download-macro)
 
 
 # [Features](FEATURES.md)
@@ -23,9 +37,12 @@ In this documentation of the DataStore project you can learn about the following
 
 
 # [Applications](APPLICATIONS.md)
+- [A Storage Independent Image Fileformat](APPLICATIONS.md#a-storage-independent-image-fileformat)
 - [Gateway to S3 Storage](APPLICATIONS.md#gateway-to-s3-storage)
 - [BDV, Mastodon and Friends](APPLICATIONS.md#bdv-mastodon-and-friends)
+  - [BDV Browses BDS](APPLICATIONS.md#bdv-browses-bds)
+  - [BDV Opens Tailored XML](APPLICATIONS.md#bdv-opens-tailored-xml)
 - [HPC Cluster](APPLICATIONS.md#hpc-cluster)
 
 
-# [How-To](HOWTO.md)
+# [How-Tos](HOWTO.md)
