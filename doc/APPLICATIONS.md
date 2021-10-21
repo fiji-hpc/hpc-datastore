@@ -68,10 +68,10 @@ or with
 curl http://HOST:PORT/bdv/DATASETID/V -o remote_dataset.xml
 ```
 
-or just by opening the URL in a web browser and ``saving the page as''.
+or just by opening the URL in a web browser and "saving the page as".
 
 Be sure to always download an updated XML from the DataStore server
-every time the dataset ``geometry'' is changed, e.g.,
+every time the dataset "geometry" is changed, e.g.,
 [after adding a new channel](FEATURES.md#adding-a-new-channel-to-existing-dataset).
 
 Also note that the [mixed versioning](FEATURES.md#mixing-of-versions) cannot be used yet in conjunction

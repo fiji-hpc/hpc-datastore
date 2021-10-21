@@ -5,7 +5,7 @@ The DataStore project is around the client-server principle, and it is summarize
 ![Connection time diagram](imgs/client_server_scheme.png)
 
 The server-side is running a persistent server *DatasetsRegisterService* that is the first point
-of contact to any client. This server manages most ``light-weight'' operations on its own, examples
+of contact to any client. This server manages most "light-weight" operations on its own, examples
 are creating, changing, deleting and foremost querying datasets.
 
 If the client decides it wants to download/upload image data, the *DatasetsRegisterService*, upon
@@ -59,7 +59,7 @@ to reach the same data.
 It is, nevertheless, possible (thought not tested yet) to operate the server with the
 [AWS-S3 backend](https://github.com/saalfeldlab/n5-aws-s3) in N5 and use the server as
 a gateway to some S3 storage. The user's application may consume the S3 content
-``transparently'' via its [DataStore client](https://github.com/fiji-hpc/hpc-datastore-fiji)
+"transparently" via its [DataStore client](https://github.com/fiji-hpc/hpc-datastore-fiji)
 and its connection to the DataStore server.
 
 ### The BDV Dialect
@@ -73,11 +73,11 @@ Notice the folder `export.n5` and the file `export.xml`, which is a typical sign
 The top-level folder `0` refers to a version of this dataset (explained below).
 
 ## Chunks
-One ``physical'' image (i.e., at one particular time point, at one particular channel, angle and
+One "physical" image (i.e., at one particular time point, at one particular channel, angle and
 resolution level) is stored as multiple 3D blocks which we call *chunks*. The chunk is contiguous
 3D volume. The size (lengths along all each dimension) of all chunks is fixed within the resolution
-level with the exception of the ``upper-border'' blocks that can be shorter in any dimension.
-The chunks ``factor'' the original image, that said, no two chunks have non-empty intersection
+level with the exception of the "upper-border" blocks that can be shorter in any dimension.
+The chunks "factor" the original image, that said, no two chunks have non-empty intersection
 yet union of all chunks makes up the image completely. Chunks are in principle synonyms to image
 blocks, tiles or ROIs.
 
@@ -93,7 +93,7 @@ for all time points, channels and angles at the same resolution level.
 The chunk sizes can be [queried anytime from the *DatasetsRegisterService*](FEATURES.md#querying-the-datastore-server) for every dataset.
 
 ## Multi-resolution
-One ``physical'' image is stored at multiple copies, which are called *resolution levels*.
+One "physical" image is stored at multiple copies, which are called *resolution levels*.
 Typically, there is always a base-level (aka full-resolution) copy and a few smaller (down-scaled,
 lower-resolution) copies more. Together it shall build a resolution pyramid.
 
@@ -113,7 +113,7 @@ The resolution levels can be [queried anytime from the *DatasetsRegisterService*
 Besides the six dimensions (x,y,z,time,channel,angle) we provide one more which we call *versions*.
 Technically, it is implemented as yet another full dataset [(notice the top-level folder `0` in the file listing)](#the-bdv-dialect)
 with the same chunk sizes, resolution levels, number of time points, channels and angles, voxel type,
-compression scheme, etc. The ``alter-ego'' datasets may be sparse again (i.e., with missing chunks).
+compression scheme, etc. The "alter-ego" datasets may be sparse again (i.e., with missing chunks).
 
 The motivation is that one typically creates many versions of a test image during the development of an
 image processing algorithm. One typically saves the versions of the test image as separate files to have
@@ -124,7 +124,7 @@ dataset, which could simplify a couple of technical finesses.
 The most interesting feature is the version mixing during which the *DatasetServer* fetches chunks
 from the highest version available. This way, one can update (i.e., upload into a new version) only
 a portion of the image (e.g., only chunks that display any part of an embryo, or chunks into which
-a scale bar was in-printed) but have the ``locally-updated'' image composed and displayed.
+a scale bar was in-printed) but have the "locally-updated" image composed and displayed.
 The other use case is simply the ability to have revisions, to create new and delete old.
 
 The versions are chosen with the `versionasstr` parameter in the macros, or the GUI dialog windows.
@@ -177,7 +177,7 @@ opens an ImageJ image specified in the command. We believe most of the parameter
 except for which chunks are actually addressed. So, this information is hidden behind the
 `resolutionlevelsasstr`, which provides a particular chunk size used for that resolution
 level, and behind the `minx` and `maxx` (and of course also the `y`- and `z`-variants), which
-defines the ROI in pixels w.r.t. the chosen resolution level and which gets ``rounded'' to the
+defines the ROI in pixels w.r.t. the chosen resolution level and which gets "rounded" to the
 smallest encompassing block of chunks. So, the fetched image may be larger than what was specified.
 
 To download one chunk that contains pixel at pixel coordinates x,y,z, it is enough to set, e.g.,

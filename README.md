@@ -12,7 +12,7 @@ The server communicates with its clients using [our own simple protocol.](https:
 details in general can be found here.](doc/OUTLINE.md)
 
 ## Notes that shall not be overlooked...
-Folks, this is a young project. Still quite a few things are ``under heavy development''.
+Folks, this is a young project. Still quite a few things are "under heavy development".
 Also the functionality of the [reference Fiji client](https://github.com/fiji-hpc/hpc-datastore-fiji)
 is often a bit lacking behind what the server currently can do. But the future is bright :-)
 
