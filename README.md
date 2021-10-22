@@ -23,6 +23,8 @@ BigDataViewer will be able to read Zarr files directly on disk (where we also pl
 to be active and help) -- we want to preserve [the current access scheme](doc/DESCRIPTION.md#storage-architecture).
 Everything needs its time, you know.
 
+Contact person: Vladimir Ulman <vladimir.ulman@vsb.cz>
+
 ## Technicalities
 This repository hosts implementation of the *DatasetsRegisterService*
 and *DatasetServer*, as [discussed here](doc/DESCRIPTION.md#connection-scheme).
