@@ -228,6 +228,19 @@ public class TestDatastore {
 		assertArrayEquals(data, outputData, "Result was: " + result.asString());
 	}
 
+	@Test
+	public void addChannels() {
+		for (int i = 0; i < 10; i++) {
+			Response result = withNoFollowRedirects().get("/datasets/" + uuid +
+				"/1/1/1/new/write?timeout=" + TIMEOUT);
+			assertEquals(307, result.getStatusCode(), "Should be redirected");
+
+			String redirectedURI = result.getHeader("Location");
+			with().baseUri(redirectedURI).post("/stop");
+		}
+		with().body("10").post("/datasets/" + uuid + "/channels");
+	}
+
 	private RequestSpecification withNoFollowRedirects() {
 		return with().config(RestAssuredConfig.config().redirect(RedirectConfig
 			.redirectConfig().followRedirects(false)));

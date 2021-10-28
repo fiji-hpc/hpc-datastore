@@ -122,7 +122,7 @@ public class DatasetRegisterServiceImpl {
 				.getPath());
 			new AddChannelTS().run(dataset, channels, getCompressionMapping().get(
 				Strings.nullToEmpty(dataset.getCompression().toUpperCase())));
-			dataset.setChannels(dataset.getAngles() + channels);
+			dataset.setChannels(dataset.getChannels() + channels);
 			datasetDAO.persist(dataset);
 
 		}
