@@ -49,7 +49,7 @@ public class TestDatastore {
 			return;
 		}
 		Response result = with().when().contentType("application/json").body(
-			" { \"voxelType\":\"uint32\", \"dimensions\":[\"1000\",\"1000\",\"1\"], \"timepoints\":\"2\", \"channels\":\"2\", \"angles\":\"2\", \"voxelUnit\": \"um\", \"voxelResolution\": [\"0.4\", \"0.4\", \"1\"], \"timepointResolution\": {\"value\":\"1\",\"unit\":\"min\"}, \"channelResolution\": {\"value\":\"0\",\"unit\":null}, \"angleResolution\": {\"value\":\"0\",\"unit\":null}, \"compression\": \"raw\", \"resolutionLevels\": [ {\"resolutions\":[\"1\",\"1\",\"1\"],\"blockDimensions\":[\"64\",\"64\",\"64\"] }, {\"resolutions\":[\"2\",\"2\",\"1\"],\"blockDimensions\":[\"64\",\"64\",\"64\"]} ]}")
+			" { \"voxelType\":\"uint32\", \"dimensions\":[1000,1000,1], \"timepoints\": 2, \"channels\": 2, \"angles\": 2, \"voxelUnit\": \"um\", \"voxelResolution\": [0.4, 0.4, 1], \"timepointResolution\": {\"value\": 1,\"unit\":\"min\"}, \"channelResolution\": {\"value\": 0,\"unit\":null}, \"angleResolution\": {\"value\":0 ,\"unit\":null}, \"compression\": \"raw\", \"resolutionLevels\": [ {\"resolutions\":[ 1, 1, 1],\"blockDimensions\":[ 64, 64, 64] }, {\"resolutions\":[ 2, 2, 1],\"blockDimensions\":[ 64, 64, 64]} ]}")
 			.post("/datasets").andReturn();
 		uuid = result.asString();
 		log.info("status {}", result.getStatusLine());
