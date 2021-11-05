@@ -62,12 +62,15 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 
 	public DatasetVersion findByUUIDVersion(UUID uuid, int version) {
 		Dataset dataset = findByUUID(uuid);
+		Optional<DatasetVersion> result;
 		if (version == -1) {
-			return dataset.getDatasetVersion().stream().max(Comparator.comparing(
-				DatasetVersion::getValue)).orElse(null);
+			result = dataset.getDatasetVersion().stream().max(Comparator.comparing(
+				DatasetVersion::getValue));
 		}
-		Optional<DatasetVersion> result = dataset.getDatasetVersion().stream()
-			.filter(v -> v.getValue() == version).findAny();
+		else {
+			result = dataset.getDatasetVersion().stream().filter(v -> v
+				.getValue() == version).findAny();
+		}
 		if (result.isEmpty()) {
 			throw new NotFoundException("Dataset with UUID = " + uuid +
 				" has no version " + version);

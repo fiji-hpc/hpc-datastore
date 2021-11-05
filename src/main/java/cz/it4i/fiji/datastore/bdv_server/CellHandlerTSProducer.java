@@ -19,6 +19,7 @@ import cz.it4i.fiji.datastore.ApplicationConfiguration;
 import cz.it4i.fiji.datastore.DatasetPathRoutines;
 import cz.it4i.fiji.datastore.register_service.Dataset;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
+import cz.it4i.fiji.datastore.register_service.DatasetVersion;
 import mpicbg.spim.data.SpimDataException;
 
 @ApplicationScoped
@@ -34,10 +35,10 @@ class CellHandlerTSProducer {
 		Dataset dataset = repository.findByUUID(uuid);
 
 		// only for check that version exists
-		repository.findByUUIDVersion(uuid, version);
+		DatasetVersion ds = repository.findByUUIDVersion(uuid, version);
 
 		Path xmlPath = DatasetPathRoutines.getXMLPath(configuration.getDatasetPath(
-			uuid), Math.max(version, 0));
+			uuid), ds.getValue());
 		try {
 			return new CellHandlerTS(dataset, baseURL, version, xmlPath.toRealPath()
 				.toString(), uuid + "_version-" + version, "/tmp/datastore");
