@@ -37,7 +37,7 @@ class CellHandlerTSProducer {
 		repository.findByUUIDVersion(uuid, version);
 
 		Path xmlPath = DatasetPathRoutines.getXMLPath(configuration.getDatasetPath(
-			uuid), version);
+			uuid), Math.max(version, 0));
 		try {
 			return new CellHandlerTS(dataset, baseURL, version, xmlPath.toRealPath()
 				.toString(), uuid + "_version-" + version, "/tmp/datastore");

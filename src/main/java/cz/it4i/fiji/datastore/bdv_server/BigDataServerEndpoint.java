@@ -55,7 +55,7 @@ public class BigDataServerEndpoint {
 	}
 
 	@GET
-	@Path("{" + UUID + "}/{" + VERSION_PARAM + ":[0-9]+}")
+	@Path("{" + UUID + "}/{" + VERSION_PARAM + "}")
 	public void getCell(@PathParam(UUID) String uuid,
 		@PathParam(VERSION_PARAM) String version,
 		@QueryParam(P_PARAM) String cellString,
@@ -71,7 +71,7 @@ public class BigDataServerEndpoint {
 	}
 
 	@GET
-	@Path("{" + UUID + "}/{" + VERSION_PARAM + ":[0-9]+}/settings")
+	@Path("{" + UUID + "}/{" + VERSION_PARAM + "}/settings")
 	public void getSettings(@PathParam(UUID) String uuid,
 		@PathParam(VERSION_PARAM) String version,
 		@Context HttpServletResponse response) throws IOException
@@ -81,7 +81,7 @@ public class BigDataServerEndpoint {
 	}
 
 	@GET
-	@Path("{" + UUID + "}/{" + VERSION_PARAM + ":[0-9]+}/png")
+	@Path("{" + UUID + "}/{" + VERSION_PARAM + "}/png")
 	public void getThumbnail(@PathParam(UUID) String uuid,
 		@PathParam(VERSION_PARAM) String version,
 		@Context HttpServletResponse response) throws IOException
@@ -95,17 +95,23 @@ public class BigDataServerEndpoint {
 		final String versionStr)
 	{
 		final java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
-		final int version = Integer.parseInt(versionStr);
-		String key = getKey(uuid, version);
+		final int version = stringToIntVersion(versionStr);
+		String key = getKey(uuid, versionStr);
 		URI baseURI = uri.getBaseUri();
 		String baseURL = baseURI.resolve("bdv/").resolve(uuidStr + "/").resolve(
-			versionStr)
-			.toString();
+			versionStr).toString();
 		return cellHandlersTS.computeIfAbsent(key, x -> cellHandlerTSProducer
 			.produce(baseURL, uuid, version));
 	}
 
-	private String getKey(UUID uuid, int version) {
+	private int stringToIntVersion(final String versionStr) {
+		if (versionStr.equals("mixedLatest")) {
+			return -1;
+		}
+		return Integer.parseInt(versionStr);
+	}
+
+	private String getKey(UUID uuid, String version) {
 		return uuid + ":" + version;
 	}
 }

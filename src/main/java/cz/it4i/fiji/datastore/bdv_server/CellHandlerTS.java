@@ -171,8 +171,9 @@ public class CellHandlerTS
 	{
 		final XmlIoSpimDataMinimal io = new XmlIoSpimDataMinimal();
 		final SpimDataMinimal spimData = io.load( xmlFilename );
-		final N5Writer writer = new DatasetFilesystemHandler(dataset).getWriter(
-			version);
+		DatasetFilesystemHandler tempDFH = new DatasetFilesystemHandler(dataset);
+		final N5Writer writer = 0 <= version ? tempDFH.getWriter(version) : tempDFH
+			.constructChainOfWriters();
 		final Map<String, DatasetAttributes> perPathDatasetAttribute =
 			new HashMap<>();
 
@@ -300,6 +301,9 @@ public class CellHandlerTS
 	{
 		if (settingsXmlString != null) {
 			respondWithString(response, "application/xml", settingsXmlString);
+		}
+		else {
+			response.sendError(HttpServletResponse.SC_NOT_FOUND, "settings.xml");
 		}
 	}
 

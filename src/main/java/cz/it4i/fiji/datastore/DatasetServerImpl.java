@@ -14,9 +14,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -28,12 +26,9 @@ import javax.ws.rs.NotFoundException;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
-import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
 import cz.it4i.fiji.datastore.register_service.OperationMode;
-import lombok.AllArgsConstructor;
-import lombok.experimental.Delegate;
 import mpicbg.spim.data.SpimDataException;
 
 @Default
@@ -116,28 +111,14 @@ public class DatasetServerImpl implements Closeable, Serializable {
 			resolutionLevels, mode);
 	}
 
-	private N5Writer constructChainOfWriters() throws IOException {
 
-		N5WriterItemOfChain result = null;
-		List<Integer> versions = new LinkedList<>(datasetFilesystemHandler
-			.getAllVersions());
-		Collections.sort(versions);
-		for (Integer i : versions) {
-			if (i > version) {
-				continue;
-			}
-			result = new N5WriterItemOfChain(datasetFilesystemHandler.getWriter(i),
-				result);
-		}
-		return result;
-	}
 
 	private N5Writer createN5Writer() throws IOException {
 		if (mixedVersion) {
 			if (mode.allowsWrite()) {
 				throw new IllegalArgumentException("Write is not possible for mixed version");
 			}
-			return constructChainOfWriters();
+			return datasetFilesystemHandler.constructChainOfWriters(version);
 		}
 		return datasetFilesystemHandler.getWriter(version);
 
@@ -157,52 +138,5 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 	public static void versionNotFound(int version) {
 		throw new NotFoundException("version " + version + " not found");
-	}
-
-	private interface ExcludeReadWriteMethod {
-		public DataBlock<?> readBlock(final String pathName,
-		final DatasetAttributes datasetAttributes, final long[] gridPosition)
-		throws IOException;
-	
-		public <T> void writeBlock(final String pathName,
-			final DatasetAttributes datasetAttributes, final DataBlock<T> dataBlock)
-			throws IOException;
-	
-	}
-
-	@AllArgsConstructor
-	private static class N5WriterItemOfChain implements N5Writer {
-
-		@Delegate(excludes = { ExcludeReadWriteMethod.class })
-		private final N5Writer innerWriter;
-
-		private final N5WriterItemOfChain next;
-
-		@Override
-		public DataBlock<?> readBlock(String pathName,
-			DatasetAttributes datasetAttributes, long[] gridPosition)
-			throws IOException
-		{
-			DataBlock<?> result = innerWriter.readBlock(pathName, datasetAttributes,
-				gridPosition);
-			if (result != null) {
-				return result;
-			}
-
-			if (next != null) {
-				return next.readBlock(pathName, datasetAttributes, gridPosition);
-			}
-			return null;
-		}
-
-		@Override
-		public <T> void writeBlock(String pathName,
-			DatasetAttributes datasetAttributes, DataBlock<T> dataBlock)
-			throws IOException
-		{
-			throw new UnsupportedOperationException(
-				"Writting mode is not supported for version mixedLatest");
-		}
-
 	}
 }

@@ -20,15 +20,20 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.NotFoundException;
 
 import org.apache.commons.io.FileUtils;
+import org.janelia.saalfeldlab.n5.DataBlock;
+import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
 import cz.it4i.fiji.datastore.register_service.Dataset;
+import lombok.AllArgsConstructor;
+import lombok.experimental.Delegate;
 
 public class DatasetFilesystemHandler {
 
@@ -120,6 +125,25 @@ public class DatasetFilesystemHandler {
 		FileUtils.deleteDirectory(versionPath.toFile());
 	}
 
+	public  N5Writer constructChainOfWriters() throws IOException {
+		return constructChainOfWriters(getLatestVersion());
+	}
+
+	public N5Writer constructChainOfWriters(int version) throws IOException {
+
+		N5WriterItemOfChain result = null;
+		List<Integer> versions = new LinkedList<>(this.getAllVersions());
+		Collections.sort(versions);
+		for (Integer i : versions) {
+			if (i > version) {
+				continue;
+			}
+			result = new N5WriterItemOfChain(this.getWriter(i),
+				result);
+		}
+		return result;
+	}
+
 	private void createNewVersion(Path src, Path dst) throws IOException {
 		FileUtils.copyDirectory(src.toFile(), dst.toFile(),
 			DatasetFilesystemHandler::isNotBlockFileOrDir);
@@ -133,4 +157,51 @@ public class DatasetFilesystemHandler {
 		return !isBlockFileDirOrVersion(file);
 	}
 
+	@AllArgsConstructor
+	private static class N5WriterItemOfChain implements N5Writer {
+
+		@Delegate(excludes = { ExcludeReadWriteMethod.class })
+		private final N5Writer innerWriter;
+
+		private final N5WriterItemOfChain next;
+
+		@Override
+		public DataBlock<?> readBlock(String pathName,
+			DatasetAttributes datasetAttributes, long[] gridPosition)
+			throws IOException
+		{
+			DataBlock<?> result = innerWriter.readBlock(pathName, datasetAttributes,
+				gridPosition);
+			if (result != null) {
+				return result;
+			}
+
+			if (next != null) {
+				return next.readBlock(pathName, datasetAttributes, gridPosition);
+			}
+			return null;
+		}
+
+		@Override
+		public <T> void writeBlock(String pathName,
+			DatasetAttributes datasetAttributes, DataBlock<T> dataBlock)
+			throws IOException
+		{
+			throw new UnsupportedOperationException(
+				"Writting mode is not supported for version mixedLatest");
+		}
+
+	}
+
+	private interface ExcludeReadWriteMethod {
+
+		public DataBlock<?> readBlock(final String pathName,
+			final DatasetAttributes datasetAttributes, final long[] gridPosition)
+			throws IOException;
+
+		public <T> void writeBlock(final String pathName,
+			final DatasetAttributes datasetAttributes, final DataBlock<T> dataBlock)
+			throws IOException;
+
+	}
 }

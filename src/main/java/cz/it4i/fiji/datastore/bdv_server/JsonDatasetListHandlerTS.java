@@ -77,26 +77,36 @@ class JsonDatasetListHandlerTS
 		for (final DatasetVersion datasetVersion : dataset.getDatasetVersion())
 		{
 
-			final String datasetName = "dataset:" + dataset.getUuid() + ", version:" +
-				datasetVersion.getValue();
-
-			writer.name(datasetName).beginObject();
-
-			writer.name("id").value(datasetName);
-
-			// writer.name( "desc" ).value( contextHandler.getDescription() );
-			writer.name("description").value("NotImplemented");
-
-			writer.name("thumbnailUrl").value(
-				"https://toppng.com/public/uploads/thumbnail/zx-spectrum-computer-11549345586wizmb7tln1.png");
-
-			writer.name("datasetUrl").value(baseURI.resolve("/bdv/" +
-				dataset.getUuid() + "/" +
-				datasetVersion.getValue()).toString());
-
-			writer.endObject();
+			writeInfoAboutVersion(dataset, writer, baseURI, Integer.toString(
+				datasetVersion.getValue()));
 
 		}
+		if (!dataset.getDatasetVersion().isEmpty()) {
+			writeInfoAboutVersion(dataset, writer, baseURI, "mixedLatest");
+		}
 		return sb.toString();
+	}
+
+	public void writeInfoAboutVersion(Dataset dataset, final JsonWriter writer,
+		URI baseURI, String version) throws IOException
+	{
+		final String datasetName = "dataset:" + dataset.getUuid() + ", version:" +
+			version;
+
+		writer.name(datasetName).beginObject();
+
+		writer.name("id").value(datasetName);
+
+		// writer.name( "desc" ).value( contextHandler.getDescription() );
+		writer.name("description").value("NotImplemented");
+
+		writer.name("thumbnailUrl").value(
+			"https://toppng.com/public/uploads/thumbnail/zx-spectrum-computer-11549345586wizmb7tln1.png");
+
+		writer.name("datasetUrl").value(baseURI.resolve("/bdv/" +
+			dataset.getUuid() + "/" +
+			version + "/").toString());
+
+		writer.endObject();
 	}
 }

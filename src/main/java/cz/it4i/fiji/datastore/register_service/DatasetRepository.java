@@ -13,6 +13,7 @@ import io.quarkus.panache.common.Parameters;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -61,6 +62,10 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 
 	public DatasetVersion findByUUIDVersion(UUID uuid, int version) {
 		Dataset dataset = findByUUID(uuid);
+		if (version == -1) {
+			return dataset.getDatasetVersion().stream().max(Comparator.comparing(
+				DatasetVersion::getValue)).orElse(null);
+		}
 		Optional<DatasetVersion> result = dataset.getDatasetVersion().stream()
 			.filter(v -> v.getValue() == version).findAny();
 		if (result.isEmpty()) {
