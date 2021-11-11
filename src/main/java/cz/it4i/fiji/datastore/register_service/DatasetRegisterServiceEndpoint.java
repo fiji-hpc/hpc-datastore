@@ -281,7 +281,7 @@ public class DatasetRegisterServiceEndpoint {
 			return Response.serverError().entity(exc.getMessage()).type(
 				MediaType.TEXT_PLAIN).build();
 		}
-		return Response.status(Status.METHOD_NOT_ALLOWED).build();
+		return Response.ok().build();
 	}
 
 	@PUT
