@@ -7,6 +7,8 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.management;
 
+import static java.util.Optional.ofNullable;
+
 import io.quarkus.runtime.Quarkus;
 
 import java.io.IOException;
@@ -34,6 +36,7 @@ import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import cz.it4i.fiji.datastore.register_service.ResolutionLevel;
+import cz.it4i.fiji.datastore.security.SecurityModule;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -67,6 +70,9 @@ class DataServerManagerImpl implements DataServerManager {
 
 	@Inject
 	DatasetRepository datasetRepository;
+
+	@Inject
+	SecurityModule securityModule;
 
 	@Override
 	public URL startDataServer(UUID uuid, int[] r, int version,
@@ -202,12 +208,14 @@ class DataServerManagerImpl implements DataServerManager {
 				.append("-D" + PROPERTY_RESOLUTION + "=" + ResolutionLevel.toString(resolutions))
 				.append("-D" + PROPERTY_VERSION + "=" + version)
 				.append("-D" + PROPERTY_MODE + "=" + mode);
+		ofNullable( securityModule.getDataserverPropertyProperty()).ifPresent( p -> appender.append(p));
 		if (mixedVersion) {
 				appender.append("-D"+ MIXED_VERSION +"=" + mixedVersion);
 		}
 		if (timeout != null) {
 			appender.append("-D" + PROPERTY_DATA_STORE_TIMEOUT + "=" + timeout);
 		}
+		
 		
 		String classPath = System.getProperty("java.class.path");
 		if (classPath.endsWith("quarkus-run.jar")) {

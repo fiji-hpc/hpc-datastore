@@ -40,6 +40,7 @@ import org.janelia.saalfeldlab.n5.DataType;
 
 import cz.it4i.fiji.datastore.management.DataServerManager;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
+import cz.it4i.fiji.datastore.security.Authorization;
 import cz.it4i.fiji.datastore.timout_shutdown.TimeoutTimer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,7 +48,7 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
 
-
+@Authorization
 @ApplicationScoped
 @Log4j2
 @Path("/")
@@ -75,6 +76,7 @@ public class DatasetServerEndpoint implements Serializable {
 	@Inject
 	DataServerManager dataServerManager;
 
+	@Authorization
 	@Path("/")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
@@ -86,6 +88,7 @@ public class DatasetServerEndpoint implements Serializable {
 				dataServerManager.getServerTimeout()).build();
 	}
 
+	@Authorization
 	@TimeoutingRequest
 //@formatter:off
 	@Path("/{" + X_PARAM + "}"
@@ -136,6 +139,7 @@ public class DatasetServerEndpoint implements Serializable {
 
 	}
 
+	@Authorization
 	@TimeoutingRequest
 	// @formatter:off
 	@Path("/{" + X_PARAM + "}"
@@ -173,6 +177,7 @@ public class DatasetServerEndpoint implements Serializable {
 		return Response.ok().build();
 	}
 
+	@Authorization
 //@formatter:off
 	@Path("/datatype"
 			+"/{" + TIME_PARAM + "}"

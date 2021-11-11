@@ -45,3 +45,7 @@ cookies.txt
 
 # Vim #
 .*.sw*
+
+# Mac #
+.DS_Store
+

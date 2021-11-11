@@ -17,7 +17,6 @@ import cz.it4i.fiji.datastore.timout_shutdown.TimeoutTimer;
 import lombok.extern.log4j.Log4j2;
 
 //TODO locking datasets for read/write - with defined timeout
-//TODO Support for timeout
 //TODO Starting  remote dataservers - use registerservice for start
 //TODO - set proper working directory for tests - erase it after test running
 @QuarkusMain
@@ -28,6 +27,7 @@ public class App implements QuarkusApplication {
 	TimeoutTimer timer;
 
 	public static void main(String[] args) {
+
 		Quarkus.run(App.class, App::handleExit, args);
 	}
 

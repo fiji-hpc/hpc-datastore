@@ -33,8 +33,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import cz.it4i.fiji.datastore.security.Authorization;
 import lombok.extern.log4j.Log4j2;
 
+@Authorization
 @Log4j2
 @Path("/")
 public class DatasetRegisterServiceEndpoint {
@@ -58,6 +60,12 @@ public class DatasetRegisterServiceEndpoint {
 	@Inject
 	DatasetRegisterServiceImpl datasetRegisterServiceImpl;
 
+	@Path("/hello")
+	@GET
+	public Response hello() {
+		return Response.ok("<h1>Hello world</h1>").build();
+	}
+	
 	@GET
 	@PUT
 	@POST
@@ -229,11 +237,7 @@ public class DatasetRegisterServiceEndpoint {
 		@PathParam(VERSION_PARAMS) String versions)
 	{
 		log.info("deleting versions from dataset=" + uuid);
-		List<Integer> versionList = new LinkedList<>();
-		versionList.add(getVersion(version));
-		versionList.addAll(extractVersions(versions).stream().filter(e -> !e
-			.isEmpty()).map(DatasetRegisterServiceEndpoint::getVersion).collect(
-				Collectors.toList()));
+		List<Integer> versionList = getVersions(version, versions);
 		try {
 			datasetRegisterServiceImpl.deleteVersions(uuid, versionList);
 		}
@@ -243,7 +247,8 @@ public class DatasetRegisterServiceEndpoint {
 		}
 		return Response.ok().build();
 	}
-//@formatter:off
+
+	//@formatter:off
 	@GET
 	@Path("datasets/{" + UUID + "}" +
 			  "/{" + VERSION_PARAM + "}"+
@@ -325,6 +330,15 @@ public class DatasetRegisterServiceEndpoint {
 		resolutions.add(new int[] { rX, rY, rZ });
 		extract(resolutionString, resolutions);
 		return resolutions;
+	}
+
+	public static List<Integer> getVersions(String version, String versions) {
+		List<Integer> versionList = new LinkedList<>();
+		versionList.add(getVersion(version));
+		versionList.addAll(extractVersions(versions).stream().filter(e -> !e
+			.isEmpty()).map(DatasetRegisterServiceEndpoint::getVersion).collect(
+				Collectors.toList()));
+		return versionList;
 	}
 
 	private static void extract(String resolutionString,

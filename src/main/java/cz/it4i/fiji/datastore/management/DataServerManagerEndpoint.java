@@ -13,6 +13,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
+import cz.it4i.fiji.datastore.security.Authorization;
+
+@Authorization
 @Path("/")
 @ApplicationScoped
 public class DataServerManagerEndpoint {
