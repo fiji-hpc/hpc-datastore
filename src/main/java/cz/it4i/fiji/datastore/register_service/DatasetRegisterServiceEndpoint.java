@@ -27,9 +27,11 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -55,6 +57,17 @@ public class DatasetRegisterServiceEndpoint {
 
 	@Inject
 	DatasetRegisterServiceImpl datasetRegisterServiceImpl;
+
+	@GET
+	@PUT
+	@POST
+	@Path("datasets/{" + UUID + "}" + "/{" + VERSION_PARAM + "}" + "{" +
+		VERSION_PARAMS + ":/?.*}")
+	//@formatter:on
+	public Response notFound(@Context UriInfo request) {
+		return Response.status(Status.NOT_FOUND).entity(String.format(
+			"Resource %s not found", request.getPath())).build();
+	}
 
 //@formatter:off
 	@Path("datasets"
