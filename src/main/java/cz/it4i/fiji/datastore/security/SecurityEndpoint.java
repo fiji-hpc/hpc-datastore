@@ -138,11 +138,20 @@ public class SecurityEndpoint {
 	private static Response redirectToOAuthServerLogin(UriInfo request,
 		OAuthServer server)
 	{
-		String redirectURI = request.getRequestUri().toString();
+		URI redirectURI = request.getRequestUri();
+		redirectURI = fixURI(redirectURI);
 		return Response.temporaryRedirect(URI.create(format(
 			"%s?client_id=%s&redirect_uri=%s&response_type=code&scope=openid", server
-				.getAuthURI(), server.getClientID(), redirectURI)))
+				.getAuthURI(), server.getClientID(), redirectURI.toString())))
 			.build();
+	}
+
+	private static URI fixURI(URI uri) {
+		
+		if (uri.getScheme().equals("https")) {
+			uri = URI.create(uri.toString().replaceFirst(uri.getHost(), System.getProperty("quarkus.https.host")));
+		}
+		return uri;
 	}
 
 	private static Response oauthServerNotExists(String name) {

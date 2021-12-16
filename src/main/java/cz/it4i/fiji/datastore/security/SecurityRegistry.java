@@ -64,7 +64,7 @@ class SecurityRegistry {
 		if (securityDisabled == null) {
 			securityDisabled = propertyIsEmpty(Constants.SECURITY_TOKEN) &&
 				propertyIsEmpty(SECURITY_USERS) || propertyIsEmpty(SECURITY_SERVERS);
-			if (!securityDisabled) {
+			if (securityDisabled) {
 				log.warn("Security is disabled");
 			}
 		}
