@@ -149,7 +149,7 @@ public class SecurityEndpoint {
 	private static URI fixURI(URI uri) {
 		
 		if (uri.getScheme().equals("https")) {
-			uri = URI.create(uri.toString().replaceFirst(uri.getHost(), System.getProperty("quarkus.https.host")));
+			uri = URI.create(uri.toString().replaceFirst(uri.getHost(), System.getProperty("quarkus.http.host", uri.getHost())));
 		}
 		return uri;
 	}
