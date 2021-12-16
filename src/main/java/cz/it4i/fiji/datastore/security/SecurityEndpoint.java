@@ -138,10 +138,10 @@ public class SecurityEndpoint {
 	private static Response redirectToOAuthServerLogin(UriInfo request,
 		OAuthServer server)
 	{
+		String redirectURI = request.getRequestUri().toString();
 		return Response.temporaryRedirect(URI.create(format(
 			"%s?client_id=%s&redirect_uri=%s&response_type=code&scope=openid", server
-				.getAuthURI(), server.getClientID(), request.getAbsolutePath()
-					.toString())))
+				.getAuthURI(), server.getClientID(), redirectURI)))
 			.build();
 	}
 
