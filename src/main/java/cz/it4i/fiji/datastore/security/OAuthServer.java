@@ -29,6 +29,7 @@ import com.nimbusds.openid.connect.sdk.claims.UserInfo;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
 
 import javax.persistence.Entity;
 
@@ -128,7 +129,8 @@ class OAuthServer extends BaseEntity {
 		// Get the access token, the server may also return a refresh token
 		AccessToken accessToken = successResponse.getTokens().getAccessToken();
 		RefreshToken refreshToken = successResponse.getTokens().getRefreshToken();
-		return new UserTokens(accessToken.getValue(), refreshToken.getValue());
+		return new UserTokens(accessToken.getValue(), Optional.ofNullable(
+			refreshToken).map(RefreshToken::getValue).orElse(""));
 	}
 	
 	
