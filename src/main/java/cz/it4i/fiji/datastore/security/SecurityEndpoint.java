@@ -57,7 +57,8 @@ public class SecurityEndpoint {
 		if (code == null || code.isBlank()) {
 			return redirectToOAuthServerLogin(request, s);
 		}
-		UserTokens tokens = s.getuUserAccessToken(code, request.getAbsolutePath());
+		UserTokens tokens = s.getuUserAccessToken(code, fixURI(request
+			.getAbsolutePath()));
 		if (tokens == null) {
 			return Response.status(Status.BAD_REQUEST).entity(
 				"OAuth server request error").build();
