@@ -85,10 +85,10 @@ public class TestDatastore {
 		assertEquals(307, result.getStatusCode(), "Should be redirected");
 		redirectedURI = result.getHeader("Location");
 		result = with().baseUri(redirectedURI).contentType(	ContentType.BINARY).get("/0/0/0/0/0/0");
-		with().baseUri(redirectedURI).post("/stop");
 		assertEquals(ContentType.BINARY.toString(), result.contentType());
 		byte[] outputData = result.getBody().asByteArray();
 		assertArrayEquals(data, outputData, "Result was: " + result.asString());
+		with().baseUri(redirectedURI).post("/stop");
 	}
 
 	@Test
@@ -112,13 +112,11 @@ public class TestDatastore {
 		redirectedURI = result.getHeader("Location");
 		result = with().baseUri(redirectedURI).contentType(ContentType.BINARY).get(
 			"/0/0/0/0/0/0/0/1/0/0/0/0");
-		with().baseUri(redirectedURI).post("/stop");
 		assertEquals(ContentType.BINARY.toString(), result.contentType(),
 			"expected binary but obtained: " + result.body().asString());
 		byte[] outputData = result.getBody().asByteArray();
 		assertArrayEquals(data, outputData);
-
-
+		with().baseUri(redirectedURI).post("/stop");
 	}
 
 	@Test
@@ -148,11 +146,12 @@ public class TestDatastore {
 
 		Response result = with().baseUri(baseURI).contentType(ContentType.BINARY)
 			.get("/0/0/0/0/0/0/0/1/0/0/0/0");
-		with().baseUri(baseURI).post("/stop");
 		assertEquals(ContentType.BINARY.toString(), result.contentType(),
 			"expected binary but obtained: " + result.body().asString());
 		byte[] outputData = result.getBody().asByteArray();
 		assertArrayEquals(sentData, outputData);
+		with().baseUri(baseURI).post("/stop");
+
 	}
 
 	@Test
@@ -175,7 +174,6 @@ public class TestDatastore {
 		String redirectedURI = result.getHeader("Location");
 		result = with().baseUri(redirectedURI).contentType(ContentType.BINARY).get(
 			"/10/10/10/0/0/0");
-		with().baseUri(redirectedURI).post("/stop");
 		assertEquals(ContentType.BINARY.toString(), result.contentType());
 		byte[] outputData = result.getBody().asByteArray();
 		ByteBuffer bb = ByteBuffer.allocate(12);
@@ -184,6 +182,7 @@ public class TestDatastore {
 		bb.putInt(-1);
 		byte[] data = bb.array();
 		assertArrayEquals(data, outputData, "Result was: " + result.asString());
+		with().baseUri(redirectedURI).post("/stop");
 	}
 
 	@Test
@@ -211,7 +210,6 @@ public class TestDatastore {
 		redirectedURI = result.getHeader("Location");
 		result = with().baseUri(redirectedURI).contentType(ContentType.BINARY).get(
 			"/0/0/0/0/0/0/10/10/10/0/0/0/0/1/0/0/0/0");
-		with().baseUri(redirectedURI).post("/stop");
 		assertEquals(ContentType.BINARY.toString(), result.contentType());
 		byte[] outputData = result.getBody().asByteArray();
 		ByteBuffer bb = ByteBuffer.allocate(12);
@@ -224,8 +222,8 @@ public class TestDatastore {
 		bb.put(nonExistingData);
 		bb.put(data, data.length / 2, data.length / 2);
 		data = bb.array();
-
 		assertArrayEquals(data, outputData, "Result was: " + result.asString());
+		with().baseUri(redirectedURI).post("/stop");
 	}
 
 	@Test
