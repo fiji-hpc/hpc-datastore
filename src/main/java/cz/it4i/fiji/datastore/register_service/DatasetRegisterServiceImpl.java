@@ -12,7 +12,9 @@ import com.google.common.base.Strings;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -88,6 +90,9 @@ public class DatasetRegisterServiceImpl {
 		transaction.begin();
 		boolean trxActive = true;
 		try {
+			if (!Strings.nullToEmpty(datasetDTO.getLabel()).isBlank()) {
+				Files.createFile(path.resolve(datasetDTO.getLabel()));
+			}
 			Dataset dataset = DatasetAssembler.createDomainObject(datasetDTO);
 			dataset.setUuid(result);
 			dataset.setPath(path.toString());
@@ -97,7 +102,6 @@ public class DatasetRegisterServiceImpl {
 			datasetDAO.persist(dataset);
 			trxActive = false;
 			transaction.commit();
-
 		}
 		catch (SecurityException | IllegalStateException | RollbackException
 				| HeuristicMixedException | HeuristicRollbackException exc)
@@ -154,7 +158,10 @@ public class DatasetRegisterServiceImpl {
 
 	public DatasetDTO query(String uuid) {
 		Dataset dataset = getDataset(uuid);
-		return DatasetAssembler.createDatatransferObject(dataset);
+
+		DatasetDTO result = DatasetAssembler.createDatatransferObject(dataset);
+		result.setLabel(resolveLabel(dataset));
+		return result;
 	}
 
 	public String getCommonMetadata(String uuid) {
@@ -338,6 +345,17 @@ public class DatasetRegisterServiceImpl {
 
 		}
 
+	}
+
+	private String resolveLabel(Dataset dataset) {
+		try {
+			return Files.list(Paths.get(dataset.getPath())).filter(
+				Files::isRegularFile).findFirst().map(Path::toString).orElse(null);
+		}
+		catch (IOException exc) {
+			log.warn("resolve label", exc);
+			return null;
+		}
 	}
 
 }

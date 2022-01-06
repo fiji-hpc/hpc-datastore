@@ -114,4 +114,12 @@ public class DatasetDTO {
 	@Getter
 	@Setter
 	private List<Integer> versions;
+
+	@Getter
+	private String label;
+	
+	public void setLabel(String label) {
+		this.label = label.replaceAll("[:\\\\/*\"?|<>']", " ");
+	}
+
 }
