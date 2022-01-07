@@ -25,7 +25,7 @@ class AuthorizationInterceptor {
 	@AroundInvoke
 	public Object monitorInvocation(InvocationContext ctx) throws Exception {
 
-		log.info("Invocated for user {}", securityModule.getUserID());
+		log.debug("Invocated for user {}", securityModule.getUserID());
 		securityModule.checkAuthorization(ctx);
 		return ctx.proceed();
 	}
