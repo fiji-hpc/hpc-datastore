@@ -2,6 +2,10 @@ quarkus:
   http:
     port: 8080
     host: localhost
+    limits:
+      max-body-size: 200M
+    body:
+      preallocate-body-buffer: true
   datasource:
     db-kind: h2
     jdbc:
