@@ -9,6 +9,8 @@ package cz.it4i.fiji.datastore.register_service;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -112,6 +114,11 @@ public class Dataset extends BaseEntity {
 		return getResolutionLevelIndex().get(Arrays.toString(resolution));
 	}
 
+	public List<ResolutionLevel> getSortedResolutionLevels () {
+		return getResolutionLevel().stream().sorted(Comparator.comparingInt(
+			Dataset::area)).collect(Collectors.toList());
+	}
+
 	public int[] getBlockDimension(int[] resolution) {
 		ResolutionLevel rl = getResolutionLevel(resolution);
 		if (rl == null) {
@@ -127,5 +134,16 @@ public class Dataset extends BaseEntity {
 					rl.getResolutions()), rl -> rl));
 		}
 		return resolutionLevelIndex;
+	}
+
+	private static int area(ResolutionLevel rl) {
+		if (rl.getResolutions().length == 0) {
+			return 0;
+		}
+		int acc = 1;
+		for (int i : rl.getResolutions()) {
+			acc *= i;
+		}
+		return acc;
 	}
 }

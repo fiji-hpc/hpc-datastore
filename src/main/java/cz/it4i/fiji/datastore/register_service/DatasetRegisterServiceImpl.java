@@ -7,6 +7,8 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import static net.imglib2.cache.img.ReadOnlyCachedCellImgOptions.options;
+
 import com.google.common.base.Strings;
 
 import java.io.File;
@@ -23,6 +25,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -38,7 +42,11 @@ import javax.transaction.Transactional;
 import javax.transaction.UserTransaction;
 import javax.ws.rs.NotFoundException;
 
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.Intervals;
 
 import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.Bzip2Compression;
@@ -46,14 +54,22 @@ import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.janelia.saalfeldlab.n5.Lz4Compression;
+import org.janelia.saalfeldlab.n5.N5Writer;
 import org.janelia.saalfeldlab.n5.RawCompression;
 import org.janelia.saalfeldlab.n5.XzCompression;
+import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
+import bdv.export.ExportMipmapInfo;
+import bdv.export.ExportScalePyramid;
+import bdv.export.ExportScalePyramid.AfterEachPlane;
+import bdv.export.ExportScalePyramid.LoopbackHeuristic;
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS.N5Description;
 import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
+import cz.it4i.fiji.datastore.DatasetPathRoutines;
 import cz.it4i.fiji.datastore.DatasetServerImpl;
+import cz.it4i.fiji.datastore.N5Access;
 import cz.it4i.fiji.datastore.management.DataServerManager;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -169,6 +185,58 @@ public class DatasetRegisterServiceImpl {
 		return Strings.nullToEmpty(dataset.getMetadata());
 	}
 
+	public <T extends RealType<T> & NativeType<T>> void rebuild(String uuid,
+		int version, int time, int channel,
+		int angle) throws IOException, SpimDataException
+	{
+		
+		Dataset dataset = getDataset(uuid);
+		DatasetFilesystemHandler dfs = new DatasetFilesystemHandler(dataset
+			.getUuid().toString(), dataset.getPath());
+
+		N5Access n5Access = new N5Access(DatasetPathRoutines.getXMLPath(
+			configuration.getDatasetPath(
+			dataset.getUuid()), version), dfs.getWriter(version), Collections
+				.singletonList(dataset.getSortedResolutionLevels().get(0)
+					.getResolutions()), OperationMode.READ_WRITE);
+
+		final N5Writer writer = dfs.getWriter(version);
+		final RandomAccessibleInterval<T> img = N5Utils.open(writer, n5Access
+			.getViewSetupTimepoint(time, channel, angle).getPath(
+				IDENTITY_RESOLUTION));
+		final T type = img.randomAccess().get();
+		N5Access.ViewSetupTimepoint vst = n5Access.getViewSetupTimepoint(time,
+			channel, angle);
+		
+		
+		
+		
+
+		final N5DatasetIO<T> io = new N5DatasetIO<>(new SkippingScaleN5Writer(
+			writer, 1), vst.getCompression(), vst.getViewSetup().getId(), time, type);
+		//needs load class before call ExportScalePyramid.writeScalePyramid to avoid NuSuchMethodError
+		options().getClass().getMethods();
+		
+		ExportMipmapInfo emi = MipmapInfoAssembler.createExportMipmapInfo(dataset
+			.getSortedResolutionLevels().stream().skip(1).collect(Collectors
+				.toList()));
+		
+		int numThreads = numThreads();
+		final ExecutorService executorService = Executors.newFixedThreadPool(
+			numThreads());
+		try {
+			final boolean isVirtual = false;
+			final Runnable clearCache = () -> {};
+			ExportScalePyramid.writeScalePyramid(img, type, emi, io, executorService,
+				numThreads, createLoopbackHeuristic(isVirtual), createAfterEachPlane(
+					isVirtual, clearCache), new LoggerProgressWriter(log, "Rebuild"));
+		} finally {
+			executorService.shutdown();
+		}
+	}
+
+
+
 	@Transactional
 	public void setCommonMetadata(String uuid, String commonMetadata) {
 		Dataset dataset = getDataset(uuid);
@@ -203,21 +271,6 @@ public class DatasetRegisterServiceImpl {
 
 	}
 
-	public void rebuild(String uuid, List<int[]> resolutions) throws IOException {
-		Dataset dataset = getDataset(uuid);
-		List<cz.it4i.fiji.datastore.register_service.ResolutionLevel> resolutionLevels =
-			getNonIdentityResolutions(dataset, resolutions);
-		mergeVersions(dataset);
-		rebuildResolutionLevels(dataset, resolutionLevels);
-	}
-
-	@SuppressWarnings("unused")
-	private void rebuildResolutionLevels(Dataset dataset,
-		List<cz.it4i.fiji.datastore.register_service.ResolutionLevel> resolutionLevels)
-	{
-		// TODO down sampling
-	}
-
 	private void mergeVersions(Dataset dataset) throws IOException {
 		DatasetFilesystemHandler dfh = new DatasetFilesystemHandler(dataset);
 		Collection<Integer> versions = dfh.getAllVersions();
@@ -230,6 +283,26 @@ public class DatasetRegisterServiceImpl {
 		dfh.makeAsInitialVersion(minVersion);
 
 	}
+
+	/*private void checkeResolutions(List<ResolutionLevel> levels) {
+		int[] previousResolution = null;
+		for (ResolutionLevel level : levels) {
+			int[] resolution = level.getResolutions();
+			if (previousResolution == null) {
+				previousResolution = resolution;
+				continue;
+			}
+			for (int dim = 0; dim < previousResolution.length; dim++) {
+				if (resolution[dim] % previousResolution[dim] != 0) {
+					throw new UnsupportedOperationException(String.format(
+						"Cannot rescale from resolution %s to resolution %s", toString(
+							previousResolution), toString(resolution)));
+				}
+			}
+			previousResolution= resolution;
+		}
+	
+	}*/
 
 	private List<cz.it4i.fiji.datastore.register_service.ResolutionLevel>
 		getNonIdentityResolutions(Dataset dataset, List<int[]> resolutions)
@@ -356,6 +429,65 @@ public class DatasetRegisterServiceImpl {
 			log.warn("resolve label", exc);
 			return null;
 		}
+	}
+
+	/*private String toString(int[] resolution) {
+		return "[" + IntStream.of(resolution).mapToObj(i -> Integer.toString(i))
+			.collect(Collectors.joining(",")) +
+			"]";
+	}*/
+
+	private static int numThreads() {
+		return Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+	}
+
+	private static LoopbackHeuristic createLoopbackHeuristic(boolean isVirtual) {
+
+		final long planeSizeInBytes = -1;
+		final long maxMemory = Runtime.getRuntime().maxMemory();
+		return new LoopbackHeuristic() {
+
+			@Override
+			public boolean decide(final RandomAccessibleInterval<?> originalImg,
+				final int[] factorsToOriginalImg, final int previousLevel,
+				final int[] factorsToPreviousLevel, final int[] chunkSize)
+			{
+				if (previousLevel < 0) return false;
+
+				if (Intervals.numElements(factorsToOriginalImg) / Intervals.numElements(
+					factorsToPreviousLevel) >= 8) return true;
+
+				if (isVirtual) {
+					final long requiredCacheSize = planeSizeInBytes *
+						factorsToOriginalImg[2] * chunkSize[2];
+					if (requiredCacheSize > maxMemory / 4) return true;
+				}
+
+				return false;
+			}
+		};
+
+	}
+
+	private static AfterEachPlane createAfterEachPlane(final boolean isVirtual,
+		Runnable clearCache)
+	{
+		return new AfterEachPlane() {
+
+			@SuppressWarnings("unused")
+			@Override
+			public void afterEachPlane(final boolean usedLoopBack) {
+				if (!usedLoopBack && isVirtual) {
+					final long free = Runtime.getRuntime().freeMemory();
+					final long total = Runtime.getRuntime().totalMemory();
+					final long max = Runtime.getRuntime().maxMemory();
+					final long actuallyFree = max - total + free;
+
+					if (actuallyFree < max / 2) clearCache.run();
+				}
+			}
+
+		};
 	}
 
 }

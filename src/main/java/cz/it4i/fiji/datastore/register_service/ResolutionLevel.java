@@ -42,4 +42,11 @@ public class ResolutionLevel implements Serializable {
 		this.blockDimensions = blockDimensions;
 	}
 
+	@Override
+	public String toString() {
+		return "ResolutionLevel [levelId=" + levelId + ", resolutions=" + Arrays
+			.toString(resolutions) + ", blockDimensions=" + Arrays.toString(
+				blockDimensions) + "]";
+	}
+
 }

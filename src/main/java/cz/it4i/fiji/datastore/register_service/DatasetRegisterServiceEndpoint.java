@@ -7,6 +7,10 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import static cz.it4i.fiji.datastore.DatasetServerEndpoint.ANGLE_PARAM;
+import static cz.it4i.fiji.datastore.DatasetServerEndpoint.CHANNEL_PARAM;
+import static cz.it4i.fiji.datastore.DatasetServerEndpoint.TIME_PARAM;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -22,6 +26,8 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -35,6 +41,7 @@ import javax.ws.rs.core.UriInfo;
 
 import cz.it4i.fiji.datastore.security.Authorization;
 import lombok.extern.log4j.Log4j2;
+import mpicbg.spim.data.SpimDataException;
 
 @Authorization
 @Log4j2
@@ -145,33 +152,6 @@ public class DatasetRegisterServiceEndpoint {
 		}
 	}
 
-//@formatter:off
-	@Path("datasets"
-		  + "/{" + UUID + "}"
-			+ "/{" + R_X_PARAM + "}"
-			+ "/{" + R_Y_PARAM + "}"
-			+ "/{" + R_Z_PARAM +	"}"
-			+ "{" + RESOLUTION_PARAM + ":/?.*}"
-			+ "/rebuild")
-// @formatter:on
-	@GET
-	public Response rebuild(@PathParam(UUID) String uuid,
-		@PathParam(R_X_PARAM) int rX, @PathParam(R_Y_PARAM) int rY,
-		@PathParam(R_Z_PARAM) int rZ,
-		@PathParam(RESOLUTION_PARAM) String resolutionString)
-	{
-		log.info("rebuilding for dataset=" + uuid);
-		List<int[]> resolutions = getResolutions(rX, rY, rZ, resolutionString);
-		try {
-			datasetRegisterServiceImpl.rebuild(uuid, resolutions);
-		}
-		catch (IOException exc) {
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
-				.getMessage()).build();
-		}
-		return Response.ok().build();
-	}
-
 	@POST
 	@Path("datasets/")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -196,12 +176,7 @@ public class DatasetRegisterServiceEndpoint {
 	@Path("datasets/{" + UUID + "}")
 	public Response queryDataset(@PathParam(UUID) String uuid) {
 		log.info("get JSON for dataset=" + uuid);
-		DatasetDTO result;
-		result = datasetRegisterServiceImpl.query(uuid);
-		if (result == null) {
-			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
-				uuid + " not found.").build();
-		}
+		DatasetDTO result = datasetRegisterServiceImpl.query(uuid);
 		return Response.ok(result).type(MediaType.APPLICATION_JSON_TYPE).build();
 
 	}
@@ -321,6 +296,35 @@ public class DatasetRegisterServiceEndpoint {
 				uuid + " not found.").build();
 		}
 		return Response.ok(result).entity(result.getChannels()).build();
+	}
+
+	@PATCH
+	//@formatter:off
+	@Path("datasets"
+		  + "/{" + UUID + "}"
+			+ "/{" + TIME_PARAM + "}"
+			+ "/{" + CHANNEL_PARAM + "}"
+			+ "/{" + ANGLE_PARAM +		"}"
+			+ "/{" + VERSION_PARAM + "}"
+			+ "/rebuild")
+// @formatter:on
+	public Response rebuild(@PathParam(UUID) String uuid,
+		@PathParam(VERSION_PARAM) int version, @PathParam(TIME_PARAM) int time,
+		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle)
+	{
+		try {
+			datasetRegisterServiceImpl.rebuild(uuid, version, time, channel, angle);
+		}
+		catch (IOException exc) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
+				.getMessage()).build();
+		}
+		catch (SpimDataException exc) {
+			log.error("rebuild", exc);
+			throw new InternalServerErrorException(
+				"Rebuild failure. Contact administrator");
+		}
+		return Response.status(Status.NOT_IMPLEMENTED).build();
 	}
 
 	public List<int[]> getResolutions(int rX, int rY, int rZ,

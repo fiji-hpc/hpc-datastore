@@ -15,12 +15,14 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.DatasetAttributes;
@@ -30,6 +32,9 @@ import bdv.img.n5.BdvN5Format;
 import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceImpl;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import cz.it4i.fiji.datastore.register_service.ResolutionLevel;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -41,6 +46,77 @@ import mpicbg.spim.data.sequence.ViewSetup;
 
 @Log4j2
 public class N5Access {
+
+	@AllArgsConstructor(access = AccessLevel.PRIVATE)
+	public class ViewSetupTimepoint {
+
+		@Getter
+		private final ViewSetup viewSetup;
+
+		@Getter
+		private final int timeID;
+
+		public int getLevelID(int[] resolutions) {
+			return getLevelId(writer, viewSetup, timeID, resolutions);
+		}
+
+		public PathIdentification getPathIdentification(int[] resolution)
+			throws IOException
+		{
+			return new PathIdentification(getPath(resolution));
+		}
+
+		public String getPath(int[] resolution) {
+			return Optional.ofNullable(getLevelID(resolution)).map(
+				levelID -> BdvN5Format.getPathName(viewSetup.getId(), timeID, levelID))
+				.orElse(null);
+		}
+
+		public Compression getCompression() throws IOException {
+			Integer levelID = getAnyLevelId(writer, viewSetup, timeID);
+			String path = BdvN5Format.getPathName(viewSetup.getId(), timeID, levelID);
+			return writer.getDatasetAttributes(path).getCompression();
+		}
+	}
+
+	public class PathIdentification {
+
+		private final String path;
+
+		private final DatasetAttributes datasetAttributes;
+
+		private PathIdentification(String path) throws IOException {
+			this.path = path;
+			this.datasetAttributes = writer.getDatasetAttributes(path);
+		}
+
+		public DataBlock<?> read(long[] gridPosition) throws IOException
+		{
+			if (!mode.allowsRead()) {
+				throw new IllegalStateException("Mode " + mode +
+					" does not allow reading");
+			}
+			return writer.readBlock(path, datasetAttributes, gridPosition);
+		}
+
+		public void write(long[] gridPosition, InputStream inputStream)
+			throws IOException
+		{
+			if (!mode.allowsWrite()) {
+				throw new IllegalStateException("Mode " + mode +
+					" does not allow writing");
+			}
+			DataBlock<?> dataBlock = constructDataBlock(gridPosition,
+				datasetAttributes, inputStream);
+			checkBlockSize(dataBlock, datasetAttributes.getBlockSize());
+			writer.writeBlock(path, datasetAttributes, dataBlock);
+			writeBlockToOtherResolutions(dataBlock, gridPosition, path);
+		}
+
+		public long[] getDimensions() {
+			return datasetAttributes.getDimensions();
+		}
+	}
 
 	public static int getSizeOfElement(DataType dataType) {
 		switch (dataType) {
@@ -138,7 +214,7 @@ public class N5Access {
 			throw new IllegalStateException("Mode " + mode +
 				" does not allow reading");
 		}
-		String path = getPath(spimData, writer, time, channel, angle,
+		String path = getViewSetupTimepoint(time, channel, angle).getPath(
 			resolutionLevel);
 		if (path == null) {
 			return null;
@@ -154,20 +230,19 @@ public class N5Access {
 			throw new IllegalStateException("Mode " + mode +
 				" does not allow writing");
 		}
-		String path = getPath(spimData, writer, time, channel, angle,
+		String path = getViewSetupTimepoint(time, channel, angle).getPath(
 			resolutionLevel);
 		DatasetAttributes attributes = writer.getDatasetAttributes(path);
 		DataBlock<?> dataBlock = constructDataBlock(gridPosition, attributes,
 			inputStream);
 		checkBlockSize(dataBlock, attributes.getBlockSize());
 		writer.writeBlock(path, attributes, dataBlock);
-		writeBlockToOtherResolutions(dataBlock, gridPosition, time, channel, angle);
-
+		writeBlockToOtherResolutions(dataBlock, gridPosition, path);
 	}
 
 	public DataType getType(int time, int channel, int angle)
 	{
-		String path = getPath(spimData, writer, time, channel, angle,
+		String path = getViewSetupTimepoint(time, channel, angle).getPath(
 			DatasetRegisterServiceImpl.IDENTITY_RESOLUTION);
 		try {
 			return writer.getDatasetAttributes(path).getDataType();
@@ -178,9 +253,22 @@ public class N5Access {
 		}
 	}
 
+	public ViewSetupTimepoint getViewSetupTimepoint(int timeID, int channelID,
+		int angleID)
+	{
+		ViewSetup viewSetup = getViewSetup(spimData, channelID, angleID);
+		if (viewSetup == null) {
+			throw new IllegalArgumentException(String.format(
+				"Channel=%d and angle=%d not found.", channelID, angleID));
+		}
+		return new ViewSetupTimepoint(viewSetup, timeID);
+	}
+
+
+
 	@SuppressWarnings("unused")
 	private void writeBlockToOtherResolutions(DataBlock<?> dataBlock,
-		long[] gridPosition, int time, int channel, int angle)
+		long[] gridPosition, String path)
 	{
 		if (downsamplingResolutionsLevels.isEmpty()) {
 			return;
@@ -224,28 +312,6 @@ public class N5Access {
 		return constructDataBlock(gridPosition, inputStream, dataType);
 	}
 
-	private static String getPath(AbstractSpimData<SequenceDescription> spimData,
-		N5Writer writer, int time,
-		int channel, int angle, int[] resolutionLevel)
-	{
-		ViewSetup viewSetup = getViewSetup(spimData, channel, angle);
-		if (viewSetup == null) {
-			throw new IllegalArgumentException(String.format(
-				"Channel=%d and angle=%d not found.", channel, angle));
-		}
-		return getPath(writer, time, viewSetup, resolutionLevel);
-	}
-
-	private static String getPath(N5Writer writer, int timeId,
-		ViewSetup viewSetup, int[] resolutionLevel)
-	{
-		Integer levelId = getLevelId(writer, viewSetup, timeId, resolutionLevel);
-		if (levelId == null) {
-			return null;
-		}
-		return BdvN5Format.getPathName(viewSetup.getId(), timeId, levelId);
-	}
-
 	private static Integer getLevelId(N5Writer writer, ViewSetup viewSetup,
 		int timId, int[] resolutionLevel)
 	{
@@ -262,6 +328,29 @@ public class N5Access {
 														.findAny()
 														.map(Integer::valueOf)
 														.orElse(null);
+		// @formatter:on
+		}
+		catch (IOException exc) {
+			log.warn("Listing group :" + baseGroup, exc);
+			return -1;
+		}
+	}
+
+	private static Integer getAnyLevelId(N5Writer writer, ViewSetup viewSetup,
+		int timId)
+	{
+		String baseGroup = BdvN5Format.getPathName(viewSetup.getId(), timId);
+
+		try {
+			Pattern levelGroupPattern = Pattern.compile("s(\\p{Digit}+)");
+			// @formatter:off			
+			return Arrays.asList(writer.list(baseGroup))
+														.stream().map(levelGroupPattern::matcher)
+														.filter(Matcher::matches)
+														.map(m -> m.group(1))
+														.findAny()
+														.map(Integer::valueOf)
+														.get();
 		// @formatter:on
 		}
 		catch (IOException exc) {

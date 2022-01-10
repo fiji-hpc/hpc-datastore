@@ -8,6 +8,7 @@
 package cz.it4i.fiji.datastore.register_service;
 
 import java.util.Arrays;
+import java.util.List;
 
 import bdv.export.ExportMipmapInfo;
 import cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel;
@@ -31,6 +32,20 @@ public class MipmapInfoAssembler {
 				resolutionLevels[i].resolutions.length);
 			subdivisions[i] = Arrays.copyOf(resolutionLevels[i].blockDimensions,
 				resolutionLevels[i].blockDimensions.length);
+		}
+		return new ExportMipmapInfo(resolutions, subdivisions);
+	}
+
+	public static ExportMipmapInfo createExportMipmapInfo(
+		List<cz.it4i.fiji.datastore.register_service.ResolutionLevel> resolutionLevels)
+	{
+		int[][] resolutions = new int[resolutionLevels.size()][];
+		int[][] subdivisions = new int[resolutionLevels.size()][];
+		int i = 0;
+		for (cz.it4i.fiji.datastore.register_service.ResolutionLevel rl : resolutionLevels) {
+			resolutions[i] = rl.getResolutions();
+			subdivisions[i] = rl.getBlockDimensions();
+			i++;
 		}
 		return new ExportMipmapInfo(resolutions, subdivisions);
 	}
