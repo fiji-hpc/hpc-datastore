@@ -11,7 +11,7 @@ The server communicates with its clients using [our own simple protocol.](https:
 [Motivation](doc/HISTORY.md) as well [some reasoning, application examples and more
 details in general can be found here.](doc/OUTLINE.md)
 
-[Table of contents is here.](doc/OUTLINE.md)
+## [Table of contents is here.](doc/OUTLINE.md)
 
 ## Notes that shall not be overlooked...
 Folks, this is a young project. Still quite a few things are "under heavy development".
