@@ -3,8 +3,9 @@
 ## A Storage-Independent Image Fileformat
 Consider the following. Start a local server.
 Create there and work with some dataset on it (locally), later move the data elsewhere without
-changing the addressing path (well, except for the host, port and dataset name -- because the
-*DatasetsRegisterService* defines dataset names on its own to avoid name clashes).
+changing the addressing path (well, except for the host, port ~~~and dataset name because the
+*DatasetsRegisterService* defines dataset names on its own to avoid name clashes~~~.
+Dataset name need not be changed because it is already as UUID and thus unique).
 
 The expectation is that moving the main folder with DataStore data within a local file
 system amounts to restarting the DataStore server on the new path, client code remains
