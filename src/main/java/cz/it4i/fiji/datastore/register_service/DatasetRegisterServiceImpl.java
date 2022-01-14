@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,6 +65,8 @@ import bdv.export.ExportScalePyramid.LoopbackHeuristic;
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS.N5Description;
+import cz.it4i.fiji.datastore.core.DatasetDTO;
+import cz.it4i.fiji.datastore.core.MipmapInfoAssembler;
 import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
 import cz.it4i.fiji.datastore.DatasetPathRoutines;
 import cz.it4i.fiji.datastore.DatasetServerImpl;
@@ -174,9 +175,7 @@ public class DatasetRegisterServiceImpl {
 
 	public DatasetDTO query(String uuid) {
 		Dataset dataset = getDataset(uuid);
-
 		DatasetDTO result = DatasetAssembler.createDatatransferObject(dataset);
-		result.setLabel(resolveLabel(dataset));
 		return result;
 	}
 
@@ -217,7 +216,7 @@ public class DatasetRegisterServiceImpl {
 		//needs load class before call ExportScalePyramid.writeScalePyramid to avoid NuSuchMethodError
 		options().getClass().getMethods();
 		
-		ExportMipmapInfo emi = MipmapInfoAssembler.createExportMipmapInfo(dataset
+		ExportMipmapInfo emi = createExportMipmapInfo(dataset
 			.getSortedResolutionLevels().stream().skip(1).collect(Collectors
 				.toList()));
 		
@@ -420,22 +419,25 @@ public class DatasetRegisterServiceImpl {
 
 	}
 
-	private String resolveLabel(Dataset dataset) {
-		try {
-			return Files.list(Paths.get(dataset.getPath())).filter(
-				Files::isRegularFile).findFirst().map(Path::toString).orElse(null);
-		}
-		catch (IOException exc) {
-			log.warn("resolve label", exc);
-			return null;
-		}
-	}
-
 	/*private String toString(int[] resolution) {
 		return "[" + IntStream.of(resolution).mapToObj(i -> Integer.toString(i))
 			.collect(Collectors.joining(",")) +
 			"]";
 	}*/
+
+	private static ExportMipmapInfo createExportMipmapInfo(
+		List<cz.it4i.fiji.datastore.register_service.ResolutionLevel> resolutionLevels)
+	{
+		int[][] resolutions = new int[resolutionLevels.size()][];
+		int[][] subdivisions = new int[resolutionLevels.size()][];
+		int i = 0;
+		for (cz.it4i.fiji.datastore.register_service.ResolutionLevel rl : resolutionLevels) {
+			resolutions[i] = rl.getResolutions();
+			subdivisions[i] = rl.getBlockDimensions();
+			i++;
+		}
+		return new ExportMipmapInfo(resolutions, subdivisions);
+	}
 
 	private static int numThreads() {
 		return Math.max(1, Runtime.getRuntime().availableProcessors() - 1);

@@ -10,9 +10,15 @@ package cz.it4i.fiji.datastore.register_service;
 import javax.persistence.Entity;
 
 import cz.it4i.fiji.datastore.BaseEntity;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 public class ViewSetup extends BaseEntity {
 	

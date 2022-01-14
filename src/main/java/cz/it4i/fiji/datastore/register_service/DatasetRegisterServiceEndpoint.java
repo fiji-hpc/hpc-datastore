@@ -39,6 +39,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import cz.it4i.fiji.datastore.core.DatasetDTO;
 import cz.it4i.fiji.datastore.security.Authorization;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
@@ -73,7 +74,6 @@ public class DatasetRegisterServiceEndpoint {
 		return Response.ok("<h1>Hello world</h1>").build();
 	}
 	
-	@GET
 	@PUT
 	@POST
 	@Path("datasets/{" + UUID + "}" + "/{" + VERSION_PARAM + "}" + "{" +
@@ -200,6 +200,7 @@ public class DatasetRegisterServiceEndpoint {
 		log.info("deleting (GET) dataset=" + uuid);
 		return deleteDataset(uuid);
 	}
+
 
 //@formatter:off
 	@DELETE

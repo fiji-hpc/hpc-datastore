@@ -7,6 +7,7 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.bdv_server;
 
+import static cz.it4i.fiji.datastore.core.Version.stringToIntVersion;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.UUID;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.VERSION_PARAM;
 
@@ -51,7 +52,7 @@ public class BigDataServerEndpoint {
 		@Context HttpServletResponse response) throws IOException
 	{
 		jsonDatasetListHandlerTS.run(java.util.UUID.fromString(uuid), response,
-			uri.getBaseUri());
+			uri.getRequestUri());
 	}
 
 	@GET
@@ -90,7 +91,6 @@ public class BigDataServerEndpoint {
 		ts.runForThumbnail(response);
 	}
 
-
 	private CellHandlerTS getCellHandler(String uuidStr,
 		final String versionStr)
 	{
@@ -104,12 +104,6 @@ public class BigDataServerEndpoint {
 			.produce(baseURL, uuid, version));
 	}
 
-	private int stringToIntVersion(final String versionStr) {
-		if (versionStr.equals("mixedLatest")) {
-			return -1;
-		}
-		return Integer.parseInt(versionStr);
-	}
 
 	private String getKey(UUID uuid, String version) {
 		return uuid + ":" + version;

@@ -33,11 +33,17 @@ class JsonDatasetListHandlerTS
 		URI baseURI)
 		throws IOException
 	{
-		list(uuid, response, baseURI);
+		run(uuid, response, baseURI, false);
+	}
+
+	public void run(UUID uuid, final HttpServletResponse response, URI baseURI,
+		boolean allVersionsInOne) throws IOException
+	{
+		list(uuid, response, baseURI, allVersionsInOne);
 	}
 
 	private void list(UUID uuid, final HttpServletResponse response,
-		URI baseURI)
+		URI baseURI, boolean allVersionsInOne)
 		throws IOException
 	{
 		Dataset dataset = datasetRepository.findByUUID(uuid);
@@ -46,12 +52,12 @@ class JsonDatasetListHandlerTS
 		response.setStatus( HttpServletResponse.SC_OK );
 
 		try (final PrintWriter ow = response.getWriter()) {
-			getJsonDatasetList(dataset, ow, baseURI);
+			getJsonDatasetList(dataset, ow, baseURI, allVersionsInOne);
 		}
 	}
 
 	private void getJsonDatasetList(Dataset dataset, final PrintWriter out,
-		URI baseURI)
+		URI baseURI, boolean allVersionsInOne)
 		throws IOException
 	{
 		try (final JsonWriter writer = new JsonWriter(out)) {
@@ -60,7 +66,7 @@ class JsonDatasetListHandlerTS
 
 			writer.beginObject();
 
-			getContexts(dataset, writer, baseURI);
+			getContexts(dataset, writer, baseURI, allVersionsInOne);
 
 			writer.endObject();
 
@@ -70,19 +76,25 @@ class JsonDatasetListHandlerTS
 	}
 
 	private String getContexts(Dataset dataset, final JsonWriter writer,
-		URI baseURI)
+		URI baseURI, boolean allVersionsInOne)
 		throws IOException
 	{
 		final StringBuilder sb = new StringBuilder();
-		for (final DatasetVersion datasetVersion : dataset.getDatasetVersion())
-		{
+		if (!allVersionsInOne) {
+			for (final DatasetVersion datasetVersion : dataset.getDatasetVersion()) {
 
-			writeInfoAboutVersion(dataset, writer, baseURI, Integer.toString(
-				datasetVersion.getValue()));
+				writeInfoAboutVersion(dataset, writer, baseURI, Integer.toString(
+					datasetVersion.getValue()));
 
+			}
+			if (!dataset.getDatasetVersion().isEmpty()) {
+				writeInfoAboutVersion(dataset, writer, baseURI, "mixedLatest");
+			}
 		}
-		if (!dataset.getDatasetVersion().isEmpty()) {
-			writeInfoAboutVersion(dataset, writer, baseURI, "mixedLatest");
+		else {
+			if (!dataset.getDatasetVersion().isEmpty()) {
+				writeInfoAboutVersion(dataset, writer, baseURI, "all");
+			}
 		}
 		return sb.toString();
 	}
@@ -99,13 +111,12 @@ class JsonDatasetListHandlerTS
 
 		// writer.name( "desc" ).value( contextHandler.getDescription() );
 		writer.name("description").value("NotImplemented");
-
+		boolean endsWithSlash = baseURI.toString().endsWith("/");
 		writer.name("thumbnailUrl").value(
 			"https://toppng.com/public/uploads/thumbnail/zx-spectrum-computer-11549345586wizmb7tln1.png");
-
-		writer.name("datasetUrl").value(baseURI.resolve("/bdv/" +
-			dataset.getUuid() + "/" +
-			version + "/").toString());
+		writer.name("datasetUrl").value(baseURI.resolve((endsWithSlash ? "../"
+			: "./") + version + "/")
+			.toString());
 
 		writer.endObject();
 	}

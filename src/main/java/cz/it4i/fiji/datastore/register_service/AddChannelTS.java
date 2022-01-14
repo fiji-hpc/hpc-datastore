@@ -7,7 +7,7 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
-import static cz.it4i.fiji.datastore.register_service.MipmapInfoAssembler.createExportMipmapInfo;
+import static cz.it4i.fiji.datastore.core.MipmapInfoAssembler.createExportMipmapInfo;
 
 import java.io.IOException;
 import java.nio.file.Path;

@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import cz.it4i.fiji.datastore.core.DatasetDTO;
+
 
 
 public class DatasetAssembler {
@@ -41,7 +43,7 @@ public class DatasetAssembler {
 		if (dto == null) {
 			return null;
 		}
-		return new Resolution(dto.value, dto.unit);
+		return new Resolution(dto.getValue(), dto.getUnit());
 	}
 	
 	
@@ -50,8 +52,8 @@ public class DatasetAssembler {
 	{
 
 		Stream<ResolutionLevel> resLevels = Arrays.asList(resolutionLevels)
-			.stream().map(dto -> new ResolutionLevel(dto.resolutions,
-				dto.blockDimensions));
+			.stream().map(dto -> new ResolutionLevel(dto.getResolutions(), dto
+				.getBlockDimensions()));
 		
 		return Streams.zip(IntStream.iterate(1, i -> i + 1).mapToObj(i -> Integer
 			.valueOf(i)), resLevels, (i, r) -> {
@@ -66,6 +68,7 @@ public class DatasetAssembler {
 		// @formatter:off
 		return DatasetDTO
 				.builder()
+				.uuid(dataset.getUuid())
 				.voxelType(dataset.getVoxelType())
 				.dimensions(dataset.getDimensions())
 				.voxelUnit(dataset.getVoxelUnit())
@@ -76,29 +79,30 @@ public class DatasetAssembler {
 				.compression(dataset.getCompression())
 				.resolutionLevels(createDatatransferObject(dataset.getResolutionLevel()))
 				.versions(dataset.getDatasetVersion().stream().map(DatasetVersion::getValue).collect(Collectors.toList()))
+				.label(dataset.getLabel())
 				.build();
 	// @formatter:on
 	}
 
 	public static
-		cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel[]
+		cz.it4i.fiji.datastore.core.DatasetDTO.ResolutionLevel[]
 		createDatatransferObject(
 		Collection<ResolutionLevel> resolutionLevel)
 	{
 
-		cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel[] result =
-			new cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel[resolutionLevel
+		cz.it4i.fiji.datastore.core.DatasetDTO.ResolutionLevel[] result =
+			new cz.it4i.fiji.datastore.core.DatasetDTO.ResolutionLevel[resolutionLevel
 				.size()];
 		int i = 0;
 		for (ResolutionLevel rl : resolutionLevel) {
 			result[i++] =
-				new cz.it4i.fiji.datastore.register_service.DatasetDTO.ResolutionLevel(
+				new cz.it4i.fiji.datastore.core.DatasetDTO.ResolutionLevel(
 					rl.getResolutions(), rl.getBlockDimensions());
 		}
 		return result;
 	}
 
-	private static cz.it4i.fiji.datastore.register_service.DatasetDTO.Resolution
+	private static cz.it4i.fiji.datastore.core.DatasetDTO.Resolution
 		createDatatransferObject(Resolution resolution)
 	{
 		if (resolution == null) {

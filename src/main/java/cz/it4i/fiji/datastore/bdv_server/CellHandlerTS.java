@@ -12,10 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
@@ -38,21 +36,19 @@ import org.jdom2.output.XMLOutputter;
 
 import bdv.BigDataViewer;
 import bdv.img.cache.VolatileGlobalCellCache;
-import bdv.img.hdf5.DimsAndExistence;
 import bdv.img.hdf5.Hdf5ImageLoader;
-import bdv.img.hdf5.MipmapInfo;
 import bdv.img.n5.BdvN5Format;
 import bdv.img.remote.AffineTransform3DJsonSerializer;
 import bdv.img.remote.RemoteImageLoader;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
+import cz.it4i.fiji.datastore.core.DatasetDTO;
+import cz.it4i.fiji.datastore.core.HPCDatastoreImageLoaderMetaData;
 import cz.it4i.fiji.datastore.register_service.Dataset;
 import cz.it4i.fiji.datastore.register_service.DatasetAssembler;
-import cz.it4i.fiji.datastore.register_service.MipmapInfoAssembler;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.registration.ViewRegistration;
 
 @Log4j2
 public class CellHandlerTS 
@@ -147,7 +143,7 @@ public class CellHandlerTS
 	private final String datasetXmlString;
 
 	/**
-	 * Cached JSON representation of the {@link RemoteImageLoaderMetaData} to be
+	 * Cached JSON representation of the {@link HPCDatastoreImageLoaderMetaData} to be
 	 * send to clients.
 	 */
 	private final String metadataJson;
@@ -197,7 +193,6 @@ public class CellHandlerTS
 		// dataSetURL property is used for providing the XML file by replace
 		// SequenceDescription>ImageLoader>baseUrl
 		baseFilename = xmlFilename.endsWith( ".xml" ) ? xmlFilename.substring( 0, xmlFilename.length() - ".xml".length() ) : xmlFilename;
-
 		datasetXmlString = buildRemoteDatasetXML( io, spimData, baseUrl );
 		metadataJson = buildMetadataJsonString(spimData, dataset);
 		settingsXmlString = buildSettingsXML( baseFilename );
@@ -335,7 +330,7 @@ public class CellHandlerTS
 
 
 	/**
-	 * Create a JSON representation of the {@link RemoteImageLoaderMetaData}
+	 * Create a JSON representation of the {@link HPCDatastoreImageLoaderMetaData}
 	 * (image sizes and resolutions) provided by the given
 	 * {@link Hdf5ImageLoader}.
 	 * 
@@ -343,77 +338,27 @@ public class CellHandlerTS
 	private static String buildMetadataJsonString(SpimDataMinimal spimData,
 		Dataset dataset)
 	{
-		List<int[]> levels = dataset.getResolutionLevel().stream().map(l -> l
-			.getResolutions()).collect(
-			Collectors.toList());
-		final RemoteImageLoaderMetaData metadata = new RemoteImageLoaderMetaData(
-			spimData.getSequenceDescription(), createPerSetupMipmapInfo(spimData,
-				dataset),
-			x -> new DimsAndExistence(getDimensions(dataset.getDimensions(), levels
-				.get(x.getLevel())), true),
-			DataType.fromString(dataset.getVoxelType()));
+		DatasetDTO datasetDTO = DatasetAssembler.createDatatransferObject(dataset);
+		final HPCDatastoreImageLoaderMetaData metadata = new HPCDatastoreImageLoaderMetaData(
+			datasetDTO, spimData.getSequenceDescription(), spimData
+				.getViewRegistrations(), DataType.fromString(dataset.getVoxelType()));
 		final GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.registerTypeAdapter( AffineTransform3D.class, new AffineTransform3DJsonSerializer() );
 		gsonBuilder.enableComplexMapKeySerialization();
 		return gsonBuilder.create().toJson( metadata );
 	}
 
-	private static long[] getDimensions(long[] dimensions,
-		int[] resolution)
-	{
-		long[] result = new long[dimensions.length];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = dimensions[i] / resolution[i];
-		}
-		return result;
-	}
-
-	private static Map<Integer, MipmapInfo> createPerSetupMipmapInfo(
-		SpimDataMinimal spimData, Dataset dataset)
-	{
-
-		Map<Integer, MipmapInfo> result = new HashMap<>();
-		MipmapInfo exportInfo = MipmapInfoAssembler.createExportMipmapInfo(DatasetAssembler
-			.createDatatransferObject(dataset.getResolutionLevel()));
-		for (ViewRegistration registration : spimData.getViewRegistrations().getViewRegistrationsOrdered())
-		{
-			if (!result.containsKey(registration.getViewSetupId())) {
-				AffineTransform3D[] transforms = new AffineTransform3D[dataset
-					.getResolutionLevel().size()];
-				AffineTransform3D affine = new AffineTransform3D();
-
-				for (int i = 0; i < transforms.length; i++) {
-					transforms[i] = affine.copy();
-					double[] level = exportInfo.getResolutions()[i];
-					transforms[i].scale(level[0], level[1], level[2]);
-					// translate for center upper level
-					transforms[i].translate(level[0] / 2 - 0.5, level[1] / 2 - 0.5,
-						level[2] / 2 - 0.5);
-				}
-				MipmapInfo info = new MipmapInfo(exportInfo.getResolutions(),
-					transforms, exportInfo.getSubdivisions());
-				result.put(registration.getViewSetupId(), info);
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Create a modified dataset XML by replacing the ImageLoader with an
-	 * {@link RemoteImageLoader} pointing to the data we are serving.
-	 */
-	private static String buildRemoteDatasetXML(final XmlIoSpimDataMinimal io,
-		final SpimDataMinimal spimData, final String baseUrl) throws IOException,
+	private String buildRemoteDatasetXML(XmlIoSpimDataMinimal io,
+		SpimDataMinimal spimData, String baseUrl) throws IOException,
 		SpimDataException
 	{
-		final SpimDataMinimal s = new SpimDataMinimal(spimData,
-			new RemoteImageLoader(baseUrl, false));
-		final Document doc = new Document(io.toXml(s, s.getBasePath()));
-		final XMLOutputter xout = new XMLOutputter( Format.getPrettyFormat() );
-		final StringWriter sw = new StringWriter();
-		xout.output( doc, sw );
+		StringWriter sw = new StringWriter();
+		BuildRemoteDatasetXmlTS.run(io, spimData, new RemoteImageLoader(baseUrl,
+			false), sw);
 		return sw.toString();
 	}
+
+
 
 	/**
 	 * Read {@code baseFilename.settings.xml} into a string if it exists.

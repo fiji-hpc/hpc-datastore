@@ -7,11 +7,15 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import static cz.it4i.fiji.datastore.DatasetPathRoutines.getXMLPath;
+
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Parameters;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Optional;
@@ -23,6 +27,10 @@ import javax.enterprise.inject.Default;
 import javax.ws.rs.NotFoundException;
 
 import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
+import lombok.extern.log4j.Log4j2;
+import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.XmlIoSpimData;
 
 /*import org.apache.deltaspike.data.api.AbstractEntityRepository;
 import org.apache.deltaspike.data.api.Query;
@@ -30,6 +38,7 @@ import org.apache.deltaspike.data.api.Repository;*/
 
 //@Repository(forEntity = Dataset.class)
 
+@Log4j2
 @Default
 @ApplicationScoped
 public class DatasetRepository implements PanacheRepository<Dataset>,
@@ -50,14 +59,15 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 		DatasetFilesystemHandler dfh = new DatasetFilesystemHandler(null, result
 			.get().getPath());
 		try {
-			result.get().setDatasetVersion( dfh.getAllVersions().stream().map(v -> new DatasetVersion(v, Paths.get(
-				result.get().getPath()).resolve("" + v).toString())).collect(Collectors
-					.toList()));
+			Dataset resultDataset = result.get();
+			resolveVersion(dfh, resultDataset);
+			resolveLabel(resultDataset);
+			resolveViewSetups(resultDataset);
+			return resultDataset;
 		}
-		catch (IOException exc) {
+		catch (IOException | SpimDataException exc) {
 			throw new RuntimeException(exc);
 		}
-		return result.get();
 	}
 
 	public DatasetVersion findByUUIDVersion(UUID uuid, int version) {
@@ -76,5 +86,37 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 				" has no version " + version);
 		}
 		return result.get();
+	}
+
+	private void resolveVersion(DatasetFilesystemHandler dfh,
+		Dataset resultDataset) throws IOException
+	{
+		resultDataset.setDatasetVersion(dfh.getAllVersions().stream().map(
+			v -> new DatasetVersion(v, Paths.get(resultDataset.getPath()).resolve("" +
+				v).toString())).collect(Collectors.toList()));
+	}
+
+	private void resolveLabel(Dataset dataset) {
+		try {
+			String label = Files.list(Paths.get(dataset.getPath())).filter(
+				Files::isRegularFile).findFirst().map(Path::getFileName).map(
+					Path::toString).orElse(null);
+			dataset.setLabel(label);
+		}
+		catch (IOException exc) {
+			log.warn("resolve label", exc);
+			
+		}
+	}
+
+	private void resolveViewSetups(Dataset resultDataset)
+		throws SpimDataException
+	{
+		SpimData spimData = new XmlIoSpimData().load(getXMLPath(Paths.get(
+			resultDataset.getPath()), 0).toString());
+		resultDataset.setViewSetup(spimData.getSequenceDescription()
+			.getViewSetupsOrdered().stream().map(vs -> ViewSetup.builder().index(vs
+				.getId()).angleId(vs.getAngle().getId()).channelId(vs.getChannel()
+					.getId()).build()).collect(Collectors.toList()));
 	}
 }

@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
 import cz.it4i.fiji.datastore.BaseEntity;
@@ -55,9 +54,10 @@ public class Dataset extends BaseEntity {
 	@Transient
 	private Collection<DatasetVersion> datasetVersion;
 	
+
 	@Getter
 	@Setter
-	@OneToMany
+	@Transient
 	private Collection<ViewSetup> viewSetup;
 	
 //TODO  voxelType is a org.janelia.saalfeldlab.n5.DataType
@@ -109,6 +109,11 @@ public class Dataset extends BaseEntity {
 	@Getter
 	@Setter
 	private String compression;
+
+	@Getter
+	@Setter
+	@Transient
+	private String label;
 
 	public ResolutionLevel getResolutionLevel(int[] resolution) {
 		return getResolutionLevelIndex().get(Arrays.toString(resolution));
