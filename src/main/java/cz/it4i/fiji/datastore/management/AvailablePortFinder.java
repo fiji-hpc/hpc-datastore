@@ -16,6 +16,9 @@ import java.util.Random;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
 @ApplicationScoped
 public class AvailablePortFinder {
 
@@ -29,13 +32,20 @@ public class AvailablePortFinder {
 	}
 
 	private int[] createRange(String param) {
-		String[] tokens = param.split("[,;]");
-		if (tokens.length == 1) {
-			return new int[] { Integer.parseInt(tokens[0]), 65553 };
-		}
+		try {
+			String[] tokens = param.split("[,;]");
+			if (tokens.length == 1) {
+				return new int[] { Integer.parseInt(tokens[0]), 65553 };
+			}
 
-		return new int[] { Integer.parseInt(tokens[0]), Integer.parseInt(
-			tokens[0]) };
+			return new int[] { Integer.parseInt(tokens[0]), Integer.parseInt(
+				tokens[0]) };
+		}
+		catch (NumberFormatException exc) {
+			log.warn("Illegal value '{}' for property '{}'. Used '0,65535' instead.",
+				param, PORTS_RANGE);
+			return null;
+		}
 	}
 	
 	
