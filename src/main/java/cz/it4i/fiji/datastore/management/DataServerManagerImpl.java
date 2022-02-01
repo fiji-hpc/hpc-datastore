@@ -13,7 +13,6 @@ import io.quarkus.runtime.Quarkus;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -61,6 +60,8 @@ class DataServerManagerImpl implements DataServerManager {
 
 	private static String PROPERTY_MODE = "fiji.hpc.data_store.mode";
 
+
+
 	private Queue<Process> processes = new LinkedBlockingDeque<>();
 
 	private Long dataserverTimeout;
@@ -73,6 +74,9 @@ class DataServerManagerImpl implements DataServerManager {
 
 	@Inject
 	SecurityModule securityModule;
+
+	@Inject
+	AvailablePortFinder portFinder;
 
 	@Override
 	public URL startDataServer(UUID uuid, int[] r, int version,
@@ -183,18 +187,12 @@ class DataServerManagerImpl implements DataServerManager {
 		return hostName;
 	}
 
-	private static Integer findRandomOpenPortOnAllLocalInterfaces()
-		throws IOException
-	{
-		try (ServerSocket socket = new ServerSocket(0);) {
-			return socket.getLocalPort();
-		}
-	}
+
 
 	private URL startDataServer(UUID uuid, List<int[]> resolutions, int version,
 		boolean mixedVersion, OperationMode mode, Long timeout) throws IOException
 	{
-		Integer port = findRandomOpenPortOnAllLocalInterfaces();
+		int port = portFinder.findAvailablePort(getHostName());
 		ProcessBuilder pb = new ProcessBuilder().inheritIO();
 		List<String> commandAsList = new LinkedList<>();
 		//@formatter:off
