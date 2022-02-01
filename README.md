@@ -76,6 +76,7 @@ Run the class _cz.it4i.fiji.datastore.App_. It accepts the following properties:
 - datastore.path
 - quarkus.http.port
 - quarkus.http.host
+- datastore.ports
 
 You can pass them as a parameter to the JVM with the `-D<property.name>` construct.
 

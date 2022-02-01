@@ -19,7 +19,7 @@ import javax.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class AvailablePortFinder {
 
-	private static String PORTS_RANGE = "fiji.hpc.data_store.ports";
+	private static String PORTS_RANGE = "datastore.ports";
 
 	private final int[] range;
 
