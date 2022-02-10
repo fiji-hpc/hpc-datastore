@@ -13,6 +13,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -119,8 +120,8 @@ public final class GetSpimDataMinimalTS {
 			{
 				ViewRegistration viewRegistration = new ViewRegistration(
 					origViewRegistration.getTimePointId(), origSetupIdPerNewOne.get(
-						origViewRegistration.getViewSetupId()), origViewRegistration
-							.getModel());
+						origViewRegistration.getViewSetupId()), new ArrayList<>(
+							origViewRegistration.getTransformList()));
 				viewRegistrations.put(viewRegistration, viewRegistration);
 				origViewregistrationPerNewOne.put(origViewRegistration,
 					viewRegistration);

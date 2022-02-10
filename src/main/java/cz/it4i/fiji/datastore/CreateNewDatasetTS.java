@@ -15,9 +15,13 @@ import static cz.it4i.fiji.datastore.base.Factories.constructViewSetup;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -33,6 +37,7 @@ import bdv.export.ExportMipmapInfo;
 import bdv.img.hdf5.MipmapInfo;
 import bdv.img.hdf5.Util;
 import bdv.img.n5.N5ImageLoader;
+import cz.it4i.fiji.datastore.core.ViewTransformDTO;
 import lombok.Builder;
 import lombok.NonNull;
 import mpicbg.spim.data.SpimData;
@@ -41,6 +46,8 @@ import mpicbg.spim.data.XmlIoSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewRegistration;
 import mpicbg.spim.data.registration.ViewRegistrations;
+import mpicbg.spim.data.registration.ViewTransform;
+import mpicbg.spim.data.registration.ViewTransformAffine;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.Channel;
 import mpicbg.spim.data.sequence.Illumination;
@@ -55,9 +62,23 @@ public class CreateNewDatasetTS {
 
 	public static void createN5Structure(Path pathToDir, DataType voxelType,
 		long[] dimensions, Compression compression, MipmapInfo mipmapInfo,
+		SequenceDescription sequenceDescription) throws IOException
+	{
+		final List<Integer> setupIds = sequenceDescription.getViewSetupsOrdered()
+			.stream().map(BasicViewSetup::getId).collect(Collectors.toList());
+		final List<Integer> timepointIds = sequenceDescription.getTimePoints()
+			.getTimePointsOrdered().stream().map(TimePoint::getId).collect(Collectors
+				.toList());
+		createN5Structure(pathToDir, voxelType, dimensions, compression, mipmapInfo,
+			sequenceDescription, setupIds, timepointIds);
+	}
+
+	public static void createN5Structure(Path pathToDir, DataType voxelType,
+		long[] dimensions, Compression compression, MipmapInfo mipmapInfo,
 		SequenceDescription sequenceDescription, final List<Integer> setupIds,
 		final List<Integer> timepointIds) throws IOException
 	{
+
 		N5Writer n5 = new N5FSWriter(pathToDir.toFile().getAbsolutePath());
 		final int[][] resolutions = Util.castToInts(mipmapInfo.getResolutions());
 		final int[][] subdivisions = mipmapInfo.getSubdivisions();
@@ -71,7 +92,6 @@ public class CreateNewDatasetTS {
 			n5.setAttribute(pathName, DATA_TYPE_KEY, voxelType);
 		}
 		for (final int timepointId : timepointIds) {
-	
 			// assemble the viewsetups that are present in this timepoint
 			for (final int setupId : setupIds) {
 				final int numLevels = mipmapInfo.getNumLevels();
@@ -118,79 +138,22 @@ public class CreateNewDatasetTS {
 		Path pathToXML = getXMLPath(path, DatasetFilesystemHandler.INITIAL_VERSION);
 
 		Path pathToDir = DatasetPathRoutines.getDataPath(pathToXML);
-		SpimData data = createNew(pathToDir, dsc.voxelType, dsc.dimensions,
-			dsc.voxelDimensions, dsc.timepoints, dsc.channels, dsc.angles,
-			dsc.transforms,
-			dsc.compression, dsc.exportMipmapInfo);
+		SpimData data = createNew(pathToDir, dsc);
 		new XmlIoSpimData().save(data, pathToXML.toString());
 	}
 
-	private SpimData createNew(Path pathToDir, DataType voxelType,
-		long[] dimensions, VoxelDimensions voxelDimensions, int timepoints,
-		int channels, int angles, AffineTransform3D[] transforms,
-		Compression compression, MipmapInfo mipmapInfo)
+	private SpimData createNew(Path pathToDir, N5Description description)
 		throws IOException
 	{
-
-		final Collection<TimePoint> timepointsCol = IntStream.range(0, timepoints)
-			.<TimePoint> mapToObj(TimePoint::new).collect(Collectors.toList());
-
-		Collection<ViewSetup> viewSetups = generateViewSetups(dimensions,
-			voxelDimensions, channels, angles);
-
-		SequenceDescription sequenceDescription = new SequenceDescription(
-			new TimePoints(timepointsCol), viewSetups, null);
-
-		final List<Integer> setupIds = sequenceDescription.getViewSetupsOrdered()
-			.stream().map(BasicViewSetup::getId).collect(Collectors.toList());
-		final List<Integer> timepointIds = sequenceDescription.getTimePoints()
-			.getTimePointsOrdered().stream().map(TimePoint::getId).collect(Collectors
-				.toList());
-
-		createN5Structure(pathToDir, voxelType, dimensions, compression,
-			mipmapInfo, sequenceDescription, setupIds, timepointIds);
-
-
-		sequenceDescription = new SequenceDescription(new TimePoints(timepointsCol),
-			viewSetups, new N5ImageLoader(pathToDir.toFile(), sequenceDescription));
-		SpimData result = new SpimData(pathToDir.toFile(), sequenceDescription,
-			new ViewRegistrations(generateViewRegistrations(timepointsCol, viewSetups,
-				transforms)));
+		SpimData result = new SPIMDataProducer(pathToDir, description).spimData;
+		createN5Structure(pathToDir, description.voxelType, description.dimensions,
+			description.compression, description.exportMipmapInfo, result
+				.getSequenceDescription());
 		return result;
 	}
 
-	private Collection<ViewSetup> generateViewSetups(long[] dimensions,
-		VoxelDimensions voxelDimensions, int channels, int angles)
-	{
-		Collection<ViewSetup> viewSetups = new LinkedList<>();
-		Illumination illumination = new Illumination(0);
-		int setupId = 0;
-		for (int channel = 0; channel < channels; channel++) {
-			for (int angle = 0; angle < angles; angle++) {
-				Angle angleObj = new Angle(angle);
-				Channel channelObj = new Channel(channel);
-				ViewSetup vs = constructViewSetup(setupId, dimensions, voxelDimensions,
-					channelObj, angleObj, illumination);
-				viewSetups.add(vs);
-				setupId++;
-			}
-		}
-		return viewSetups;
-	}
 
-	private Collection<ViewRegistration> generateViewRegistrations(
-		Collection<TimePoint> timepoints, Collection<ViewSetup> viewSetups,
-		AffineTransform3D[] transforms)
-	{
-		Collection<ViewRegistration> result = new LinkedList<>();
-		for (ViewSetup viewSetup : viewSetups) {
-			for (TimePoint timePoint : timepoints) {
-				result.add(new ViewRegistration(timePoint.getId(), viewSetup.getId(),
-					transforms[viewSetup.getAngle().getId()]));
-			}
-		}
-		return result;
-	}
+
 
 	@Builder
 	public static class N5Description {
@@ -220,6 +183,106 @@ public class CreateNewDatasetTS {
 
 		@NonNull
 		private final ExportMipmapInfo exportMipmapInfo;
+
+		private final Collection<cz.it4i.fiji.datastore.core.ViewRegistrationDTO> viewRegistrations;
+
+
+	}
+
+	private static class SPIMDataProducer {
+
+		final Collection<TimePoint> timepointsCol;
+		final Collection<ViewSetup> viewSetups;
+		final SpimData spimData;
+		final Map<Integer, Map<Integer, ViewSetup>> perAngleAndChannelViewSetup =
+			new HashMap<>();
+
+		SPIMDataProducer(Path pathToDir, N5Description description) {
+			timepointsCol = IntStream.range(0, description.timepoints)
+				.<TimePoint> mapToObj(
+				TimePoint::new).collect(Collectors.toList());
+
+			viewSetups = generateViewSetups(
+				description.dimensions, description.voxelDimensions,
+				description.channels, description.angles);
+
+			final SequenceDescription tempSequenceDescription =
+				new SequenceDescription(new TimePoints(timepointsCol), viewSetups,
+					null);
+			
+			final SequenceDescription sequenceDescription = new SequenceDescription(
+				new TimePoints(timepointsCol), viewSetups, new N5ImageLoader(pathToDir
+					.toFile(), tempSequenceDescription));
+			
+			spimData = new SpimData(pathToDir.toFile(), sequenceDescription,
+				new ViewRegistrations(generateViewRegistrations(description)));
+		}
+
+		private Collection<ViewRegistration> generateViewRegistrations(
+			N5Description description)
+		{
+			if (description.viewRegistrations != null) {
+				return description.viewRegistrations.stream().map(vr -> convert(vr))
+					.collect(Collectors.toList());
+			}
+			return generateViewRegistrations(description.transforms);
+		}
+
+		private Collection<ViewRegistration> generateViewRegistrations(
+			AffineTransform3D[] transforms)
+		{
+			Collection<ViewRegistration> result = new LinkedList<>();
+			for (ViewSetup viewSetup : viewSetups) {
+				for (TimePoint timePoint : timepointsCol) {
+					result.add(new ViewRegistration(timePoint.getId(), viewSetup.getId(),
+						transforms[viewSetup.getAngle().getId()]));
+				}
+			}
+			return result;
+		}
+
+		private Collection<ViewSetup> generateViewSetups(long[] dimensions,
+			VoxelDimensions voxelDimensions, int channels, int angles)
+		{
+			Collection<ViewSetup> result = new LinkedList<>();
+			Illumination illumination = new Illumination(0);
+			int setupId = 0;
+			for (int channel = 0; channel < channels; channel++) {
+				for (int angle = 0; angle < angles; angle++) {
+					Angle angleObj = new Angle(angle);
+					Channel channelObj = new Channel(channel);
+					ViewSetup vs = constructViewSetup(setupId, dimensions,
+						voxelDimensions, channelObj, angleObj, illumination);
+					result.add(vs);
+					putViewSetup(angle, channel, vs);
+					setupId++;
+				}
+			}
+			return result;
+		}
+
+		private void putViewSetup(int angle, int channel, ViewSetup vs) {
+			perAngleAndChannelViewSetup.computeIfAbsent(angle, $ -> new HashMap<>())
+				.put(channel, vs);
+		}
+
+		private ViewRegistration convert(
+			cz.it4i.fiji.datastore.core.ViewRegistrationDTO vr)
+		{
+			ArrayList<ViewTransform> transforms = vr.getTransformations().stream()
+				.map(tr -> convert(tr)).collect(Collectors.toCollection(
+					ArrayList::new));
+			ViewSetup vs = perAngleAndChannelViewSetup.getOrDefault(vr.getAngle(),
+				Collections.emptyMap()).get(vr.getChannel());
+
+			return new ViewRegistration(vr.getTime(), vs.getId(), transforms);
+		}
+
+		private static ViewTransform convert(ViewTransformDTO tr) {
+			AffineTransform3D affineTransform3D = new AffineTransform3D();
+			affineTransform3D.set(tr.getRowPackedMatrix());
+			return new ViewTransformAffine(tr.getName(), affineTransform3D);
+		}
 
 	}
 

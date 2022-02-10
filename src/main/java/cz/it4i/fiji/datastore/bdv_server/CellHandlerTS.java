@@ -339,9 +339,9 @@ public class CellHandlerTS
 		Dataset dataset)
 	{
 		DatasetDTO datasetDTO = DatasetAssembler.createDatatransferObject(dataset);
-		final HPCDatastoreImageLoaderMetaData metadata = new HPCDatastoreImageLoaderMetaData(
-			datasetDTO, spimData.getSequenceDescription(), spimData
-				.getViewRegistrations(), DataType.fromString(dataset.getVoxelType()));
+		final HPCDatastoreImageLoaderMetaData metadata =
+			new HPCDatastoreImageLoaderMetaData(datasetDTO, spimData
+				.getSequenceDescription(), DataType.fromString(dataset.getVoxelType()));
 		final GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.registerTypeAdapter( AffineTransform3D.class, new AffineTransform3DJsonSerializer() );
 		gsonBuilder.enableComplexMapKeySerialization();

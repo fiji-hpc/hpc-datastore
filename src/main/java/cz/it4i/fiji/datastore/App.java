@@ -27,7 +27,6 @@ public class App implements QuarkusApplication {
 	TimeoutTimer timer;
 
 	public static void main(String[] args) {
-
 		Quarkus.run(App.class, App::handleExit, args);
 	}
 

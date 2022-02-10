@@ -336,8 +336,10 @@ public class DatasetRegisterServiceImpl {
 				.angles(dataset.getAngles())
 				.transforms(createTransfoms(dataset.getAngles(), dataset.getTransformations()))
 				.compression(createCompression(dataset.getCompression()))
-				.exportMipmapInfo(MipmapInfoAssembler.createExportMipmapInfo(dataset)).build();
-// @formatter:on				
+				.exportMipmapInfo(MipmapInfoAssembler.createExportMipmapInfo(dataset))
+				.viewRegistrations(dataset.getViewRegistrations())
+				.build();
+//	@formatter:on				
 	}
 
 	private AffineTransform3D[] createTransfoms(int angles,
