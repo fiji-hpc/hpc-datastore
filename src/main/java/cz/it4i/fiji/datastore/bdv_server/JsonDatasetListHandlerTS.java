@@ -112,8 +112,6 @@ class JsonDatasetListHandlerTS
 		// writer.name( "desc" ).value( contextHandler.getDescription() );
 		writer.name("description").value("NotImplemented");
 		boolean endsWithSlash = baseURI.toString().endsWith("/");
-		writer.name("thumbnailUrl").value(
-			"https://toppng.com/public/uploads/thumbnail/zx-spectrum-computer-11549345586wizmb7tln1.png");
 		writer.name("datasetUrl").value(baseURI.resolve((endsWithSlash ? "../"
 			: "./") + version + "/")
 			.toString());
