@@ -5,7 +5,6 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
-import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -29,20 +28,20 @@ class JsonDatasetListHandlerTS
 	@Inject
 	DatasetRepository datasetRepository;
 
-	public void run(UUID uuid, final HttpServletResponse response,
+	public void run(String uuid, final HttpServletResponse response,
 		URI baseURI)
 		throws IOException
 	{
 		run(uuid, response, baseURI, false);
 	}
 
-	public void run(UUID uuid, final HttpServletResponse response, URI baseURI,
+	public void run(String uuid, final HttpServletResponse response, URI baseURI,
 		boolean allVersionsInOne) throws IOException
 	{
 		list(uuid, response, baseURI, allVersionsInOne);
 	}
 
-	private void list(UUID uuid, final HttpServletResponse response,
+	private void list(String uuid, final HttpServletResponse response,
 		URI baseURI, boolean allVersionsInOne)
 		throws IOException
 	{

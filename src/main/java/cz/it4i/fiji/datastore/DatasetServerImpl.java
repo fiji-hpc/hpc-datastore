@@ -72,7 +72,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		resolutionLevels = resolutions;
 		datasetFilesystemHandler = new DatasetFilesystemHandler(uuid.toString(),
 			configuration
-			.getDatasetPath(uuid));
+				.getDatasetPath(uuid.toString()));
 		initN5Access();
 	}
 
@@ -106,7 +106,8 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	}
 
 	private void initN5Access() throws SpimDataException, IOException {
-		n5Access = new N5Access(getXMLPath(configuration.getDatasetPath(uuid),
+		n5Access = new N5Access(getXMLPath(configuration.getDatasetPath(uuid
+			.toString()),
 			datasetFilesystemHandler.getLatestVersion()), createN5Writer(),
 			resolutionLevels, mode);
 	}

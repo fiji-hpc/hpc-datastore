@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -51,7 +50,7 @@ public class BigDataServerEndpoint {
 	public void getJSONList(@PathParam(UUID) String uuid,
 		@Context HttpServletResponse response) throws IOException
 	{
-		jsonDatasetListHandlerTS.run(java.util.UUID.fromString(uuid), response,
+		jsonDatasetListHandlerTS.run(uuid, response,
 			uri.getRequestUri());
 	}
 
@@ -94,18 +93,17 @@ public class BigDataServerEndpoint {
 	private CellHandlerTS getCellHandler(String uuidStr,
 		final String versionStr)
 	{
-		final java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
 		final int version = stringToIntVersion(versionStr);
-		String key = getKey(uuid, versionStr);
+		String key = getKey(uuidStr, versionStr);
 		URI baseURI = uri.getBaseUri();
 		String baseURL = baseURI.resolve("bdv/").resolve(uuidStr + "/").resolve(
 			versionStr).toString();
 		return cellHandlersTS.computeIfAbsent(key, x -> cellHandlerTSProducer
-			.produce(baseURL, uuid, version));
+			.produce(baseURL, uuidStr, version));
 	}
 
 
-	private String getKey(UUID uuid, String version) {
+	private String getKey(String uuid, String version) {
 		return uuid + ":" + version;
 	}
 }

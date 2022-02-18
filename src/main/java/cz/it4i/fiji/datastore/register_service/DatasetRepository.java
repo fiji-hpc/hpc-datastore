@@ -19,7 +19,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -47,7 +46,7 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 
 	private static final long serialVersionUID = 7503192760728646786L;
 
-	public Dataset findByUUID(UUID uuid) {
+	public Dataset findByUUID(String uuid) {
 		Optional<Dataset> result = find("from Dataset where uuid = :uuid",
 			Parameters.with("uuid",
 			uuid)).singleResultOptional();
@@ -70,7 +69,7 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 		}
 	}
 
-	public DatasetVersion findByUUIDVersion(UUID uuid, int version) {
+	public DatasetVersion findByUUIDVersion(String uuid, int version) {
 		Dataset dataset = findByUUID(uuid);
 		Optional<DatasetVersion> result;
 		if (version == -1) {

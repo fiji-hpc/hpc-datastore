@@ -53,7 +53,7 @@ public class HPCDatastoreEndpoint {
 		@Context HttpServletResponse response, @Context UriInfo uriInfo)
 		throws IOException
 	{
-			jsonDatasetListHandlerTS.run(java.util.UUID.fromString(uuid), response,
+		jsonDatasetListHandlerTS.run(uuid, response,
 				uriInfo.getRequestUri(), true);
 
 
@@ -68,11 +68,11 @@ public class HPCDatastoreEndpoint {
 	{
 
 
-		final java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
 		final XmlIoSpimDataMinimal io = new XmlIoSpimDataMinimal();
 
 		try (final StringWriter ow = new StringWriter()) {
-			SpimDataMinimal spimData = getSpimDataMinimalTS.run(io, uuid, versionStr);
+			SpimDataMinimal spimData = getSpimDataMinimalTS.run(io, uuidStr,
+				versionStr);
 			BuildRemoteDatasetXmlTS.run(io, spimData, new HPCDatastoreImageLoader(uriInfo.getRequestUri().toString()), ow);
 			return Response.ok(ow.toString()).build();
 		}

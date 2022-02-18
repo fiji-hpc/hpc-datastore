@@ -10,7 +10,6 @@ package cz.it4i.fiji.datastore.bdv_server;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -31,7 +30,7 @@ class CellHandlerTSProducer {
 	@Inject
 	ApplicationConfiguration configuration;
 
-	CellHandlerTS produce(String baseURL, UUID uuid, int version) {
+	CellHandlerTS produce(String baseURL, String uuid, int version) {
 		Dataset dataset = repository.findByUUID(uuid);
 
 		// only for check that version exists

@@ -102,7 +102,7 @@ public class DatasetRegisterServiceImpl {
 		SpimDataException, NotSupportedException, SystemException
 	{
 		UUID result = UUID.randomUUID();
-		Path path = configuration.getDatasetPath(result);
+		Path path = configuration.getDatasetPath(result.toString());
 		new CreateNewDatasetTS().run(path, convert(datasetDTO));
 		transaction.begin();
 		boolean trxActive = true;
@@ -194,8 +194,9 @@ public class DatasetRegisterServiceImpl {
 			.getUuid().toString(), dataset.getPath());
 
 		N5Access n5Access = new N5Access(DatasetPathRoutines.getXMLPath(
-			configuration.getDatasetPath(
-			dataset.getUuid()), version), dfs.getWriter(version), Collections
+			configuration.getDatasetPath(dataset.getUuid().toString()), version), dfs
+				.getWriter(version),
+			Collections
 				.singletonList(dataset.getSortedResolutionLevels().get(0)
 					.getResolutions()), OperationMode.READ_WRITE);
 
@@ -363,7 +364,7 @@ public class DatasetRegisterServiceImpl {
 	}
 
 	private Dataset getDataset(String uuid) {
-		Dataset dataset = datasetDAO.findByUUID(UUID.fromString(uuid));
+		Dataset dataset = datasetDAO.findByUUID(uuid);
 		return dataset;
 	}
 

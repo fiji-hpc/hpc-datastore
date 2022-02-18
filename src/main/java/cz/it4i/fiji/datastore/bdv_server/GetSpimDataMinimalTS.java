@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -51,7 +50,7 @@ public final class GetSpimDataMinimalTS {
 	@Inject
 	DatasetRepository repository;
 
-	SpimDataMinimal run(XmlIoSpimDataMinimal io, UUID uuid, String versionStr)
+	SpimDataMinimal run(XmlIoSpimDataMinimal io, String uuid, String versionStr)
 		throws SpimDataException
 	{
 		try {
@@ -71,7 +70,7 @@ public final class GetSpimDataMinimalTS {
 	}
 
 	private SpimDataMinimal getAllVersionInOneDataset(XmlIoSpimDataMinimal io,
-		UUID uuid)
+		String uuid)
 	{
 		Dataset dataset = repository.findByUUID(uuid);
 		Map<Integer, BasicViewSetup> setups = new HashMap<>();
@@ -168,7 +167,7 @@ public final class GetSpimDataMinimalTS {
 	}
 
 	private SpimDataMinimal getOneVersionInOneDataset(XmlIoSpimDataMinimal io,
-		UUID uuid, String versionStr)
+		String uuid, String versionStr)
 	{
 		Dataset dataset = repository.findByUUID(uuid);
 
@@ -185,7 +184,7 @@ public final class GetSpimDataMinimalTS {
 	}
 
 	private SpimDataMinimal loadSpimDataMinimal(XmlIoSpimDataMinimal io,
-		UUID uuid, Dataset dataset, final int version)
+		String uuid, Dataset dataset, final int version)
 	{
 		DatasetVersion ds = repository.findByUUIDVersion(uuid, version);
 

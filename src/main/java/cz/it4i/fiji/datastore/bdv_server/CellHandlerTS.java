@@ -183,7 +183,7 @@ public class CellHandlerTS
 					Long.parseLong( key.parts[ 9 ] ),
 					Long.parseLong( key.parts[ 10 ] ) };
 			DataBlock<?> block = readBlock(perPathDatasetAttribute, writer, key,
-				cellMin, cellDims);
+				cellDims, cellMin);
 			return new Cell<>(cellDims, cellMin, block);
 
 		};
@@ -201,13 +201,18 @@ public class CellHandlerTS
 
 	private DataBlock<?> readBlock(
 		Map<String, DatasetAttributes> perPathDatasetAttribute, N5Writer writer,
-		Key key, long[] cellMin,
-		int[] cellDims) throws IOException
+		Key key, int[] cellDims, long[] cellMin) throws IOException
 	{
 		String path = BdvN5Format.getPathName(key.setup, key.timepoint, key.level);
 		DatasetAttributes datasetAttributes = getDatasetAttributes(perPathDatasetAttribute, writer, path);
 		long[] gridPosition = new long[cellMin.length];
 		for (int i = 0; i < gridPosition.length; i++) {
+			/*if (levelBlockSize[i] != cellDims[i] || cellMin[i] % cellDims[i] != 0) {
+				throw new IllegalArgumentException(String.format(
+					"Invalid block dimension of coordinates levelBlockSize=%s min=%s dims=%s",
+					Arrays.toString(levelBlockSize), Arrays.toString(cellMin), Arrays
+						.toString(cellDims)));
+			}*/
 			gridPosition[i] = cellMin[i] / cellDims[i];
 		}
 		DataBlock<?> result = writer.readBlock(path, datasetAttributes,
@@ -246,37 +251,30 @@ public class CellHandlerTS
 			final int level = Integer.parseInt( parts[ 4 ] );
 			final Key key = new Key( timepoint, setup, level, index, parts );
 			// TODO - there should be another type
-			short[] data;
+			byte[] data;
 			try
 			{
 				final Cell< ? > cell = cache.get( key, loader );
 				DataBlock<short[]> dataBlock = (DataBlock<short[]>) cell.getData();
 				if (dataBlock == null) {
-					data = new short[0];
+					data = new byte[0];
 				}
 				else {
-					data = dataBlock.getData();
+					data = dataBlock.toByteBuffer().array();
 				}
 			}
 			catch ( ExecutionException e )
 			{
 				log.error("getData", e);
-				data = new short[ 0 ];
+				data = new byte[0];
 			}
 	
-			final byte[] buf = new byte[ 2 * data.length ];
-			for ( int i = 0, j = 0; i < data.length; i++ )
-			{
-				final short s = data[ i ];
-				buf[ j++ ] = ( byte ) ( ( s >> 8 ) & 0xff );
-				buf[ j++ ] = ( byte ) ( s & 0xff );
-			}
-	
+
 			response.setContentType( "application/octet-stream" );
-			response.setContentLength( buf.length );
+			response.setContentLength(data.length);
 			response.setStatus( HttpServletResponse.SC_OK );
 			try (final OutputStream os = response.getOutputStream()) {
-				os.write(buf);
+				os.write(data);
 			}
 		}
 		else if (parts[0].equals("init"))

@@ -10,7 +10,6 @@ package cz.it4i.fiji.datastore;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -21,7 +20,7 @@ public class ApplicationConfiguration implements Serializable{
 
 	public static final String DEFAULT_PATH_PREFIX = "target/output";
 
-	public Path getDatasetPath(UUID uuid) {
+	public Path getDatasetPath(String uuid) {
 		return getDatastorePath().resolve(uuid.toString());
 	}
 
