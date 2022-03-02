@@ -79,7 +79,7 @@ class DataServerManagerImpl implements DataServerManager {
 	AvailablePortFinder portFinder;
 
 	@Override
-	public URL startDataServer(UUID uuid, int[] r, int version,
+	public URL startDataServer(String uuid, int[] r, int version,
 		boolean mixedVersions, OperationMode mode, Long timeout) throws IOException
 	{
 		return startDataServer(uuid, Arrays.asList(r), version, mixedVersions, mode,
@@ -87,7 +87,7 @@ class DataServerManagerImpl implements DataServerManager {
 	}
 
 	@Override
-	public URL startDataServer(UUID uuid, List<int[]> resolutions, Long timeout)
+	public URL startDataServer(String uuid, List<int[]> resolutions, Long timeout)
 		throws IOException
 	{
 		return startDataServer(uuid, resolutions,
@@ -101,20 +101,20 @@ class DataServerManagerImpl implements DataServerManager {
 	}
 
 	@Override
-	public boolean check(UUID uuidTyped, String version, String mode) {
+	public boolean check(String uuidTyped, String version, String mode) {
 		return System.getProperty(PROPERTY_UUID, "").equals(uuidTyped.toString()) &&
 			System.getProperty(PROPERTY_VERSION, "").equals(version) && System
 				.getProperty(PROPERTY_MODE).equals(mode);
 	}
 
 	@Override
-	public UUID getUUID() {
+	public String getUUID() {
 		String uuid = System.getProperty(PROPERTY_UUID, "");
 		if (uuid.isEmpty()) {
 			return null;
 		}
 		try {
-			return UUID.fromString(uuid);
+			return UUID.fromString(uuid).toString();
 		}
 		catch (IllegalArgumentException exc) {
 			log.warn("uuid={} passed as property is not valid", uuid);
@@ -189,7 +189,7 @@ class DataServerManagerImpl implements DataServerManager {
 
 
 
-	private URL startDataServer(UUID uuid, List<int[]> resolutions, int version,
+	private URL startDataServer(String uuid, List<int[]> resolutions, int version,
 		boolean mixedVersion, OperationMode mode, Long timeout) throws IOException
 	{
 		int port = portFinder.findAvailablePort(getHostName());

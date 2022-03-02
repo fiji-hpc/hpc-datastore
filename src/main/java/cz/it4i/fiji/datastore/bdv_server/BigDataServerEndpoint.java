@@ -26,6 +26,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 @ApplicationScoped
@@ -56,28 +57,24 @@ public class BigDataServerEndpoint {
 
 	@GET
 	@Path("{" + UUID + "}/{" + VERSION_PARAM + "}")
-	public void getCell(@PathParam(UUID) String uuid,
+	public Response getCell(@PathParam(UUID) String uuid,
 		@PathParam(VERSION_PARAM) String version,
-		@QueryParam(P_PARAM) String cellString,
-		@Context HttpServletResponse response) throws IOException
+		@QueryParam(P_PARAM) String cellString)
 	{
 		CellHandlerTS ts = getCellHandler(uuid, version);
 		if (Strings.emptyToNull(cellString) == null) {
-			ts.runForDataset(response);
+			return ts.runForDataset();
 		}
-		else {
-			ts.runForCellOrInit(response, cellString);
-		}
+		return ts.runForCellOrInit(cellString);
 	}
 
 	@GET
 	@Path("{" + UUID + "}/{" + VERSION_PARAM + "}/settings")
-	public void getSettings(@PathParam(UUID) String uuid,
-		@PathParam(VERSION_PARAM) String version,
-		@Context HttpServletResponse response) throws IOException
+	public Response getSettings(@PathParam(UUID) String uuid,
+		@PathParam(VERSION_PARAM) String version)
 	{
 		CellHandlerTS ts = getCellHandler(uuid, version);
-		ts.runForSettings(response);
+		return ts.runForSettings();
 	}
 
 	@GET

@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.ElementCollection;
@@ -36,7 +35,7 @@ public class Dataset extends BaseEntity {
 
 	@Getter
 	@Setter
-	private UUID uuid;
+	private String uuid;
 
 	@Getter
 	@ElementCollection(targetClass = ResolutionLevel.class)

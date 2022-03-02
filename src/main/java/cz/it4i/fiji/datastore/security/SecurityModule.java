@@ -9,6 +9,8 @@ package cz.it4i.fiji.datastore.security;
 
 import static java.util.Optional.ofNullable;
 
+import java.util.Optional;
+
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
@@ -34,7 +36,8 @@ public class SecurityModule {
 	}
 
 	public String getDataserverPropertyProperty() {
-		return authentication.getDataserverPropertyProperty();
+		return Optional.ofNullable(authentication).map(
+			Authentication::getDataserverPropertyProperty).orElse(null);
 	}
 
 	public String getUserID() {

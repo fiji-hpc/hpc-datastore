@@ -17,7 +17,6 @@ import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
@@ -49,7 +48,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	@Inject
 	ApplicationConfiguration configuration;
 
-	UUID uuid;
+	String uuid;
 
 	private int version;
 
@@ -61,7 +60,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 	private DatasetFilesystemHandler datasetFilesystemHandler;
 
-	public synchronized void init(UUID aUuid, List<int[]> resolutions,
+	public synchronized void init(String aUuid, List<int[]> resolutions,
 		int aVersion, boolean aMixedVersion, OperationMode aMode)
 		throws SpimDataException, IOException
 	{

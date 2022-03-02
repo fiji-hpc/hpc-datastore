@@ -111,7 +111,7 @@ public class DatasetRegisterServiceImpl {
 				Files.createFile(path.resolve(datasetDTO.getLabel()));
 			}
 			Dataset dataset = DatasetAssembler.createDomainObject(datasetDTO);
-			dataset.setUuid(result);
+			dataset.setUuid(result.toString());
 			dataset.setPath(path.toString());
 			dataset.setDatasetVersion(new LinkedList<>());
 			dataset.getDatasetVersion().add(DatasetVersion.builder().value(0)

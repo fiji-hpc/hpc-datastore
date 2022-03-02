@@ -7,6 +7,8 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.security;
 
+import static cz.it4i.fiji.datastore.security.BearerToken.NON_PRESENTED_TOKEN;
+
 import com.google.common.base.Strings;
 
 import java.io.IOException;
@@ -20,12 +22,19 @@ import javax.ws.rs.ext.Provider;
 public class OAuthSecurityFilter implements ContainerRequestFilter {
 
 	@Inject
+	SecurityRegistry securityRegistry;
+
+	@Inject
 	SecurityModule module;
 
 	@Override
 	public void filter(ContainerRequestContext requestContext) throws IOException
 	{
+		if (securityRegistry.isSecurityDisabled()) {
+			return;
+		}
 		BearerToken token = extractToken(requestContext);
+
 		module.processToken(token);
 		module.processRequest(requestContext);
 	}
@@ -35,7 +44,7 @@ public class OAuthSecurityFilter implements ContainerRequestFilter {
 		String[] token = Strings.nullToEmpty(requestContext.getHeaderString(
 			"Authorization")).split("\\s+");
 		if (token.length < 2 || !token[0].equals("Bearer")) {
-			return BearerToken.NON_PRESENTED_TOKEN;
+			return NON_PRESENTED_TOKEN;
 		}
 		return new BearerToken(token[1].stripTrailing());
 	}

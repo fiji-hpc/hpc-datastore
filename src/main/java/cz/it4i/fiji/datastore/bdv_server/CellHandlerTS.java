@@ -3,10 +3,10 @@ package cz.it4i.fiji.datastore.bdv_server;
 import com.google.gson.GsonBuilder;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,6 +17,9 @@ import java.util.concurrent.ExecutionException;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import net.imglib2.cache.CacheLoader;
 import net.imglib2.cache.LoaderCache;
@@ -238,10 +241,7 @@ public class CellHandlerTS
 	}
 
 	@SuppressWarnings("unchecked")
-	public void runForCellOrInit(final HttpServletResponse response,
-		final String cellString)
-		throws IOException
-	{
+	public Response runForCellOrInit(final String cellString) {
 		final String[] parts = cellString.split("/");
 		if (parts[0].equals("cell"))
 		{
@@ -269,35 +269,26 @@ public class CellHandlerTS
 				data = new byte[0];
 			}
 	
+			return Response.ok(new ByteArrayInputStream(data)).type(
+				MediaType.APPLICATION_OCTET_STREAM_TYPE).build();
 
-			response.setContentType( "application/octet-stream" );
-			response.setContentLength(data.length);
-			response.setStatus( HttpServletResponse.SC_OK );
-			try (final OutputStream os = response.getOutputStream()) {
-				os.write(data);
-			}
 		}
 		else if (parts[0].equals("init"))
 		{
-			respondWithString(response, "application/json", metadataJson);
+			return respondWithString("application/json", metadataJson);
 		}
+		return Response.status(Status.BAD_REQUEST).build();
 	}
 
-	public void runForDataset(final HttpServletResponse response)
-		throws IOException
-	{
-		respondWithString(response, "application/xml", datasetXmlString);
+	public Response runForDataset() {
+		return respondWithString("application/xml", datasetXmlString);
 	}
 
-	public void runForSettings(final HttpServletResponse response)
-		throws IOException
-	{
+	public Response runForSettings() {
 		if (settingsXmlString != null) {
-			respondWithString(response, "application/xml", settingsXmlString);
+			return respondWithString("application/xml", settingsXmlString);
 		}
-		else {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND, "settings.xml");
-		}
+		return Response.status(Status.NOT_FOUND).entity("settings.xml").build();
 	}
 
 	public void runForThumbnail(final HttpServletResponse response)
@@ -423,15 +414,9 @@ public class CellHandlerTS
 	/**
 	 * Handle request by sending a UTF-8 string.
 	 */
-	private static void respondWithString(final HttpServletResponse response,
-		final String contentType, final String string) throws IOException
+	private static Response respondWithString(final String contentType,
+		final String string)
 	{
-		response.setContentType( contentType );
-		response.setCharacterEncoding( "UTF-8" );
-		response.setStatus( HttpServletResponse.SC_OK );
-
-		try (final PrintWriter ow = response.getWriter()) {
-			ow.write(string);
-		}
+		return Response.ok(string).type(contentType).encoding("UTF-8").build();
 	}
 }

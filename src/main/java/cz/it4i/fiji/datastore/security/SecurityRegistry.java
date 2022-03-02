@@ -60,7 +60,7 @@ class SecurityRegistry {
 			.getAccessToken())).findFirst().orElse(null);
 	}
 
-	private boolean isSecurityDisabled() {
+	public boolean isSecurityDisabled() {
 		if (securityDisabled == null) {
 			securityDisabled = propertyIsEmpty(Constants.SECURITY_TOKEN) &&
 				propertyIsEmpty(SECURITY_USERS) || propertyIsEmpty(SECURITY_SERVERS);

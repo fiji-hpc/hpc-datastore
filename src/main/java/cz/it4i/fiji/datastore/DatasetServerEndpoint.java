@@ -17,7 +17,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -198,7 +197,7 @@ public class DatasetServerEndpoint implements Serializable {
 	@PostConstruct
 	void init() {
 		try {
-			UUID uuid = dataServerManager.getUUID();
+			String uuid = dataServerManager.getUUID();
 			if (uuid == null) {
 				return;
 			}
@@ -263,7 +262,7 @@ public class DatasetServerEndpoint implements Serializable {
 	@Builder
 	static class RootResponse {
 
-		private final UUID uuid;
+		private final String uuid;
 
 		private final int version;
 
