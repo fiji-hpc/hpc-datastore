@@ -7,6 +7,8 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.management;
 
+import static cz.it4i.fiji.datastore.DatasetHandler.INITIAL_VERSION;
+import static cz.it4i.fiji.datastore.register_service.OperationMode.WRITE_TO_OTHER_RESOLUTIONS;
 import static java.util.Optional.ofNullable;
 
 import io.quarkus.runtime.Quarkus;
@@ -20,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.StringTokenizer;
 import java.util.UUID;
@@ -31,7 +34,6 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
-import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import cz.it4i.fiji.datastore.register_service.ResolutionLevel;
@@ -90,9 +92,8 @@ class DataServerManagerImpl implements DataServerManager {
 	public URL startDataServer(String uuid, List<int[]> resolutions, Long timeout)
 		throws IOException
 	{
-		return startDataServer(uuid, resolutions,
-			DatasetFilesystemHandler.INITIAL_VERSION, false,
-			OperationMode.WRITE_TO_OTHER_RESOLUTIONS, timeout);
+		return startDataServer(uuid, resolutions, INITIAL_VERSION, false,
+			WRITE_TO_OTHER_RESOLUTIONS, timeout);
 	}
 
 	@Override
@@ -201,11 +202,11 @@ class DataServerManagerImpl implements DataServerManager {
 				.append("-Dquarkus.http.port=" + port)
 				.append("-Dquarkus.http.host=" + getHostName())
 				.append("-Dquarkus.datasource.jdbc.url=jdbc:h2:mem:myDb;create=true")
-				.append("-Ddatastore.path=" + applicationConfiguration.getDatastorePath())
 				.append("-D" + PROPERTY_UUID + "=" + uuid)
 				.append("-D" + PROPERTY_RESOLUTION + "=" + ResolutionLevel.toString(resolutions))
 				.append("-D" + PROPERTY_VERSION + "=" + version)
 				.append("-D" + PROPERTY_MODE + "=" + mode);
+		appendConfiguredProperties(appender);
 		ofNullable( securityModule.getDataserverPropertyProperty()).ifPresent( p -> appender.append(p));
 		if (mixedVersion) {
 				appender.append("-D"+ MIXED_VERSION +"=" + mixedVersion);
@@ -249,6 +250,14 @@ class DataServerManagerImpl implements DataServerManager {
 		return new URL(result);
 	}
 
+
+	private void appendConfiguredProperties(ListAppender<String> appender) {
+		for (Entry<String, String> entry : applicationConfiguration
+			.getConfiguredProperties().entrySet())
+		{
+			appender.append("-D" + entry.getKey() + "=" + entry.getValue());
+		}
+	}
 
 	@AllArgsConstructor
 	private static class ListAppender<T> {

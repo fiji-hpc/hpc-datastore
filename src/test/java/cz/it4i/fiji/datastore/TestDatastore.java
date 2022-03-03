@@ -14,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.RestAssured;
+import io.restassured.config.HttpClientConfig;
 import io.restassured.config.RedirectConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.restassured.http.ContentType;
@@ -25,6 +27,7 @@ import java.util.Random;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.http.params.CoreConnectionPNames;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -35,6 +38,7 @@ import lombok.extern.log4j.Log4j2;
 /**
  * @author Jan Kožusznik
  */
+@SuppressWarnings("deprecation")
 @Log4j2
 @QuarkusTest()
 @TestInstance(Lifecycle.PER_CLASS)
@@ -228,7 +232,11 @@ public class TestDatastore {
 
 	@Test
 	public void addChannels() {
-		for (int i = 0; i < 10; i++) {
+		RestAssuredConfig config = RestAssured.config().httpClient(HttpClientConfig
+			.httpClientConfig().setParam(CoreConnectionPNames.CONNECTION_TIMEOUT,
+				1000).setParam(CoreConnectionPNames.SO_TIMEOUT, 600000));
+
+		for (int i = 0; i < 2; i++) {
 			Response result = withNoFollowRedirects().get("/datasets/" + uuid +
 				"/1/1/1/new/write?timeout=" + TIMEOUT);
 			assertEquals(307, result.getStatusCode(), "Should be redirected");
@@ -236,7 +244,8 @@ public class TestDatastore {
 			String redirectedURI = result.getHeader("Location");
 			with().baseUri(redirectedURI).post("/stop");
 		}
-		with().body("10").post("/datasets/" + uuid + "/channels");
+		with().config(config).body("10").post("/datasets/" + uuid +
+			"/channels");
 	}
 
 	private RequestSpecification withNoFollowRedirects() {

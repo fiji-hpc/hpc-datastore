@@ -44,9 +44,6 @@ public class Dataset extends BaseEntity {
 	@Transient
 	private Map<String, ResolutionLevel> resolutionLevelIndex;
 
-	@Getter
-	@Setter
-	private String path;
 
 	@Getter
 	@Setter

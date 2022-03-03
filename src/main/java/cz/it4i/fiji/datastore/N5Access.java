@@ -11,7 +11,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,8 +36,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.XmlIoSpimData;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.SequenceDescription;
 import mpicbg.spim.data.sequence.ViewSetup;
@@ -164,9 +161,8 @@ public class N5Access {
 
 
 
-	public N5Access(Path pathToXML, N5Writer aWriter,
+	public N5Access(SpimData spimData, N5Writer aWriter,
 		List<int[]> aResolutionLevels, OperationMode aMode)
-		throws SpimDataException
 	{
 		if (aMode != OperationMode.NO_ACCESS) {
 			if (aResolutionLevels.size() < 1) {
@@ -182,7 +178,7 @@ public class N5Access {
 
 			}
 		}
-		spimData = loadFromXML(pathToXML);
+		this.spimData = spimData;
 		writer = aWriter;
 		if (aMode == OperationMode.WRITE_TO_OTHER_RESOLUTIONS ||
 			aMode == OperationMode.NO_ACCESS)
@@ -277,10 +273,6 @@ public class N5Access {
 		throw new UnsupportedOperationException(
 			"Downsampling is not supported yet. Levels for downsampling" +
 				ResolutionLevel.toString(downsamplingResolutionsLevels));
-	}
-
-	private SpimData loadFromXML(Path path) throws SpimDataException {
-		return new XmlIoSpimData().load(path.toString());
 	}
 
 	private void checkBlockSize(DataBlock<?> dataBlock, int[] blockSize) {

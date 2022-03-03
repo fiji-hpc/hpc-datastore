@@ -35,6 +35,7 @@ public class DatasetAssembler {
 				.angles(dto.getAngles()).angleResolution(createDomainObject(dto.getAngleResolution()))
 				.compression(dto.getCompression())
 				.resolutionLevel(createDomainObject(dto.getResolutionLevels()))
+				.label(dto.getLabel())
 				.build();
 	// @formatter:on
 	}

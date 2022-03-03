@@ -7,29 +7,25 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
-import static cz.it4i.fiji.datastore.DatasetPathRoutines.getXMLPath;
-
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Parameters;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
+import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 
-import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
+import cz.it4i.fiji.datastore.ApplicationConfiguration;
+import cz.it4i.fiji.datastore.DatasetHandler;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.XmlIoSpimData;
 
 /*import org.apache.deltaspike.data.api.AbstractEntityRepository;
 import org.apache.deltaspike.data.api.Query;
@@ -46,6 +42,9 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 
 	private static final long serialVersionUID = 7503192760728646786L;
 
+	@Inject
+	ApplicationConfiguration configuration;
+
 	public Dataset findByUUID(String uuid) {
 		Optional<Dataset> result = find("from Dataset where uuid = :uuid",
 			Parameters.with("uuid",
@@ -55,8 +54,7 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 				" not found ");
 		}
 
-		DatasetFilesystemHandler dfh = new DatasetFilesystemHandler(null, result
-			.get().getPath());
+		DatasetHandler dfh = configuration.getDatasetHandler(uuid);
 		try {
 			Dataset resultDataset = result.get();
 			resolveVersion(dfh, resultDataset);
@@ -87,33 +85,38 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 		return result.get();
 	}
 
-	private void resolveVersion(DatasetFilesystemHandler dfh,
+	@Override
+	public void persist(Dataset entity) {
+		PanacheRepository.super.persist(entity);
+		configuration.getDatasetHandler(entity.getUuid()).setLabel(entity
+			.getLabel());
+	}
+
+	private void resolveVersion(DatasetHandler dh,
 		Dataset resultDataset) throws IOException
 	{
-		resultDataset.setDatasetVersion(dfh.getAllVersions().stream().map(
-			v -> new DatasetVersion(v, Paths.get(resultDataset.getPath()).resolve("" +
-				v).toString())).collect(Collectors.toList()));
+		resultDataset.setDatasetVersion(dh.getAllVersions().stream().map(
+			v -> new DatasetVersion(v)).collect(Collectors.toList()));
 	}
 
 	private void resolveLabel(Dataset dataset) {
 		try {
-			String label = Files.list(Paths.get(dataset.getPath())).filter(
-				Files::isRegularFile).findFirst().map(Path::getFileName).map(
-					Path::toString).orElse(null);
+			DatasetHandler dh = configuration.getDatasetHandler(dataset.getUuid());
+			String label = dh.getLabel();
 			dataset.setLabel(label);
 		}
-		catch (IOException exc) {
+		catch (Exception exc) {
 			log.warn("resolve label", exc);
 			
 		}
 	}
 
-	private void resolveViewSetups(Dataset resultDataset)
+	private void resolveViewSetups(Dataset dataset)
 		throws SpimDataException
 	{
-		SpimData spimData = new XmlIoSpimData().load(getXMLPath(Paths.get(
-			resultDataset.getPath()), 0).toString());
-		resultDataset.setViewSetup(spimData.getSequenceDescription()
+		SpimData spimData = configuration.getDatasetHandler(dataset.getUuid())
+			.getSpimData();
+		dataset.setViewSetup(spimData.getSequenceDescription()
 			.getViewSetupsOrdered().stream().map(vs -> ViewSetup.builder().index(vs
 				.getId()).angleId(vs.getAngle().getId()).channelId(vs.getChannel()
 					.getId()).build()).collect(Collectors.toList()));

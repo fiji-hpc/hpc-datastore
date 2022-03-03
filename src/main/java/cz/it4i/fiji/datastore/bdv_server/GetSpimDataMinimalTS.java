@@ -12,7 +12,6 @@ import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,8 +25,8 @@ import javax.ws.rs.NotFoundException;
 
 import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
-import bdv.spimdata.XmlIoSpimDataMinimal;
-import cz.it4i.fiji.datastore.DatasetPathRoutines;
+import cz.it4i.fiji.datastore.ApplicationConfiguration;
+import cz.it4i.fiji.datastore.DatasetHandler;
 import cz.it4i.fiji.datastore.core.Version;
 import cz.it4i.fiji.datastore.register_service.Dataset;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
@@ -50,15 +49,18 @@ public final class GetSpimDataMinimalTS {
 	@Inject
 	DatasetRepository repository;
 
-	SpimDataMinimal run(XmlIoSpimDataMinimal io, String uuid, String versionStr)
+	@Inject
+	ApplicationConfiguration configuration;
+
+	SpimDataMinimal run(String uuid, String versionStr)
 		throws SpimDataException
 	{
 		try {
 			switch (versionStr) {
 				case "all":
-					return getAllVersionInOneDataset(io, uuid);
+					return getAllVersionInOneDataset(uuid);
 				default:
-					return getOneVersionInOneDataset(io, uuid, versionStr);
+					return getOneVersionInOneDataset(uuid, versionStr);
 			}
 		}
 		catch (RuntimeException exc) {
@@ -69,8 +71,8 @@ public final class GetSpimDataMinimalTS {
 		}
 	}
 
-	private SpimDataMinimal getAllVersionInOneDataset(XmlIoSpimDataMinimal io,
-		String uuid)
+	private SpimDataMinimal getAllVersionInOneDataset(String uuid)
+		throws SpimDataException
 	{
 		Dataset dataset = repository.findByUUID(uuid);
 		Map<Integer, BasicViewSetup> setups = new HashMap<>();
@@ -79,10 +81,13 @@ public final class GetSpimDataMinimalTS {
 		File path = null;
 		TimePoints timePoints = null;
 		BasicImgLoader basicImgLoader = null;
+		DatasetHandler handler = configuration.getDatasetHandler(uuid);
+		SpimDataMinimal spimDataMinimal;
+		spimDataMinimal = SpimDataMapper.asSpimDataMinimal(handler.getSpimData());
 		for (DatasetVersion version : dataset.getDatasetVersion().stream().sorted(
 			comparingInt(DatasetVersion::getValue)).collect(toList()))
 		{
-			SpimDataMinimal spimDataMinimal = loadSpimData(io, dataset, version);
+
 
 			Map<ViewRegistration, ViewRegistration> origViewregistrationPerNewOne =
 				new HashMap<>();
@@ -152,43 +157,26 @@ public final class GetSpimDataMinimalTS {
 				.getId(), version.getValue());
 	}
 
-	private SpimDataMinimal loadSpimData(XmlIoSpimDataMinimal io, Dataset dataset,
-		DatasetVersion ds)
-	{
-		java.nio.file.Path xmlPath = DatasetPathRoutines.getXMLPath(Paths.get(
-			dataset.getPath()), ds.getValue());
 
-		try {
-			return io.load(xmlPath.toString());
-		}
-		catch (SpimDataException exc) {
-			throw new RuntimeException(exc);
-		}
-	}
 
-	private SpimDataMinimal getOneVersionInOneDataset(XmlIoSpimDataMinimal io,
-		String uuid, String versionStr)
+	private SpimDataMinimal getOneVersionInOneDataset(String uuid,
+		String versionStr) throws SpimDataException
 	{
-		Dataset dataset = repository.findByUUID(uuid);
+		repository.findByUUID(uuid);
 
 		try {
 			final int version = stringToIntVersion(versionStr);
 			// only for check that version exists
-			return loadSpimDataMinimal(io, uuid, dataset, version);
+			repository.findByUUIDVersion(uuid, version);
+			return SpimDataMapper.asSpimDataMinimal(configuration.getDatasetHandler(
+				uuid).getSpimData());
 		}
 		catch (NumberFormatException exc) {
 			throw new NotFoundException(String.format("Dataset %s has no version %ds",
 				uuid, versionStr));
 		}
 
-	}
 
-	private SpimDataMinimal loadSpimDataMinimal(XmlIoSpimDataMinimal io,
-		String uuid, Dataset dataset, final int version)
-	{
-		DatasetVersion ds = repository.findByUUIDVersion(uuid, version);
-
-		return loadSpimData(io, dataset, ds);
 	}
 
 }

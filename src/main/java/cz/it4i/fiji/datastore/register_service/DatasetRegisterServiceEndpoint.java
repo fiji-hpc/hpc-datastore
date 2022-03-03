@@ -188,7 +188,7 @@ public class DatasetRegisterServiceEndpoint {
 		try {
 			datasetRegisterServiceImpl.deleteDataset(uuid);
 		}
-		catch (IOException exc) {
+		catch (Exception exc) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exc
 				.getMessage()).build();
 		}

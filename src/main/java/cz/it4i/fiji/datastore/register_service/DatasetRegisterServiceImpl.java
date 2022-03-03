@@ -11,11 +11,8 @@ import static net.imglib2.cache.img.ReadOnlyCachedCellImgOptions.options;
 
 import com.google.common.base.Strings;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,7 +44,6 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
 
-import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.Bzip2Compression;
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataType;
@@ -65,12 +61,11 @@ import bdv.export.ExportScalePyramid.LoopbackHeuristic;
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS.N5Description;
-import cz.it4i.fiji.datastore.core.DatasetDTO;
-import cz.it4i.fiji.datastore.core.MipmapInfoAssembler;
-import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
-import cz.it4i.fiji.datastore.DatasetPathRoutines;
+import cz.it4i.fiji.datastore.DatasetHandler;
 import cz.it4i.fiji.datastore.DatasetServerImpl;
 import cz.it4i.fiji.datastore.N5Access;
+import cz.it4i.fiji.datastore.core.DatasetDTO;
+import cz.it4i.fiji.datastore.core.MipmapInfoAssembler;
 import cz.it4i.fiji.datastore.management.DataServerManager;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -102,17 +97,13 @@ public class DatasetRegisterServiceImpl {
 		SpimDataException, NotSupportedException, SystemException
 	{
 		UUID result = UUID.randomUUID();
-		Path path = configuration.getDatasetPath(result.toString());
-		new CreateNewDatasetTS().run(path, convert(datasetDTO));
+		new CreateNewDatasetTS().run(configuration.getDatasetHandler(result
+			.toString()), convert(datasetDTO));
 		transaction.begin();
 		boolean trxActive = true;
 		try {
-			if (!Strings.nullToEmpty(datasetDTO.getLabel()).isBlank()) {
-				Files.createFile(path.resolve(datasetDTO.getLabel()));
-			}
 			Dataset dataset = DatasetAssembler.createDomainObject(datasetDTO);
 			dataset.setUuid(result.toString());
-			dataset.setPath(path.toString());
 			dataset.setDatasetVersion(new LinkedList<>());
 			dataset.getDatasetVersion().add(DatasetVersion.builder().value(0)
 				.build());
@@ -139,9 +130,9 @@ public class DatasetRegisterServiceImpl {
 	{
 		try {
 			Dataset dataset = getDataset(uuid);
-			log.debug("add {} channel for dataset with path ", channels, dataset
-				.getPath());
-			new AddChannelTS().run(dataset, channels, getCompressionMapping().get(
+			log.debug("add {} channel for dataset with path ", channels);
+			new AddChannelTS(configuration).run(dataset, channels,
+				getCompressionMapping().get(
 				Strings.nullToEmpty(dataset.getCompression().toUpperCase())));
 			dataset.setChannels(dataset.getChannels() + channels);
 			datasetDAO.persist(dataset);
@@ -155,19 +146,19 @@ public class DatasetRegisterServiceImpl {
 	}
 
 	@Transactional
-	public void deleteDataset(String uuid) throws IOException {
+	public void deleteDataset(String uuid) {
 		Dataset dataset = getDataset(uuid);
-		log.debug("dataset with path {} is deleted", dataset.getPath());
+		log.debug("dataset with UUID {} is deleted", uuid);
+		DatasetHandler dfs = configuration.getDatasetHandler(uuid);
 		datasetDAO.delete(dataset);
-		FileUtils.deleteDirectory(new File(dataset.getPath()));
+		dfs.deleteDataset();
+
 	}
 
 	public void deleteVersions(String uuid, List<Integer> versionList)
 		throws IOException
 	{
-		Dataset dataset = getDataset(uuid);
-		DatasetFilesystemHandler dfs = new DatasetFilesystemHandler(uuid, dataset
-			.getPath());
+		DatasetHandler dfs = configuration.getDatasetHandler(uuid);
 		for (Integer version : versionList) {
 			dfs.deleteVersion(version);
 		}
@@ -190,17 +181,13 @@ public class DatasetRegisterServiceImpl {
 	{
 		
 		Dataset dataset = getDataset(uuid);
-		DatasetFilesystemHandler dfs = new DatasetFilesystemHandler(dataset
-			.getUuid().toString(), dataset.getPath());
+		DatasetHandler dh = configuration.getDatasetHandler(uuid);
 
-		N5Access n5Access = new N5Access(DatasetPathRoutines.getXMLPath(
-			configuration.getDatasetPath(dataset.getUuid().toString()), version), dfs
-				.getWriter(version),
-			Collections
-				.singletonList(dataset.getSortedResolutionLevels().get(0)
-					.getResolutions()), OperationMode.READ_WRITE);
+		N5Access n5Access = new N5Access(dh.getSpimData(), dh.getWriter(version),
+			Collections.singletonList(dataset.getSortedResolutionLevels().get(0)
+				.getResolutions()), OperationMode.READ_WRITE);
 
-		final N5Writer writer = dfs.getWriter(version);
+		final N5Writer writer = dh.getWriter(version);
 		final RandomAccessibleInterval<T> img = N5Utils.open(writer, n5Access
 			.getViewSetupTimepoint(time, channel, angle).getPath(
 				IDENTITY_RESOLUTION));
@@ -272,7 +259,7 @@ public class DatasetRegisterServiceImpl {
 	}
 
 	private void mergeVersions(Dataset dataset) throws IOException {
-		DatasetFilesystemHandler dfh = new DatasetFilesystemHandler(dataset);
+		DatasetHandler dfh = configuration.getDatasetHandler(dataset.getUuid());
 		Collection<Integer> versions = dfh.getAllVersions();
 		int minVersion = Collections.min(versions);
 		for (int ver : versions.stream().filter(ver -> ver > minVersion).collect(
@@ -390,8 +377,7 @@ public class DatasetRegisterServiceImpl {
 	private int resolveVersion(Dataset dataset, String version,
 		OperationMode mode) throws IOException
 	{
-		DatasetFilesystemHandler dfs = new DatasetFilesystemHandler(dataset
-			.getUuid().toString(), dataset.getPath());
+		DatasetHandler dfs = configuration.getDatasetHandler(dataset.getUuid());
 		switch (version) {
 			case "latest":
 				return dfs.getLatestVersion();

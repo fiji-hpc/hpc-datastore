@@ -8,8 +8,6 @@
 
 package cz.it4i.fiji.datastore;
 
-import static cz.it4i.fiji.datastore.DatasetPathRoutines.getXMLPath;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +56,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 	private List<int[]> resolutionLevels;
 
-	private DatasetFilesystemHandler datasetFilesystemHandler;
+	private DatasetHandler datasetHandler;
 
 	public synchronized void init(String aUuid, List<int[]> resolutions,
 		int aVersion, boolean aMixedVersion, OperationMode aMode)
@@ -69,9 +67,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		mixedVersion = aMixedVersion;
 		mode = aMode;
 		resolutionLevels = resolutions;
-		datasetFilesystemHandler = new DatasetFilesystemHandler(uuid.toString(),
-			configuration
-				.getDatasetPath(uuid.toString()));
+		datasetHandler = configuration.getDatasetHandler(aUuid);
 		initN5Access();
 	}
 
@@ -105,22 +101,18 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	}
 
 	private void initN5Access() throws SpimDataException, IOException {
-		n5Access = new N5Access(getXMLPath(configuration.getDatasetPath(uuid
-			.toString()),
-			datasetFilesystemHandler.getLatestVersion()), createN5Writer(),
+		n5Access = new N5Access(datasetHandler.getSpimData(), createN5Writer(),
 			resolutionLevels, mode);
 	}
-
-
 
 	private N5Writer createN5Writer() throws IOException {
 		if (mixedVersion) {
 			if (mode.allowsWrite()) {
 				throw new IllegalArgumentException("Write is not possible for mixed version");
 			}
-			return datasetFilesystemHandler.constructChainOfWriters(version);
+			return datasetHandler.constructChainOfWriters(version);
 		}
-		return datasetFilesystemHandler.getWriter(version);
+		return datasetHandler.getWriter(version);
 
 	}
 

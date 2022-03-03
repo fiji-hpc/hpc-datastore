@@ -7,26 +7,29 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore;
 
+import static cz.it4i.fiji.datastore.ApplicationConfiguration.BASE_NAME;
+
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public final class DatasetPathRoutines {
 
 	private DatasetPathRoutines() {}
 
-	static Path getBasePath(Path baseDirectory, int version) {
+	public static Path getDatasetVersionDirectory(Path baseDirectory,
+		int version)
+	{
 		return baseDirectory.resolve("" + version);
 	}
 
-	public static Path getXMLPath(Path baseDirectory, int version) {
-		return getBasePath(baseDirectory, version).resolve("export.xml");
+	public static Path getDataDirectory(Path datasetVersionDirectory)
+	{
+		return datasetVersionDirectory.resolve(BASE_NAME + ".n5");
 	}
 
-	static Path getDataPath(Path baseDirectory, int version) {
-		return getDataPath(getXMLPath(baseDirectory, version));
+	public static Path getXMLFile(Path datasetVersionDirectory)
+	{
+		return datasetVersionDirectory.resolve(BASE_NAME + ".xml");
 	}
 
-	public static Path getDataPath(Path pathToXML) {
-		return Paths.get(pathToXML.toString().replaceAll("\\.xml$", ".n5"));
-	}
+
 }

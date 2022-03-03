@@ -1,5 +1,8 @@
 package cz.it4i.fiji.datastore.bdv_server;
 
+import static cz.it4i.fiji.datastore.ApplicationConfiguration.BASE_NAME;
+import static cz.it4i.fiji.datastore.bdv_server.SpimDataMapper.asSpimDataMinimal;
+
 import com.google.gson.GsonBuilder;
 
 import java.awt.image.BufferedImage;
@@ -45,7 +48,7 @@ import bdv.img.remote.AffineTransform3DJsonSerializer;
 import bdv.img.remote.RemoteImageLoader;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
-import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
+import cz.it4i.fiji.datastore.DatasetHandler;
 import cz.it4i.fiji.datastore.core.DatasetDTO;
 import cz.it4i.fiji.datastore.core.HPCDatastoreImageLoaderMetaData;
 import cz.it4i.fiji.datastore.register_service.Dataset;
@@ -163,15 +166,14 @@ public class CellHandlerTS
 	private final String thumbnailFilename;
 
 
-	CellHandlerTS(Dataset dataset, final String baseUrl, int version,
-		final String xmlFilename,
-		final String datasetName, final String thumbnailsDirectory)
-		throws SpimDataException, IOException
+	CellHandlerTS(DatasetHandler datasetHandler, Dataset dataset,
+		final String baseUrl, int version, final String datasetName,
+		final String thumbnailsDirectory) throws SpimDataException, IOException
 	{
 		final XmlIoSpimDataMinimal io = new XmlIoSpimDataMinimal();
-		final SpimDataMinimal spimData = io.load( xmlFilename );
-		DatasetFilesystemHandler tempDFH = new DatasetFilesystemHandler(dataset);
-		final N5Writer writer = 0 <= version ? tempDFH.getWriter(version) : tempDFH
+		final SpimDataMinimal spimData = asSpimDataMinimal(datasetHandler.getSpimData());
+
+		final N5Writer writer = 0 <= version ? datasetHandler.getWriter(version) : datasetHandler
 			.constructChainOfWriters();
 		final Map<String, DatasetAttributes> perPathDatasetAttribute =
 			new HashMap<>();
@@ -195,7 +197,7 @@ public class CellHandlerTS
 
 		// dataSetURL property is used for providing the XML file by replace
 		// SequenceDescription>ImageLoader>baseUrl
-		baseFilename = xmlFilename.endsWith( ".xml" ) ? xmlFilename.substring( 0, xmlFilename.length() - ".xml".length() ) : xmlFilename;
+		baseFilename = BASE_NAME;
 		datasetXmlString = buildRemoteDatasetXML( io, spimData, baseUrl );
 		metadataJson = buildMetadataJsonString(spimData, dataset);
 		settingsXmlString = buildSettingsXML( baseFilename );

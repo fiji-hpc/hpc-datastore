@@ -9,16 +9,13 @@
 package cz.it4i.fiji.datastore.bdv_server;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
-import cz.it4i.fiji.datastore.DatasetPathRoutines;
 import cz.it4i.fiji.datastore.register_service.Dataset;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
-import cz.it4i.fiji.datastore.register_service.DatasetVersion;
 import mpicbg.spim.data.SpimDataException;
 
 @ApplicationScoped
@@ -34,13 +31,11 @@ class CellHandlerTSProducer {
 		Dataset dataset = repository.findByUUID(uuid);
 
 		// only for check that version exists
-		DatasetVersion ds = repository.findByUUIDVersion(uuid, version);
+		repository.findByUUIDVersion(uuid, version);
 
-		Path xmlPath = DatasetPathRoutines.getXMLPath(configuration.getDatasetPath(
-			uuid), ds.getValue());
 		try {
-			return new CellHandlerTS(dataset, baseURL, version, xmlPath.toRealPath()
-				.toString(), uuid + "_version-" + version, "/tmp/datastore");
+			return new CellHandlerTS(configuration.getDatasetHandler(uuid), dataset,
+				baseURL, version, uuid + "_version-" + version, "/tmp/datastore");
 		}
 		catch (SpimDataException | IOException exc) {
 			throw new RuntimeException(exc);

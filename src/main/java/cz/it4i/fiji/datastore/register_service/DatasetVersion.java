@@ -26,7 +26,4 @@ public class DatasetVersion implements Serializable {
 	@Setter
 	private int value;
 
-	@Getter
-	@Setter
-	private String location;
 }

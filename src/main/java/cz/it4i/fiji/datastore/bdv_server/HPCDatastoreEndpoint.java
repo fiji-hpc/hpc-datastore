@@ -71,8 +71,7 @@ public class HPCDatastoreEndpoint {
 		final XmlIoSpimDataMinimal io = new XmlIoSpimDataMinimal();
 
 		try (final StringWriter ow = new StringWriter()) {
-			SpimDataMinimal spimData = getSpimDataMinimalTS.run(io, uuidStr,
-				versionStr);
+			SpimDataMinimal spimData = getSpimDataMinimalTS.run(uuidStr, versionStr);
 			BuildRemoteDatasetXmlTS.run(io, spimData, new HPCDatastoreImageLoader(uriInfo.getRequestUri().toString()), ow);
 			return Response.ok(ow.toString()).build();
 		}

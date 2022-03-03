@@ -10,8 +10,6 @@ package cz.it4i.fiji.datastore.register_service;
 import static cz.it4i.fiji.datastore.core.MipmapInfoAssembler.createExportMipmapInfo;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -24,14 +22,15 @@ import net.imglib2.realtransform.AffineTransform3D;
 
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataType;
+import org.janelia.saalfeldlab.n5.N5Writer;
 
 import bdv.img.hdf5.MipmapInfo;
+import cz.it4i.fiji.datastore.ApplicationConfiguration;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS;
-import cz.it4i.fiji.datastore.DatasetPathRoutines;
+import cz.it4i.fiji.datastore.DatasetHandler;
 import cz.it4i.fiji.datastore.base.Factories;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.XmlIoSpimData;
 import mpicbg.spim.data.registration.ViewRegistration;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.Channel;
@@ -42,33 +41,38 @@ import mpicbg.spim.data.sequence.ViewSetup;
 
 public class AddChannelTS {
 
+	private ApplicationConfiguration _configuration;
+
+	public AddChannelTS(ApplicationConfiguration configuration) {
+		this._configuration = configuration;
+	}
+
 	public void run(Dataset dataset, int channels, Compression compression)
 		throws SpimDataException,
 		IOException
 	{
+		DatasetHandler datasetHandler = _configuration.getDatasetHandler(dataset
+			.getUuid());
+		SpimData spimData = datasetHandler.getSpimData();
 		for (DatasetVersion version : dataset.getDatasetVersion()) {
-			Path pathToXML = DatasetPathRoutines.getXMLPath(Paths.get(dataset
-				.getPath()), version.getValue());
-			Path pathToDir = DatasetPathRoutines.getDataPath(pathToXML);
-			XmlIoSpimData io = new XmlIoSpimData();
-			SpimData spimData = io.load(pathToXML.toString());
+
 			Collection<ViewSetup> addedViewSetups =
 				new LinkedList<>();
 			createViewSetups(dataset, spimData, channels, addedViewSetups);
 			createViewRegistrations(spimData, addedViewSetups);
-			createN5Structure(dataset, pathToDir, spimData, compression,
-				addedViewSetups);
-			io.save(spimData, pathToXML.toString());
+			createN5Structure(datasetHandler.getWriter(version.getValue()), dataset,
+				spimData, compression, addedViewSetups);
+			datasetHandler.saveSpimData(spimData);
 		}
 	}
 
-	private void createN5Structure(Dataset dataset, Path xmlPath,
+	private void createN5Structure(N5Writer writer, Dataset dataset,
 		SpimData spimData, Compression compression,
 		Collection<ViewSetup> addedViewSetups) throws IOException
 	{
 		MipmapInfo mi = createExportMipmapInfo(DatasetAssembler
 			.createDatatransferObject(dataset.getResolutionLevel()));
-		CreateNewDatasetTS.createN5Structure(xmlPath, DataType.fromString(dataset
+		CreateNewDatasetTS.createN5Structure(writer, DataType.fromString(dataset
 			.getVoxelType()), dataset.getDimensions(), compression, mi, spimData
 				.getSequenceDescription(), addedViewSetups.stream().map(vs -> vs
 					.getId()).collect(Collectors.toList()), spimData
