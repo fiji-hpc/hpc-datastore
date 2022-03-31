@@ -48,9 +48,9 @@ public class ApplicationConfiguration implements Serializable{
 
 	public static final String DEFAULT_PATH_PREFIX = "target/output";
 
-	public static final Set<String> _properties = Arrays.asList( DATASTORE_PATH,
-		DATASTORE_S3_HOST_URL, DATASTORE_S3_REGION, DATASTORE_S3_ACCESS_KEY,
-		DATASTORE_S3_SECRET_KEY).stream().collect(toSet());
+	public static final Set<String> _properties = Arrays.asList(DATASTORE_PATH,
+		DATASTORE_S3_HOST_URL, DATASTORE_S3_BUCKET, DATASTORE_S3_REGION,
+		DATASTORE_S3_ACCESS_KEY, DATASTORE_S3_SECRET_KEY).stream().collect(toSet());
 
 	public static final String BASE_NAME = "export";
 

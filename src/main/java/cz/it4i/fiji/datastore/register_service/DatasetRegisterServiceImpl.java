@@ -187,7 +187,7 @@ public class DatasetRegisterServiceImpl {
 			Collections.singletonList(dataset.getSortedResolutionLevels().get(0)
 				.getResolutions()), OperationMode.READ_WRITE);
 
-		final N5Writer writer = dh.getWriter(version);
+		final N5Writer writer = n5Access.getWriter();
 		final RandomAccessibleInterval<T> img = N5Utils.open(writer, n5Access
 			.getViewSetupTimepoint(time, channel, angle).getPath(
 				IDENTITY_RESOLUTION));

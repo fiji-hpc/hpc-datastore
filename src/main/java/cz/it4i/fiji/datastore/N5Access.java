@@ -13,7 +13,9 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -32,8 +34,8 @@ import cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceImpl;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import cz.it4i.fiji.datastore.register_service.ResolutionLevel;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.generic.AbstractSpimData;
@@ -44,7 +46,9 @@ import mpicbg.spim.data.sequence.ViewSetup;
 @Log4j2
 public class N5Access {
 
-	@AllArgsConstructor(access = AccessLevel.PRIVATE)
+	private static final String DOWNSAMPLING_FACTORS = "downsamplingFactors";
+
+	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 	public class ViewSetupTimepoint {
 
 		@Getter
@@ -53,8 +57,13 @@ public class N5Access {
 		@Getter
 		private final int timeID;
 
-		public int getLevelID(int[] resolutions) {
-			return getLevelId(writer, viewSetup, timeID, resolutions);
+		private Map<List<Integer>, Integer> levelIDsmap;
+
+		public synchronized int getLevelID(int[] resolutions) {
+			if (levelIDsmap == null) {
+				levelIDsmap = getLevelIdsMap(writer, viewSetup, timeID);
+			}
+			return levelIDsmap.get(asList(resolutions));
 		}
 
 		public PathIdentification getPathIdentification(int[] resolution)
@@ -141,6 +150,8 @@ public class N5Access {
 	private OperationMode mode;
 	private int[] resolutionLevel;
 	private List<int[]> downsamplingResolutionsLevels;
+	private final Map<List<Integer>, ViewSetupTimepoint> asViewSetupTimepointPerTimeChannelAngle =
+		new HashMap<>();
 
 	public static DataBlock<?> constructDataBlock(long[] gridPosition,
 		InputStream inputStream, DataType dataType) throws IOException
@@ -179,7 +190,7 @@ public class N5Access {
 			}
 		}
 		this.spimData = spimData;
-		writer = aWriter;
+		writer = new CachingAttributesN5Writer(aWriter, DOWNSAMPLING_FACTORS);
 		if (aMode == OperationMode.WRITE_TO_OTHER_RESOLUTIONS ||
 			aMode == OperationMode.NO_ACCESS)
 		{
@@ -252,12 +263,25 @@ public class N5Access {
 	public ViewSetupTimepoint getViewSetupTimepoint(int timeID, int channelID,
 		int angleID)
 	{
-		ViewSetup viewSetup = getViewSetup(spimData, channelID, angleID);
-		if (viewSetup == null) {
-			throw new IllegalArgumentException(String.format(
-				"Channel=%d and angle=%d not found.", channelID, angleID));
+		List<Integer> key = Arrays.asList(timeID, channelID, angleID);
+		synchronized (asViewSetupTimepointPerTimeChannelAngle) {
+			ViewSetupTimepoint result = asViewSetupTimepointPerTimeChannelAngle.get(
+				key);
+			if (result == null) {
+				ViewSetup viewSetup = getViewSetup(spimData, channelID, angleID);
+				if (viewSetup == null) {
+					throw new IllegalArgumentException(String.format(
+						"Channel=%d and angle=%d not found.", channelID, angleID));
+				}
+				result = new ViewSetupTimepoint(viewSetup, timeID);
+				asViewSetupTimepointPerTimeChannelAngle.put(key, result);
+			}
+			return result;
 		}
-		return new ViewSetupTimepoint(viewSetup, timeID);
+	}
+
+	public N5Writer getWriter() {
+		return writer;
 	}
 
 
@@ -304,8 +328,8 @@ public class N5Access {
 		return constructDataBlock(gridPosition, inputStream, dataType);
 	}
 
-	private static Integer getLevelId(N5Writer writer, ViewSetup viewSetup,
-		int timId, int[] resolutionLevel)
+	private static Map<List<Integer>, Integer> getLevelIdsMap(N5Writer writer,
+		ViewSetup viewSetup, int timId)
 	{
 		String baseGroup = BdvN5Format.getPathName(viewSetup.getId(), timId);
 
@@ -315,17 +339,26 @@ public class N5Access {
 			return Arrays.asList(writer.list(baseGroup))
 														.stream().map(levelGroupPattern::matcher)
 														.filter(Matcher::matches)
-														.filter(m -> matchResolutionLevel(writer,baseGroup, m.group(), resolutionLevel))
-														.map(m -> m.group(1))
-														.findAny()
-														.map(Integer::valueOf)
-														.orElse(null);
+														.collect(Collectors.toMap(m->getScale(writer,baseGroup, m.group()), m -> Integer.parseInt(m.group(1))));
+														
 		// @formatter:on
 		}
 		catch (IOException exc) {
 			log.warn("Listing group :" + baseGroup, exc);
-			return -1;
+			return Collections.emptyMap();
 		}
+	}
+
+	private static List<Integer> getScale(N5Writer writer, String baseGroup,
+		String group)
+	{
+		return asList(getAttribute(writer, baseGroup + "/" + group,
+			DOWNSAMPLING_FACTORS, int[].class, () -> new int[] {}));
+	}
+
+	private static List<Integer> asList(int[] values) {
+		return IntStream.of(values).mapToObj(Integer::valueOf).collect(Collectors
+			.toList());
 	}
 
 	private static Integer getAnyLevelId(N5Writer writer, ViewSetup viewSetup,
@@ -351,13 +384,7 @@ public class N5Access {
 		}
 	}
 
-	private static boolean matchResolutionLevel(N5Writer writer, String baseGroup,
-		String subGroup,
-		int[] resolutionLevel)
-	{
-		return Arrays.equals(resolutionLevel, getAttribute(writer, baseGroup + "/" +
-			subGroup, "downsamplingFactors", int[].class, () -> new int[] {}));
-	}
+
 
 	private static ViewSetup getViewSetup(
 		AbstractSpimData<SequenceDescription> spimData, int channel,
@@ -395,6 +422,5 @@ public class N5Access {
 			}
 			return n;
 		}
-
 
 }

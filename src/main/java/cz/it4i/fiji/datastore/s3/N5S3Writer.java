@@ -9,7 +9,6 @@ import com.google.gson.JsonElement;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
@@ -84,11 +83,8 @@ class N5S3Writer extends N5S3Reader implements N5Writer {
 		throws IOException
 	{
 		final String path = getDataBlockPath(pathName, dataBlock.getGridPosition());
-		try (OutputStream outputStream = this.s3Client.getOutputStream(path
-			.toString()))
-		{
-			DefaultBlockWriter.writeBlock(outputStream, datasetAttributes, dataBlock);
-		}
+		DefaultBlockWriter.writeBlock(this.s3Client.getOutputStream(path
+			.toString()), datasetAttributes, dataBlock);
 	}
 
 	@Override
