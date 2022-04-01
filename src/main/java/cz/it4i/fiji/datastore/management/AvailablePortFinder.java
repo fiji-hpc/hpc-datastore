@@ -8,6 +8,7 @@
 package cz.it4i.fiji.datastore.management;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Optional;
@@ -22,6 +23,8 @@ import lombok.extern.log4j.Log4j2;
 @ApplicationScoped
 public class AvailablePortFinder {
 
+	private static final int PROOFS_THRESHOLDS = 10;
+
 	private static String PORTS_RANGE = "datastore.ports";
 
 	private final int[] range;
@@ -35,11 +38,11 @@ public class AvailablePortFinder {
 		try {
 			String[] tokens = param.split("[,;]");
 			if (tokens.length == 1) {
-				return new int[] { Integer.parseInt(tokens[0]), 65553 };
+				return new int[] { Integer.parseInt(tokens[0]), 65535 };
 			}
 
 			return new int[] { Integer.parseInt(tokens[0]), Integer.parseInt(
-				tokens[0]) };
+				tokens[1]) };
 		}
 		catch (NumberFormatException exc) {
 			log.warn("Illegal value '{}' for property '{}'. Used '0,65535' instead.",
@@ -54,10 +57,17 @@ public class AvailablePortFinder {
 
 			OptionalInt result = OptionalInt.empty();
 			Random rnd = new Random();
+			int proofs = 0;
 			do {
 				int port = range == null ? 0 : rnd.nextInt(range[1] - range[0] + 1) +
 					range[0];
 				result = tryPort(hostName, port);
+				proofs++;
+				if (proofs > PROOFS_THRESHOLDS) {
+					throw new UncheckedIOException(new IOException(
+						"Cannot allocate port in range[" + range[0] + "," + range[1] +
+							"]"));
+				}
 			} while (result.isEmpty());
 			return result.getAsInt();
 		}
