@@ -28,9 +28,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -78,13 +78,23 @@ public class DatasetServerEndpoint implements Serializable {
 	@Authorization
 	@Path("/")
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public RootResponse getStatus()
+	public Response getStatus()
 	{
-		return RootResponse.builder().uuid(dataServerManager.getUUID()).mode(
+		RootResponse result = RootResponse.builder().uuid(dataServerManager
+			.getUUID()).mode(
 			dataServerManager.getMode()).version(dataServerManager.getVersion())
 			.resolutionLevels(dataServerManager.getResolutionLevels()).serverTimeout(
 				dataServerManager.getServerTimeout()).build();
+		ResponseBuilder responseBuilder = Response.ok();
+		if (result.getUuid() != null) {
+			responseBuilder.entity(result).type(MediaType.APPLICATION_JSON_TYPE)
+				.build();
+		}
+		else {
+			getResponseAsHTML(responseBuilder);
+		}
+
+		return responseBuilder.build();
 	}
 
 	@Authorization
@@ -255,6 +265,26 @@ public class DatasetServerEndpoint implements Serializable {
 			sb.append(time).append("/").append(channel).append("/").append(angle);
 			return sb.toString();
 		}
+	}
+
+	private void getResponseAsHTML(ResponseBuilder responseBuilder)
+	{
+		StringBuilder sb = new StringBuilder();
+		String url = "https://github.com/fiji-hpc/hpc-datastore/";
+		// @formatter:off
+		sb.append(
+			"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en-gb\" lang=\"en-gb\" dir=\"ltr\">").append('\n')
+			.append("<head>").append('\n')
+			.append("<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" />").append('\n')
+			.append("</head>").append('\n')
+			.append("<body>").append('\n');
+			
+			sb
+			.append("<h1>HPCDataStore is running.</h1>").append('\n')
+			.append("<p>See more on github: <a target=\"_blank\" href=\"" + url +"\">HPCDataStore</a></p>")
+		  .append("</body>").append('\n');
+		// @formatter:on
+		responseBuilder.type(MediaType.TEXT_HTML_TYPE).entity(sb.toString());
 	}
 
 	@Getter

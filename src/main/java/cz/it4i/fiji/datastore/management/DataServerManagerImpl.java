@@ -126,7 +126,7 @@ class DataServerManagerImpl implements DataServerManager {
 
 	@Override
 	public List<int[]> getResolutionLevels() {
-		String[] tokens = System.getProperty(PROPERTY_RESOLUTION).split(";");
+		String[] tokens = System.getProperty(PROPERTY_RESOLUTION, "").split(";");
 		List<int[]> result = new LinkedList<>();
 
 		for (String token : tokens) {
@@ -144,7 +144,7 @@ class DataServerManagerImpl implements DataServerManager {
 
 	@Override
 	public int getVersion() {
-		return Integer.parseInt(System.getProperty(PROPERTY_VERSION, ""));
+		return Integer.parseInt(System.getProperty(PROPERTY_VERSION, "-1"));
 	}
 
 	@Override
@@ -154,7 +154,11 @@ class DataServerManagerImpl implements DataServerManager {
 
 	@Override
 	public OperationMode getMode() {
-		return OperationMode.valueOf(System.getProperty(PROPERTY_MODE, ""));
+		String modeName = System.getProperty(PROPERTY_MODE, null);
+		if (modeName == null) {
+			return null;
+		}
+		return OperationMode.valueOf(modeName);
 	}
 
 
