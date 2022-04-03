@@ -33,13 +33,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import lombok.extern.log4j.Log4j2;
-
 /**
  * @author Jan Kožusznik
  */
 @SuppressWarnings("deprecation")
-@Log4j2
 @QuarkusTest()
 @TestInstance(Lifecycle.PER_CLASS)
 public class TestDatastore {
@@ -56,7 +53,6 @@ public class TestDatastore {
 			" { \"voxelType\":\"uint32\", \"dimensions\":[1000,1000,1], \"timepoints\": 2, \"channels\": 2, \"angles\": 2, \"voxelUnit\": \"um\", \"voxelResolution\": [0.4, 0.4, 1], \"timepointResolution\": {\"value\": 1,\"unit\":\"min\"}, \"channelResolution\": {\"value\": 0,\"unit\":null}, \"angleResolution\": {\"value\":0 ,\"unit\":null}, \"compression\": \"raw\", \"resolutionLevels\": [ {\"resolutions\":[ 1, 1, 1],\"blockDimensions\":[ 64, 64, 64] }, {\"resolutions\":[ 2, 2, 1],\"blockDimensions\":[ 64, 64, 64]} ]}")
 			.post("/datasets").andReturn();
 		uuid = result.asString();
-		log.info("status {}", result.getStatusLine());
 	}
 
 	void shutdown() {

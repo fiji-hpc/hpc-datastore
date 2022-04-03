@@ -11,3 +11,5 @@ quarkus:
       sql: true
     database:
       generation: update
+  shutdown:
+    timeout: 1

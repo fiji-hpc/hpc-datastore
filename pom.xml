@@ -69,8 +69,8 @@
         <cdi-api.version>2.0.SP1</cdi-api.version>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
-        <quarkus.platform.version>1.13.7.Final</quarkus.platform.version>
-        <quarkus-plugin.version>1.13.7.Final</quarkus-plugin.version>
+        <quarkus.platform.version>2.7.5.Final</quarkus.platform.version>
+        <quarkus-plugin.version>2.7.5.Final</quarkus-plugin.version>
         <persistence-api.version>3.0.0</persistence-api.version>
         <hibernate.version>5.4.25.Final</hibernate.version>
         <derby.version>10.14.2.0</derby.version>
@@ -270,7 +270,6 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>2.17.1</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl -->
@@ -291,6 +290,7 @@
 		<dependency>
 		    <groupId>com.nimbusds</groupId>
 		    <artifactId>oauth2-oidc-sdk</artifactId>
+		     <version>9.32</version>
 		</dependency>
 		 <dependency>
             <groupId>com.amazonaws</groupId>
