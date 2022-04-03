@@ -20,9 +20,6 @@ import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.DefaultBlockReader;
 import org.janelia.saalfeldlab.n5.GsonAttributesParser;
 
-import lombok.extern.log4j.Log4j2;
-
-@Log4j2
 class N5S3Reader extends AbstractGsonReader {
 
 	protected static final String JSON_FILE = "attributes.json";
@@ -77,7 +74,6 @@ class N5S3Reader extends AbstractGsonReader {
 	public HashMap<String, JsonElement> getAttributes(final String pathName)
 		throws IOException
 	{
-		log.info("getAttributes: {}", pathName);
 		final String path = keyRoutines.resolve(basePath, pathName);
 
 		final String s3FileName = getAttributesPath(path);

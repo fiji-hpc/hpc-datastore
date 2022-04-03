@@ -61,7 +61,7 @@ public class DatasetS3Handler implements DatasetHandler {
 	public SpimData getSpimData() throws SpimDataException {
 
 		String path = getXMLPath(INITIAL_VERSION);
-		log.info("Loading spim data from {}", path);
+		log.debug("Loading spim data from {}", path);
 
 		if (s3Client.fileExists(path.toString())) {
 			try (final InputStream inputStream = s3Client.getInputStream(path))
