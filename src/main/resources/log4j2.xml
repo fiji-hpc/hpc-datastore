@@ -13,6 +13,7 @@
 		</Root>
 		<Logger name="cz.it4i.fiji.datastore.App" level="trace"/>
 		<Logger name="cz.it4i.fiji.datastore.timout_shutdown.TimeoutTimer" level="debug"/>
+		<Logger name="cz.it4i.fiji.datastore.management.DataServerManagerEndpoint" level="debug"/>
 	</Loggers>
 </Configuration>
 

@@ -14,7 +14,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
 import cz.it4i.fiji.datastore.security.Authorization;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @Authorization
 @Path("/")
 @ApplicationScoped
@@ -26,6 +28,7 @@ public class DataServerManagerEndpoint {
 	@POST
 	@Path("/stop")
 	public Response stopDataServer() {
+		log.debug("Stop was requested as REST request");
 		dataServerManager.stopCurrentDataServer();
 		return Response.ok().build();
 	}
