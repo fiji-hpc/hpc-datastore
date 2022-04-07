@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
 	<Appenders>
+		<File name="File" fileName="hpc-datastore.log">
+	      <PatternLayout
+	      pattern="server.id=$${sys:server_id}: %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"  />
+	    </File>
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout
 				pattern="server.id=$${sys:server_id}: %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
@@ -10,6 +14,7 @@
 	<Loggers>
 		<Root level="info">
 			<AppenderRef ref="Console" />
+			<AppenderRef ref="File" />
 		</Root>
 		<Logger name="cz.it4i.fiji.datastore.App" level="trace"/>
 		<Logger name="cz.it4i.fiji.datastore.timout_shutdown.TimeoutTimer" level="debug"/>
