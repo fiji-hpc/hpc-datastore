@@ -8,6 +8,8 @@
 package cz.it4i.fiji.datastore.timout_shutdown;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Timer;
@@ -41,16 +43,18 @@ public class TimeoutTimer {
 		scheduleTimer();
 	}
 
-	public void scheduleTimer() {
+	synchronized public void scheduleTimer() {
 		long timeout = dataServerManager.getServerTimeout();
 		if (timeout <= 0) {
 			return;
 		}
 		nextTimeout = Instant.now().plus(timeout, ChronoUnit.MILLIS);
 		createTimer();
+		log.info("Shutdown scheduled on {}", LocalDateTime.ofInstant(nextTimeout,
+			ZoneId.systemDefault()));
 	}
 
-	private synchronized void createTimer() {
+	synchronized private void createTimer() {
 		if (task == null) {
 			task = new MyTimerTask(this::timeout);
 			timer.schedule(task, Date.from(nextTimeout));
@@ -65,6 +69,7 @@ public class TimeoutTimer {
 			createTimer();
 		}
 		else {
+			log.debug("Dataserver timeouted");
 			dataServerManager.stopCurrentDataServer();
 		}
 	}
