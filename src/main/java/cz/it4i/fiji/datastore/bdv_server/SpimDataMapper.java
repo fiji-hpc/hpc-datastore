@@ -9,14 +9,16 @@ package cz.it4i.fiji.datastore.bdv_server;
 
 import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
-import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.SequenceDescription;
 
 final class SpimDataMapper {
 
 	private SpimDataMapper() {}
 
-	static SpimDataMinimal asSpimDataMinimal(SpimData spimData) {
+	static SpimDataMinimal asSpimDataMinimal(
+		AbstractSpimData<SequenceDescription> spimData)
+	{
 		final SequenceDescription tempSeq = spimData.getSequenceDescription();
 		final SequenceDescriptionMinimal sequenceDescription =
 			new SequenceDescriptionMinimal(tempSeq.getTimePoints(), tempSeq

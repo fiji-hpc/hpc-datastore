@@ -129,8 +129,7 @@ public class CreateNewDatasetTS {
 		N5Description description)
 		throws IOException
 	{
-		SpimData result = new SPIMDataProducer(new File(datasetHandler.getUUID()),
-			description).spimData;
+		SpimData result = new SPIMDataProducer(description).spimData;
 		createN5Structure(datasetHandler.getWriter(INITIAL_VERSION),
 			description.voxelType, description.dimensions, description.compression,
 			description.exportMipmapInfo, result.getSequenceDescription());
@@ -182,7 +181,7 @@ public class CreateNewDatasetTS {
 		final Map<Integer, Map<Integer, ViewSetup>> perAngleAndChannelViewSetup =
 			new HashMap<>();
 
-		SPIMDataProducer(File pathToDir, N5Description description) {
+		SPIMDataProducer(N5Description description) {
 			timepointsCol = IntStream.range(0, description.timepoints)
 				.<TimePoint> mapToObj(
 				TimePoint::new).collect(Collectors.toList());
@@ -196,10 +195,10 @@ public class CreateNewDatasetTS {
 					null);
 			
 			final SequenceDescription sequenceDescription = new SequenceDescription(
-				new TimePoints(timepointsCol), viewSetups, new N5ImageLoader(pathToDir,
-					tempSequenceDescription));
+				new TimePoints(timepointsCol), viewSetups, new N5ImageLoader(new File(
+					""), tempSequenceDescription));
 			
-			spimData = new SpimData(pathToDir, sequenceDescription,
+			spimData = new SpimData(new File(""), sequenceDescription,
 				new ViewRegistrations(generateViewRegistrations(description)));
 		}
 

@@ -59,6 +59,11 @@ public class DatasetS3Handler implements DatasetHandler {
 
 	@Override
 	public SpimData getSpimData() throws SpimDataException {
+		return getSpimData(INITIAL_VERSION);
+	}
+
+	@Override
+	public SpimData getSpimData(int version) throws SpimDataException {
 
 		String path = getXMLPath(INITIAL_VERSION);
 		log.debug("Loading spim data from {}", path);

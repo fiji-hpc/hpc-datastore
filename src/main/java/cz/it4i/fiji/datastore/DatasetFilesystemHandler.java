@@ -32,8 +32,10 @@ import javax.ws.rs.NotFoundException;
 
 import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
+import org.janelia.saalfeldlab.n5.N5Reader;
 import org.janelia.saalfeldlab.n5.N5Writer;
 
+import bdv.img.n5.N5ImageLoader;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -55,14 +57,23 @@ public class DatasetFilesystemHandler implements DatasetHandler {
 
 	@Override
 	public SpimData getSpimData() throws SpimDataException {
-		return loadFromXML(getXMLFile(getDatasetVersionDirectory(pathOfDataset,
-			INITIAL_VERSION)));
+		return getSpimData(INITIAL_VERSION);
+	}
+
+	@Override
+	public SpimData getSpimData(int version) throws SpimDataException {
+		return SetN5LoaderToSpimData.$(loadFromXML(getXMLFile(
+			getDatasetVersionDirectory(pathOfDataset, version))),
+			seq -> new cz.it4i.fiji.datastore.N5ImageLoader(() -> getReader(version),
+				seq), new File(""));
+
 	}
 
 	@Override
 	public void saveSpimData(SpimData data, int version)
 		throws SpimDataException
 	{
+		data = setN5ImageLoadeToSpimData(data, version);
 		new XmlIoSpimData().save(data, getXMLFile(getDatasetVersionDirectory(
 			pathOfDataset, version)).toString());
 	}
@@ -175,6 +186,22 @@ public class DatasetFilesystemHandler implements DatasetHandler {
 			}
 		}
 
+	}
+
+	private N5Reader getReader(int version) {
+		try {
+			return getWriter(version);
+		}
+		catch (IOException exc) {
+			throw new UncheckedIOException(exc);
+		}
+	}
+
+	private SpimData setN5ImageLoadeToSpimData(SpimData spimData, int version) {
+		File dataDirectory = DatasetPathRoutines.getDataDirectory(
+			getDatasetVersionDirectory(pathOfDataset, version)).toFile();
+		return SetN5LoaderToSpimData.$(spimData, seq -> new N5ImageLoader(
+			dataDirectory, seq), dataDirectory);
 	}
 
 	private void createNewVersion(Path src, Path dst) throws IOException {

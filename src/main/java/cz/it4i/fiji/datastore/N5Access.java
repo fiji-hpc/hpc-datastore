@@ -37,7 +37,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.sequence.SequenceDescription;
 import mpicbg.spim.data.sequence.ViewSetup;
@@ -172,7 +171,8 @@ public class N5Access {
 
 
 
-	public N5Access(SpimData spimData, N5Writer aWriter,
+	public N5Access(AbstractSpimData<SequenceDescription> spimData,
+		N5Writer aWriter,
 		List<int[]> aResolutionLevels, OperationMode aMode)
 	{
 		if (aMode != OperationMode.NO_ACCESS) {

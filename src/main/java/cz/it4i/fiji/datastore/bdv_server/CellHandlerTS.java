@@ -5,20 +5,14 @@ import static cz.it4i.fiji.datastore.bdv_server.SpimDataMapper.asSpimDataMinimal
 
 import com.google.gson.GsonBuilder;
 
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.StringWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -60,9 +54,6 @@ import mpicbg.spim.data.SpimDataException;
 public class CellHandlerTS 
 {
 
-	public static final int THUMBNAIL_WIDTH = 100;
-
-	public static final int THUMBNAIL_HEIGHT = 100;
 
 	/**
 	 * Key for a cell identified by timepoint, setup, level, and index
@@ -160,18 +151,15 @@ public class CellHandlerTS
 	 */
 	private final String settingsXmlString;
 
-	/**
-	 * Full path to thumbnail png.
-	 */
-	private final String thumbnailFilename;
-
-
+	private final ThumbnailProviderTS thumbnailProviderTS;
+	
 	CellHandlerTS(DatasetHandler datasetHandler, Dataset dataset,
 		final String baseUrl, int version, final String datasetName,
 		final String thumbnailsDirectory) throws SpimDataException, IOException
 	{
 		final XmlIoSpimDataMinimal io = new XmlIoSpimDataMinimal();
-		final SpimDataMinimal spimData = asSpimDataMinimal(datasetHandler.getSpimData());
+		final SpimDataMinimal spimData = asSpimDataMinimal(0 <= version
+			? datasetHandler.getSpimData(version) : datasetHandler.getSpimData());
 
 		final N5Writer writer = 0 <= version ? datasetHandler.getWriter(version) : datasetHandler
 			.constructChainOfWriters();
@@ -201,7 +189,8 @@ public class CellHandlerTS
 		datasetXmlString = buildRemoteDatasetXML( io, spimData, baseUrl );
 		metadataJson = buildMetadataJsonString(spimData, dataset);
 		settingsXmlString = buildSettingsXML( baseFilename );
-		thumbnailFilename = createThumbnail( spimData, baseFilename, datasetName, thumbnailsDirectory );
+		thumbnailProviderTS = new ThumbnailProviderTS(spimData, datasetName,
+			thumbnailsDirectory);
 	}
 
 	private DataBlock<?> readBlock(
@@ -296,29 +285,8 @@ public class CellHandlerTS
 	public void runForThumbnail(final HttpServletResponse response)
 		throws IOException
 	{
-		provideThumbnail(response);
+		thumbnailProviderTS.runForThumbnail(response);
 	}
-
-	private void provideThumbnail(final HttpServletResponse response)
-		throws IOException
-	{
-		final Path path = Paths.get( thumbnailFilename );
-		if ( Files.exists( path ) )
-		{
-			final byte[] imageData = Files.readAllBytes(path);
-			if ( imageData != null )
-			{
-				response.setContentType( "image/png" );
-				response.setContentLength( imageData.length );
-				response.setStatus( HttpServletResponse.SC_OK );
-
-				try (final OutputStream os = response.getOutputStream()) {
-					os.write(imageData);
-				}
-			}
-		}
-	}
-
 
 	/**
 	 * Create a JSON representation of the {@link HPCDatastoreImageLoaderMetaData}
@@ -380,39 +348,7 @@ public class CellHandlerTS
 		return null;
 	}
 
-	/**
-	 * Create PNG thumbnail file named "{@code <baseFilename>.png}".
-	 */
-	private static String createThumbnail( final SpimDataMinimal spimData, final String baseFilename, final String datasetName, final String thumbnailsDirectory )
-	{
-		final String thumbnailFileName = Paths.get(thumbnailsDirectory).resolve(
-			datasetName + ".png").toAbsolutePath().toString();
-		final File thumbnailFile = new File( thumbnailFileName );
-		if ( !thumbnailFile.isFile() ) // do not recreate thumbnail if it already exists
-		{
-			final BufferedImage bi = makeThumbnail(spimData, baseFilename,
-				THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-			try
-			{
-				ImageIO.write( bi, "png", thumbnailFile );
-			}
-			catch ( final IOException e )
-			{
-				log.warn("Could not create thumbnail png for dataset \"" +
-					baseFilename + "\"");
-				log.warn(e.getMessage());
-			}
-		}
-		return thumbnailFileName;
-	}
 
-	@SuppressWarnings("unused")
-	private static BufferedImage makeThumbnail(SpimDataMinimal spimData,
-		String baseFilename2, int thumbnailWidth, int thumbnailHeight)
-	{
-		return new BufferedImage(thumbnailWidth, thumbnailHeight,
-			BufferedImage.TYPE_USHORT_GRAY);
-	}
 
 	/**
 	 * Handle request by sending a UTF-8 string.

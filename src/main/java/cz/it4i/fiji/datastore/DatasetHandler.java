@@ -20,14 +20,10 @@ public interface DatasetHandler {
 
 	SpimData getSpimData() throws SpimDataException;
 
+	SpimData getSpimData(int version) throws SpimDataException;
+
 	default void saveSpimData(SpimData data) throws SpimDataException {
-		Collection<Integer> versions = new LinkedList<>();
-		if (versions.isEmpty()) {
-			versions = Collections.singleton(INITIAL_VERSION);
-		}
-		for (Integer version : versions) {
-			saveSpimData(data, version);
-		}
+		saveSpimData(data, INITIAL_VERSION);
 	}
 
 	void saveSpimData(SpimData data, int version) throws SpimDataException;

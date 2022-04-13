@@ -13,6 +13,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -46,6 +48,8 @@ public class HPCDatastoreEndpoint {
 	@Inject
 	ApplicationConfiguration configuration;
 
+	private Map<String, ThumbnailProviderTS> thumbnailsGenerators =
+		new HashMap<>();
 
 	@GET
 	@Path("/datasets/{" + UUID + "}/json")
@@ -60,7 +64,7 @@ public class HPCDatastoreEndpoint {
 	}
 
 	@GET
-	@Path("datasets/{" + UUID + "}" + "/{" + VERSION_PARAM +
+	@Path("datasets/{" + UUID + "}/{" + VERSION_PARAM +
 		":(all|\\d+)|mixedLatest}")
 	@Produces(APPLICATION_XML)
 	public Response getMetadataXML(@PathParam(UUID) String uuidStr,
@@ -82,6 +86,17 @@ public class HPCDatastoreEndpoint {
 	}
 
 	@GET
+	@Path("datasets/{" + UUID + "}/{" + VERSION_PARAM +
+		":(all|\\\\d+)|mixedLatest}/png")
+	public void getThumbnail(@PathParam(UUID) String uuid,
+		@PathParam(VERSION_PARAM) String version,
+		@Context HttpServletResponse response) throws IOException
+	{
+		ThumbnailProviderTS ts = getThumbnailProvider(uuid, version);
+		ts.runForThumbnail(response);
+	}
+
+	@GET
 	@Path("datasets/{" + UUID + "}" + "/{" + VERSION_PARAM + "}/settings")
 	//
 	public Response getSettingsXML()
@@ -89,11 +104,30 @@ public class HPCDatastoreEndpoint {
 		return Response.status(Status.NOT_FOUND).entity("settings.xml").build();
 	}
 
+	private ThumbnailProviderTS getThumbnailProvider(String uuid,
+		String version)
+	{
+		String key = getKey(uuid, version);
+		return thumbnailsGenerators.computeIfAbsent(key,
+			x -> {
+				try {
+					return constructThumbnailGeneratorTS(uuid, version);
+				}
+				catch (SpimDataException exc) {
+					throw new InternalServerErrorException(exc);
+				}
+			});
+	}
 
+	private ThumbnailProviderTS constructThumbnailGeneratorTS(String uuid,
+		String version) throws SpimDataException
+	{
+		SpimDataMinimal spimData = getSpimDataMinimalTS.run(uuid, version);
+		return new ThumbnailProviderTS(spimData, uuid + "_version-" + version,
+			System.getProperty("java.io.tmpdir"));
+	}
 
-
-
-
-
-
+	private String getKey(String uuid, String version) {
+		return uuid + ":" + version;
+	}
 }
