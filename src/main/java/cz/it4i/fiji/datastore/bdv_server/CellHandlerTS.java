@@ -385,7 +385,8 @@ public class CellHandlerTS
 	 */
 	private static String createThumbnail( final SpimDataMinimal spimData, final String baseFilename, final String datasetName, final String thumbnailsDirectory )
 	{
-		final String thumbnailFileName = thumbnailsDirectory + "/" + datasetName + ".png";
+		final String thumbnailFileName = Paths.get(thumbnailsDirectory).resolve(
+			datasetName + ".png").toAbsolutePath().toString();
 		final File thumbnailFile = new File( thumbnailFileName );
 		if ( !thumbnailFile.isFile() ) // do not recreate thumbnail if it already exists
 		{

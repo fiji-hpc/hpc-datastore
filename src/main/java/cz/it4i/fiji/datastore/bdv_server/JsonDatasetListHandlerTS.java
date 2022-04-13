@@ -41,6 +41,28 @@ class JsonDatasetListHandlerTS
 		list(uuid, response, baseURI, allVersionsInOne);
 	}
 
+	public void writeInfoAboutVersion(Dataset dataset, final JsonWriter writer,
+		URI baseURI, String version) throws IOException
+	{
+		final String datasetName = "dataset:" + dataset.getUuid() + ", version:" +
+			version;
+	
+		writer.name(datasetName).beginObject();
+	
+		writer.name("id").value(datasetName);
+	
+		// writer.name( "desc" ).value( contextHandler.getDescription() );
+		writer.name("description").value("NotImplemented");
+		boolean endsWithSlash = baseURI.toString().endsWith("/");
+		writer.name("datasetUrl").value(baseURI.resolve((endsWithSlash ? "../"
+			: "./") + version + "/")
+			.toString());
+		writer.name("thumbnailUrl").value(baseURI.resolve((endsWithSlash ? "../"
+			: "./") + version + "/png").toString());
+	
+		writer.endObject();
+	}
+
 	private void list(String uuid, final HttpServletResponse response,
 		URI baseURI, boolean allVersionsInOne)
 		throws IOException
@@ -96,25 +118,5 @@ class JsonDatasetListHandlerTS
 			}
 		}
 		return sb.toString();
-	}
-
-	public void writeInfoAboutVersion(Dataset dataset, final JsonWriter writer,
-		URI baseURI, String version) throws IOException
-	{
-		final String datasetName = "dataset:" + dataset.getUuid() + ", version:" +
-			version;
-
-		writer.name(datasetName).beginObject();
-
-		writer.name("id").value(datasetName);
-
-		// writer.name( "desc" ).value( contextHandler.getDescription() );
-		writer.name("description").value("NotImplemented");
-		boolean endsWithSlash = baseURI.toString().endsWith("/");
-		writer.name("datasetUrl").value(baseURI.resolve((endsWithSlash ? "../"
-			: "./") + version + "/")
-			.toString());
-
-		writer.endObject();
 	}
 }
