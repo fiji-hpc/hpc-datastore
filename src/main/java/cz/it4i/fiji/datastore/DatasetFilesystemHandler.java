@@ -26,6 +26,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.Objects;
 
 import javax.ws.rs.NotFoundException;
 
@@ -152,6 +153,19 @@ public class DatasetFilesystemHandler implements DatasetHandler {
 
 	@Override
 	public void setLabel(String label) {
+		String oldLabel = getLabel();
+		if (Objects.equals(oldLabel, label)) {
+			return;
+		}
+		if (!Strings.nullToEmpty(oldLabel).isBlank()) {
+			try {
+				Files.deleteIfExists(pathOfDataset.resolve(oldLabel));
+			}
+			catch (IOException exc) {
+				throw new UncheckedIOException(exc);
+			}
+		}
+
 		if (!Strings.nullToEmpty(label).isBlank()) {
 			try {
 				Files.createFile(pathOfDataset.resolve(label));
