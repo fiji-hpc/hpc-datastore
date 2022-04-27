@@ -9,9 +9,6 @@
 package cz.it4i.fiji.datastore.bdv_server;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -38,20 +35,13 @@ class CellHandlerTSProducer {
 
 		try {
 			return new CellHandlerTS(configuration.getDatasetHandler(uuid), dataset,
-				baseURL, version, uuid + "_version-" + version,
-				getThumbNailsDirectory());
+				baseURL, version, uuid + "_version-" + version, GetThumbnailsDirectoryTS
+					.$());
 		}
 		catch (SpimDataException | IOException exc) {
 			throw new RuntimeException(exc);
 		}
 	}
 
-	private String getThumbNailsDirectory() throws IOException {
-		Path temp = Paths.get(System.getProperty("java.io.tmpdir")).resolve("hpc-datastore");
-		if (!Files.exists(temp)) {
-			Files.createDirectory(temp);
-		}
-		return temp.toString();
-	}
 
 }

@@ -113,21 +113,23 @@ public class HPCDatastoreEndpoint {
 				try {
 					return constructThumbnailGeneratorTS(uuid, version);
 				}
-				catch (SpimDataException exc) {
+				catch (SpimDataException | IOException exc) {
 					throw new InternalServerErrorException(exc);
 				}
 			});
 	}
 
 	private ThumbnailProviderTS constructThumbnailGeneratorTS(String uuid,
-		String version) throws SpimDataException
+		String version) throws SpimDataException, IOException
 	{
 		SpimDataMinimal spimData = getSpimDataMinimalTS.run(uuid, version);
 		return new ThumbnailProviderTS(spimData, uuid + "_version-" + version,
-			System.getProperty("java.io.tmpdir"));
+			GetThumbnailsDirectoryTS.$());
 	}
 
 	private String getKey(String uuid, String version) {
 		return uuid + ":" + version;
 	}
+
+
 }
