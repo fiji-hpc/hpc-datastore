@@ -12,6 +12,7 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
@@ -34,7 +35,6 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import bdv.BigDataViewer;
 import bdv.img.cache.VolatileGlobalCellCache;
 import bdv.img.hdf5.Hdf5ImageLoader;
 import bdv.img.n5.BdvN5Format;
@@ -133,17 +133,6 @@ public class CellHandlerTS
 	private final String baseFilename;
 
 
-	/**
-	 * Cached dataset XML to be send to and opened by {@link BigDataViewer}
-	 * clients.
-	 */
-	private final String datasetXmlString;
-
-	/**
-	 * Cached JSON representation of the {@link HPCDatastoreImageLoaderMetaData} to be
-	 * send to clients.
-	 */
-	private final String metadataJson;
 
 	/**
 	 * Cached dataset.settings XML to be send to clients. May be null if no
@@ -152,14 +141,22 @@ public class CellHandlerTS
 	private final String settingsXmlString;
 
 	private final ThumbnailProviderTS thumbnailProviderTS;
+
+	private final String baseUrl;
+
+	private final Supplier<Dataset> datasetSupplier;
+
+	private Supplier<SpimDataMinimal> spimdataSupplier;
 	
-	CellHandlerTS(DatasetHandler datasetHandler, Dataset dataset,
+	CellHandlerTS(DatasetHandler datasetHandler,
+		Supplier<Dataset> datasetSupplier,
 		final String baseUrl, int version, final String datasetName,
-		final String thumbnailsDirectory) throws SpimDataException, IOException
+		final String thumbnailsDirectory) throws IOException
 	{
-		final XmlIoSpimDataMinimal io = new XmlIoSpimDataMinimal();
-		final SpimDataMinimal spimData = asSpimDataMinimal(0 <= version
-			? datasetHandler.getSpimData(version) : datasetHandler.getSpimData());
+		this.baseUrl = baseUrl;
+		this.datasetSupplier = datasetSupplier;
+		this.spimdataSupplier = () -> getSpimData(datasetHandler, version);
+
 
 		final N5Writer writer = 0 <= version ? datasetHandler.getWriter(version) : datasetHandler
 			.constructChainOfWriters();
@@ -186,11 +183,9 @@ public class CellHandlerTS
 		// dataSetURL property is used for providing the XML file by replace
 		// SequenceDescription>ImageLoader>baseUrl
 		baseFilename = BASE_NAME;
-		datasetXmlString = buildRemoteDatasetXML( io, spimData, baseUrl );
-		metadataJson = buildMetadataJsonString(spimData, dataset);
 		settingsXmlString = buildSettingsXML( baseFilename );
-		thumbnailProviderTS = new ThumbnailProviderTS(spimData, datasetName,
-			thumbnailsDirectory);
+		thumbnailProviderTS = new ThumbnailProviderTS(spimdataSupplier.get(),
+			datasetName, thumbnailsDirectory);
 	}
 
 	private DataBlock<?> readBlock(
@@ -266,13 +261,22 @@ public class CellHandlerTS
 		}
 		else if (parts[0].equals("init"))
 		{
-			return respondWithString("application/json", metadataJson);
+			return respondWithString("application/json", buildMetadataJsonString(
+				spimdataSupplier.get(), datasetSupplier.get()));
 		}
 		return Response.status(Status.BAD_REQUEST).build();
 	}
 
 	public Response runForDataset() {
-		return respondWithString("application/xml", datasetXmlString);
+		final XmlIoSpimDataMinimal io = new XmlIoSpimDataMinimal();
+
+		try {
+			return respondWithString("application/xml", buildRemoteDatasetXML(io,
+				spimdataSupplier.get(), baseUrl));
+		}
+		catch (IOException | SpimDataException exc) {
+			throw new RuntimeException(exc);
+		}
 	}
 
 	public Response runForSettings() {
@@ -307,7 +311,7 @@ public class CellHandlerTS
 		return gsonBuilder.create().toJson( metadata );
 	}
 
-	private String buildRemoteDatasetXML(XmlIoSpimDataMinimal io,
+	private static String buildRemoteDatasetXML(XmlIoSpimDataMinimal io,
 		SpimDataMinimal spimData, String baseUrl) throws IOException,
 		SpimDataException
 	{
@@ -318,6 +322,18 @@ public class CellHandlerTS
 	}
 
 
+
+	private static SpimDataMinimal getSpimData(DatasetHandler datasetHandler,
+		int version)
+	{
+		try {
+			return asSpimDataMinimal(0 <= version ? datasetHandler.getSpimData(
+				version) : datasetHandler.getSpimData());
+		}
+		catch (SpimDataException exc) {
+			throw new RuntimeException(exc);
+		}
+	}
 
 	/**
 	 * Read {@code baseFilename.settings.xml} into a string if it exists.

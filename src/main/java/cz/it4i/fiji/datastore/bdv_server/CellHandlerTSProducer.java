@@ -14,9 +14,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
-import cz.it4i.fiji.datastore.register_service.Dataset;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
-import mpicbg.spim.data.SpimDataException;
 
 @ApplicationScoped
 class CellHandlerTSProducer {
@@ -28,17 +26,16 @@ class CellHandlerTSProducer {
 	ApplicationConfiguration configuration;
 
 	CellHandlerTS produce(String baseURL, String uuid, int version) {
-		Dataset dataset = repository.findByUUID(uuid);
 
 		// only for check that version exists
 		repository.findByUUIDVersion(uuid, version);
 
 		try {
-			return new CellHandlerTS(configuration.getDatasetHandler(uuid), dataset,
+			return new CellHandlerTS(configuration.getDatasetHandler(uuid), () ->repository.findByUUID(uuid),
 				baseURL, version, uuid + "_version-" + version, GetThumbnailsDirectoryTS
 					.$());
 		}
-		catch (SpimDataException | IOException exc) {
+		catch (IOException exc) {
 			throw new RuntimeException(exc);
 		}
 	}

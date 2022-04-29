@@ -59,7 +59,6 @@ import net.imglib2.ui.RenderTarget;
 import net.imglib2.ui.Renderer;
 import net.imglib2.ui.SimpleInterruptibleProjector;
 import net.imglib2.ui.TransformListener;
-import net.imglib2.ui.overlay.BufferedImageOverlayRenderer;
 import net.imglib2.ui.util.GuiUtil;
 
 import bdv.cache.CacheControl;
@@ -74,7 +73,6 @@ import bdv.viewer.render.MipmapOrdering;
 import bdv.viewer.render.MipmapOrdering.Level;
 import bdv.viewer.render.MipmapOrdering.MipmapHints;
 import bdv.viewer.render.Prefetcher;
-import bdv.viewer.render.TransformAwareBufferedImageOverlayRenderer;
 import bdv.viewer.render.TransformAwareRenderTarget;
 import bdv.viewer.render.VolatileHierarchyProjector;
 import bdv.viewer.render.VolatileProjector;
@@ -139,7 +137,8 @@ import bdv.viewer.state.ViewerState;
  *
  * @author Tobias Pietzsch &lt;tobias.pietzsch@gmail.com&gt;
  */
-public class MultiResolutionRenderer {
+@SuppressWarnings("deprecation")
+class MultiResolutionRenderer {
 
 	/**
 	 * Receiver for the {@link BufferedImage BufferedImages} that we render.

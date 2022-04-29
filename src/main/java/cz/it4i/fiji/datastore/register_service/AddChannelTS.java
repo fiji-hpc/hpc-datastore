@@ -109,6 +109,7 @@ public class AddChannelTS {
 					Map<Integer, ViewSetup> vss = (Map<Integer, ViewSetup>) spimData
 						.getSequenceDescription().getViewSetups();
 					vss.put(vs.getId(), vs);
+					spimData.getSequenceDescription().getViewSetupsOrdered().add(vs);
 					addedViewSetups.add(vs);
 					setupID++;
 				}
