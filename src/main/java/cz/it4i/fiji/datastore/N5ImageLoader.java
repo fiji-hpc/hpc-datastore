@@ -94,20 +94,17 @@ import bdv.img.cache.SimpleCacheArrayLoader;
 import bdv.img.cache.VolatileGlobalCellCache;
 import bdv.util.ConstantRandomAccessible;
 import bdv.util.MipmapTransforms;
-import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.generic.sequence.ImgLoaderHint;
 import mpicbg.spim.data.sequence.MultiResolutionImgLoader;
 import mpicbg.spim.data.sequence.MultiResolutionSetupImgLoader;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 
-class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
+public class N5ImageLoader implements ViewerImgLoader,
+	MultiResolutionImgLoader
 {
 
 
-	// TODO: it would be good if this would not be needed
-	// find available setups from the n5
-	private final AbstractSequenceDescription<?, ?, ?> seq;
 
 	/**
 	 * Maps setup id to {@link SetupImgLoader}.
@@ -121,11 +118,13 @@ class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 	private VolatileGlobalCellCache cache;
 	private N5Reader n5;
 
+	private List<? extends BasicViewSetup> setups;
+
 	public N5ImageLoader(final Supplier<N5Reader> n5Supplier,
-		final AbstractSequenceDescription<?, ?, ?> sequenceDescription)
+		final List<? extends BasicViewSetup> setups)
 	{
 		this.n5Supplier = n5Supplier;
-		this.seq = sequenceDescription;
+		this.setups = setups;
 	}
 
 	/**
@@ -165,8 +164,6 @@ class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 	
 					this.n5 = n5Supplier.get();
 					int maxNumLevels = 0;
-					final List<? extends BasicViewSetup> setups = seq
-						.getViewSetupsOrdered();
 					for (final BasicViewSetup setup : setups) {
 						final int setupId = setup.getId();
 						final SetupImgLoader setupImgLoader = createSetupImgLoader(setupId);

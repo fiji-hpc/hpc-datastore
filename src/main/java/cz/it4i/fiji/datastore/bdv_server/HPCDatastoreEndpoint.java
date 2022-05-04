@@ -122,6 +122,10 @@ public class HPCDatastoreEndpoint {
 	private ThumbnailProviderTS constructThumbnailGeneratorTS(String uuid,
 		String version) throws SpimDataException, IOException
 	{
+		// thumbnail is done from mixedLatest version as it requires transform
+		// setups in
+		// N5Reader and get N5Reader base on setupID
+		version = "mixedLatest";
 		SpimDataMinimal spimData = getSpimDataMinimalTS.run(uuid, version);
 		return new ThumbnailProviderTS(spimData, uuid + "_version-" + version,
 			GetThumbnailsDirectoryTS.$());

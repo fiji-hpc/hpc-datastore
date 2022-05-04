@@ -65,7 +65,7 @@ public class DatasetFilesystemHandler implements DatasetHandler {
 		return SetN5LoaderToSpimData.$(loadFromXML(getXMLFile(
 			getDatasetVersionDirectory(pathOfDataset, version))),
 			seq -> new cz.it4i.fiji.datastore.N5ImageLoader(() -> getReader(version),
-				seq), new File(""));
+				seq.getViewSetupsOrdered()), new File(""));
 
 	}
 
