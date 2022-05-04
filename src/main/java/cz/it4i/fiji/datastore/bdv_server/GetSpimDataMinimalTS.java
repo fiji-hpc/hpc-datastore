@@ -169,7 +169,7 @@ public final class GetSpimDataMinimalTS {
 			// only for check that version exists
 			repository.findByUUIDVersion(uuid, version);
 			return SpimDataMapper.asSpimDataMinimal(configuration.getDatasetHandler(
-				uuid).getSpimData());
+				uuid).getSpimData(version));
 		}
 		catch (NumberFormatException exc) {
 			throw new NotFoundException(String.format("Dataset %s has no version %ds",

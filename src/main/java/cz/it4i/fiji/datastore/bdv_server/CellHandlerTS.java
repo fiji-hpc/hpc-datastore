@@ -327,8 +327,7 @@ public class CellHandlerTS
 		int version)
 	{
 		try {
-			return asSpimDataMinimal(0 <= version ? datasetHandler.getSpimData(
-				version) : datasetHandler.getSpimData());
+			return asSpimDataMinimal(datasetHandler.getSpimData(version));
 		}
 		catch (SpimDataException exc) {
 			throw new RuntimeException(exc);
