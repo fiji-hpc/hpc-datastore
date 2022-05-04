@@ -62,10 +62,18 @@ public class DatasetFilesystemHandler implements DatasetHandler {
 
 	@Override
 	public SpimData getSpimData(int version) throws SpimDataException {
-		return SetN5LoaderToSpimData.$(loadFromXML(getXMLFile(
-			getDatasetVersionDirectory(pathOfDataset, version))),
-			seq -> new cz.it4i.fiji.datastore.N5ImageLoader(() -> getReader(version),
-				seq.getViewSetupsOrdered()), new File(""));
+
+		try {
+			int versionForReading = version < 0 ? getLatestVersion() : version;
+			return SetN5LoaderToSpimData.$(loadFromXML(getXMLFile(
+				getDatasetVersionDirectory(pathOfDataset, versionForReading))),
+				seq -> new cz.it4i.fiji.datastore.N5ImageLoader(() -> getReader(
+					version), seq.getViewSetupsOrdered()), new File(""));
+
+		}
+		catch (IOException exc) {
+			throw new SpimDataException(exc);
+		}
 
 	}
 
@@ -190,7 +198,10 @@ public class DatasetFilesystemHandler implements DatasetHandler {
 
 	private N5Reader getReader(int version) {
 		try {
-			return getWriter(version);
+			if (version >= 0) {
+				return getWriter(version);
+			}
+			return constructChainOfWriters();
 		}
 		catch (IOException exc) {
 			throw new UncheckedIOException(exc);

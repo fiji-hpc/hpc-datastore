@@ -5,6 +5,8 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -102,7 +104,10 @@ class JsonDatasetListHandlerTS
 	{
 		final StringBuilder sb = new StringBuilder();
 		if (!allVersionsInOne) {
-			for (final DatasetVersion datasetVersion : dataset.getDatasetVersion()) {
+			for (final DatasetVersion datasetVersion : dataset.getDatasetVersion()
+				.stream().sorted(Comparator.comparingInt(DatasetVersion::getValue))
+				.collect(Collectors.toList()))
+			{
 
 				writeInfoAboutVersion(dataset, writer, baseURI, Integer.toString(
 					datasetVersion.getValue()));
