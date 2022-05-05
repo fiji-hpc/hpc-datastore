@@ -8,16 +8,25 @@
 
 package cz.it4i.fiji.datastore.bdv_server;
 
+import static cz.it4i.fiji.datastore.core.Version.stringToIntVersion;
+
 import java.io.IOException;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
+import cz.it4i.fiji.datastore.core.Version;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
+import cz.it4i.fiji.datastore.register_service.WriteToVersionListener;
 
 @ApplicationScoped
-class CellHandlerTSProducer {
+class CellHandlerTSProducer implements WriteToVersionListener {
 
 	@Inject
 	DatasetRepository repository;
@@ -25,7 +34,48 @@ class CellHandlerTSProducer {
 	@Inject
 	ApplicationConfiguration configuration;
 
-	CellHandlerTS produce(String baseURL, String uuid, int version) {
+	final private Map<String, CellHandlerTS> cellHandlersTS = new HashMap<>();
+
+	CellHandlerTS produce(URI baseURI, String uuidStr,
+		final String versionStr)
+	{
+		final int version = stringToIntVersion(versionStr);
+		String key = getKey(uuidStr, versionStr);
+		String baseURL = baseURI.resolve("bdv/").resolve(uuidStr + "/").resolve(
+			versionStr).toString();
+		return cellHandlersTS.computeIfAbsent(key, x -> create(baseURL, uuidStr,
+			version));
+	}
+
+	@Override
+	public void writingToVersion(String uuidStr, int version) {
+		cellHandlersTS.remove(getKey(uuidStr, "" + version));
+		clearCacheForMixedLatest(uuidStr);
+	}
+
+	@Override
+	public void writeToAllVersions(String uuid) {
+		String keyPrefix = getKey(uuid, "");
+		for (Iterator<Entry<String, CellHandlerTS>> iter = cellHandlersTS.entrySet()
+			.iterator(); iter.hasNext();)
+		{
+			Entry<String, CellHandlerTS> entry = iter.next();
+			if (entry.getKey().startsWith(keyPrefix)) {
+				iter.remove();
+			}
+		}
+		clearCacheForMixedLatest(uuid);
+	}
+
+	private String getKey(String uuid, String version) {
+		return uuid + ":" + version;
+	}
+
+	private void clearCacheForMixedLatest(String uuidStr) {
+		cellHandlersTS.remove(getKey(uuidStr, Version.MIXED_LATEST_VERSION_NAME));
+	}
+
+	private CellHandlerTS create(String baseURL, String uuid, int version) {
 
 		// only for check that version exists
 		repository.findByUUIDVersion(uuid, version);
@@ -39,6 +89,5 @@ class CellHandlerTSProducer {
 			throw new RuntimeException(exc);
 		}
 	}
-
 
 }

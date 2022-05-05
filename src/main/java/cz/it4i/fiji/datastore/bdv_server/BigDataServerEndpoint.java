@@ -7,16 +7,12 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.bdv_server;
 
-import static cz.it4i.fiji.datastore.core.Version.stringToIntVersion;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.UUID;
 import static cz.it4i.fiji.datastore.register_service.DatasetRegisterServiceEndpoint.VERSION_PARAM;
 
 import com.google.common.base.Strings;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -44,8 +40,6 @@ public class BigDataServerEndpoint {
 	@Context
 	UriInfo uri;
 
-	final private Map<String, CellHandlerTS> cellHandlersTS = new HashMap<>();
-
 	@GET
 	@Path("{" + UUID + "}/json")
 	public void getJSONList(@PathParam(UUID) String uuid,
@@ -61,7 +55,7 @@ public class BigDataServerEndpoint {
 		@PathParam(VERSION_PARAM) String version,
 		@QueryParam(P_PARAM) String cellString)
 	{
-		CellHandlerTS ts = getCellHandler(uuid, version);
+		CellHandlerTS ts = cellHandlerTSProducer.produce(uri.getBaseUri(), uuid, version);
 		if (Strings.emptyToNull(cellString) == null) {
 			return ts.runForDataset();
 		}
@@ -73,7 +67,8 @@ public class BigDataServerEndpoint {
 	public Response getSettings(@PathParam(UUID) String uuid,
 		@PathParam(VERSION_PARAM) String version)
 	{
-		CellHandlerTS ts = getCellHandler(uuid, version);
+		CellHandlerTS ts = cellHandlerTSProducer.produce(uri.getBaseUri(), uuid,
+			version);
 		return ts.runForSettings();
 	}
 
@@ -83,24 +78,9 @@ public class BigDataServerEndpoint {
 		@PathParam(VERSION_PARAM) String version,
 		@Context HttpServletResponse response) throws IOException
 	{
-		CellHandlerTS ts = getCellHandler(uuid, version);
+		CellHandlerTS ts = cellHandlerTSProducer.produce(uri.getBaseUri(),uuid, version);
 		ts.runForThumbnail(response);
 	}
 
-	private CellHandlerTS getCellHandler(String uuidStr,
-		final String versionStr)
-	{
-		final int version = stringToIntVersion(versionStr);
-		String key = getKey(uuidStr, versionStr);
-		URI baseURI = uri.getBaseUri();
-		String baseURL = baseURI.resolve("bdv/").resolve(uuidStr + "/").resolve(
-			versionStr).toString();
-		return cellHandlersTS.computeIfAbsent(key, x -> cellHandlerTSProducer
-			.produce(baseURL, uuidStr, version));
-	}
 
-
-	private String getKey(String uuid, String version) {
-		return uuid + ":" + version;
-	}
 }

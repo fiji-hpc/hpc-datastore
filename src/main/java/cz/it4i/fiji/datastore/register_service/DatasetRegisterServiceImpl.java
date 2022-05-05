@@ -91,6 +91,9 @@ public class DatasetRegisterServiceImpl {
 	@Inject
 	UserTransaction transaction;
 
+	@Inject
+	WriteToVersionListener writeToVersionListener;
+
 	private Map<String, Compression> name2compression = null;
 
 	public UUID createEmptyDataset(DatasetDTO datasetDTO) throws IOException,
@@ -242,6 +245,9 @@ public class DatasetRegisterServiceImpl {
 					Collectors.joining(",")) + "]");
 		}
 		int resolvedVersion = resolveVersion(dataset, version, mode);
+		if (mode.allowsWrite()) {
+			writeToVersionListener.writingToVersion(uuid, resolvedVersion);
+		}
 		return dataServerManager.startDataServer(dataset.getUuid(), r,
 			resolvedVersion, version.equals("mixedLatest"), mode, timeout);
 	}
@@ -253,6 +259,7 @@ public class DatasetRegisterServiceImpl {
 		// called only for checking that all resolutions exists
 		getNonIdentityResolutions(dataset, resolutions);
 		mergeVersions(dataset);
+		writeToVersionListener.writeToAllVersions(uuid);
 		return dataServerManager.startDataServer(dataset.getUuid(), resolutions,
 			timeout);
 
