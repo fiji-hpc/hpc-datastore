@@ -36,7 +36,7 @@ class CellHandlerTSProducer implements WriteToVersionListener {
 
 	final private Map<String, CellHandlerTS> cellHandlersTS = new HashMap<>();
 
-	CellHandlerTS produce(URI baseURI, String uuidStr,
+	synchronized CellHandlerTS produce(URI baseURI, String uuidStr,
 		final String versionStr)
 	{
 		final int version = stringToIntVersion(versionStr);
@@ -48,13 +48,13 @@ class CellHandlerTSProducer implements WriteToVersionListener {
 	}
 
 	@Override
-	public void writingToVersion(String uuidStr, int version) {
+	synchronized public void writingToVersion(String uuidStr, int version) {
 		cellHandlersTS.remove(getKey(uuidStr, "" + version));
 		clearCacheForMixedLatest(uuidStr);
 	}
 
 	@Override
-	public void writeToAllVersions(String uuid) {
+	synchronized public void writeToAllVersions(String uuid) {
 		String keyPrefix = getKey(uuid, "");
 		for (Iterator<Entry<String, CellHandlerTS>> iter = cellHandlersTS.entrySet()
 			.iterator(); iter.hasNext();)
