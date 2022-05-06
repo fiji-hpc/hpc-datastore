@@ -31,6 +31,7 @@ import cz.it4i.fiji.datastore.core.Version;
 import cz.it4i.fiji.datastore.register_service.Dataset;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.register_service.DatasetVersion;
+import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.base.Entity;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
@@ -42,6 +43,7 @@ import mpicbg.spim.data.sequence.Channel;
 import mpicbg.spim.data.sequence.MissingViews;
 import mpicbg.spim.data.sequence.TimePoints;
 import mpicbg.spim.data.sequence.ViewId;
+import mpicbg.spim.data.sequence.ViewSetup;
 
 @ApplicationScoped
 public final class GetSpimDataMinimalTS {
@@ -168,8 +170,14 @@ public final class GetSpimDataMinimalTS {
 			final int version = stringToIntVersion(versionStr);
 			// only for check that version exists
 			repository.findByUUIDVersion(uuid, version);
-			return SpimDataMapper.asSpimDataMinimal(configuration.getDatasetHandler(
-				uuid).getSpimData(version));
+			SpimData spimdata = configuration.getDatasetHandler(uuid).getSpimData(
+				version);
+			for (ViewSetup vs : spimdata.getSequenceDescription()
+				.getViewSetupsOrdered())
+			{
+				vs.setAttribute(new Version(versionStr));
+			}
+			return SpimDataMapper.asSpimDataMinimal(spimdata);
 		}
 		catch (NumberFormatException exc) {
 			throw new NotFoundException(String.format("Dataset %s has no version %ds",

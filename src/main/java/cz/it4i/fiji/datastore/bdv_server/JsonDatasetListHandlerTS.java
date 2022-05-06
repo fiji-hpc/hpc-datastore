@@ -111,16 +111,15 @@ class JsonDatasetListHandlerTS
 
 				writeInfoAboutVersion(dataset, writer, baseURI, Integer.toString(
 					datasetVersion.getValue()));
-
-			}
-			if (!dataset.getDatasetVersion().isEmpty()) {
-				writeInfoAboutVersion(dataset, writer, baseURI, "mixedLatest");
 			}
 		}
 		else {
 			if (!dataset.getDatasetVersion().isEmpty()) {
 				writeInfoAboutVersion(dataset, writer, baseURI, "all");
 			}
+		}
+		if (!dataset.getDatasetVersion().isEmpty()) {
+			writeInfoAboutVersion(dataset, writer, baseURI, "mixedLatest");
 		}
 		return sb.toString();
 	}
