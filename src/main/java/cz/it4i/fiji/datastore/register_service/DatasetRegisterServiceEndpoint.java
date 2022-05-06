@@ -12,8 +12,7 @@ import static cz.it4i.fiji.datastore.DatasetServerEndpoint.CHANNEL_PARAM;
 import static cz.it4i.fiji.datastore.DatasetServerEndpoint.TIME_PARAM;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -100,7 +99,7 @@ public class DatasetRegisterServiceEndpoint {
 		@PathParam(MODE_PARAM) String modeName,
 		@QueryParam(TIMEOUT_PARAM) Long timeout)
 	{
-		log.info("starting1 server for " + modeName + " dataset=" + uuid);
+		log.info("starting server for " + modeName + " dataset=" + uuid);
 		OperationMode opMode = OperationMode.getByUrlPath(modeName);
 
 		if (opMode == OperationMode.NOT_SUPPORTED) {
@@ -108,12 +107,12 @@ public class DatasetRegisterServiceEndpoint {
 				"mode (%s) not supported", modeName)).build();
 		}
 		try {
-			URL serverURL = datasetRegisterServiceImpl.start(uuid, new int[] { rX, rY,
+			URI serverURI = datasetRegisterServiceImpl.start(uuid, new int[] { rX, rY,
 				rZ }, version, opMode, timeout);
 			log.debug("start reading> timeout = {}", timeout);
-			return Response.temporaryRedirect(serverURL.toURI()).build();
+			return Response.temporaryRedirect(serverURI).build();
 		}
-		catch (IOException | URISyntaxException exc) {
+		catch (IOException exc) {
 			log.error("Starting server", exc);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
 				"Starting throws exception").build();
@@ -140,12 +139,12 @@ public class DatasetRegisterServiceEndpoint {
 		log.info("starting2 server for writing dataset=" + uuid);
 		List<int[]> resolutions = getResolutions(rX, rY, rZ, resolutionString);
 		try {
-			URL serverURL = datasetRegisterServiceImpl.start(uuid, resolutions,
+			URI serverURI = datasetRegisterServiceImpl.start(uuid, resolutions,
 				timeout);
 			log.debug("start reading> timeout = {}", timeout);
-			return Response.temporaryRedirect(serverURL.toURI()).build();
+			return Response.temporaryRedirect(serverURI).build();
 		}
-		catch (IOException | URISyntaxException exc) {
+		catch (IOException exc) {
 			log.error("Starting server", exc);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
 				"Starting throws exception").build();

@@ -12,7 +12,7 @@ import static net.imglib2.cache.img.ReadOnlyCachedCellImgOptions.options;
 import com.google.common.base.Strings;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -234,7 +234,7 @@ public class DatasetRegisterServiceImpl {
 		datasetDAO.persist(dataset);
 	}
 
-	public URL start(String uuid, int[] r, String version, OperationMode mode,
+	public URI start(String uuid, int[] r, String version, OperationMode mode,
 		Long timeout) throws IOException
 	{
 
@@ -252,7 +252,7 @@ public class DatasetRegisterServiceImpl {
 			resolvedVersion, version.equals("mixedLatest"), mode, timeout);
 	}
 
-	public URL start(String uuid, List<int[]> resolutions, Long timeout)
+	public URI start(String uuid, List<int[]> resolutions, Long timeout)
 		throws IOException
 	{
 		Dataset dataset = getDataset(uuid);

@@ -54,18 +54,11 @@ public interface DatasetHandler {
 	void deleteVersion(int version) throws IOException;
 
 	default N5Writer constructChainOfWriters() throws IOException {
-		return constructChainOfWriters(getLatestVersion());
-	}
-
-	default N5Writer constructChainOfWriters(int version) throws IOException {
 
 		N5WriterItemOfChain result = null;
 		List<Integer> versions = new LinkedList<>(this.getAllVersions());
 		Collections.sort(versions);
 		for (Integer i : versions) {
-			if (i > version) {
-				continue;
-			}
 			result = new N5WriterItemOfChain(this.getWriter(i), result);
 		}
 		return result;

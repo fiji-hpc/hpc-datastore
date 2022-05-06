@@ -9,17 +9,17 @@
 package cz.it4i.fiji.datastore.management;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.List;
 
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 
 public interface DataServerManager {
 
-	URL startDataServer(String uuid, int[] r, int version, boolean mixedVersions,
+	URI startDataServer(String uuid, int[] r, int version, boolean mixedVersions,
 		OperationMode mode, Long timeout) throws IOException;
 
-	URL startDataServer(String uuid, List<int[]> resolutions, Long timeout)
+	URI startDataServer(String uuid, List<int[]> resolutions, Long timeout)
 		throws IOException;
 
 

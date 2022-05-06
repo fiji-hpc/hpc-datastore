@@ -15,7 +15,10 @@ import io.quarkus.runtime.Quarkus;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -32,8 +35,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.BeforeDestroyed;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import javax.ws.rs.InternalServerErrorException;
 
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
+import cz.it4i.fiji.datastore.core.Version;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import cz.it4i.fiji.datastore.register_service.ResolutionLevel;
@@ -81,15 +86,26 @@ class DataServerManagerImpl implements DataServerManager {
 	AvailablePortFinder portFinder;
 
 	@Override
-	public URL startDataServer(String uuid, int[] r, int version,
+	public URI startDataServer(String uuid, int[] r, int version,
 		boolean mixedVersions, OperationMode mode, Long timeout) throws IOException
 	{
-		return startDataServer(uuid, Arrays.asList(r), version, mixedVersions, mode,
-			timeout);
+		if (isStartDedicatedServerEnabled()) {
+			return startDataServer(uuid, Arrays.asList(r), version, mixedVersions,
+				mode, timeout);
+		}
+		try {
+			return new URI("datasets/" + uuid + "/" + r[0] + "/" + r[1] + "/" + r[2] +
+				"/" + (mixedVersions ? Version.MIXED_LATEST_VERSION_NAME : version) +
+				"/");
+		}
+		catch (URISyntaxException exc) {
+			log.error("startDataserver ", exc);
+			return null;
+		}
 	}
 
 	@Override
-	public URL startDataServer(String uuid, List<int[]> resolutions, Long timeout)
+	public URI startDataServer(String uuid, List<int[]> resolutions, Long timeout)
 		throws IOException
 	{
 		return startDataServer(uuid, resolutions, INITIAL_VERSION, false,
@@ -185,6 +201,10 @@ class DataServerManagerImpl implements DataServerManager {
 		return dataserverTimeout;
 	}
 
+	private boolean isStartDedicatedServerEnabled() {
+		return false;
+	}
+
 	private String getHostName() throws UnknownHostException {
 		String hostName = System.getProperty("quarkus.http.host", "localhost");
 		if (hostName.equals("0.0.0.0")) {
@@ -195,7 +215,7 @@ class DataServerManagerImpl implements DataServerManager {
 
 
 
-	private URL startDataServer(String uuid, List<int[]> resolutions, int version,
+	private URI startDataServer(String uuid, List<int[]> resolutions, int version,
 		boolean mixedVersion, OperationMode mode, Long timeout) throws IOException
 	{
 		int port = portFinder.findAvailablePort(getHostName());
@@ -252,7 +272,12 @@ class DataServerManagerImpl implements DataServerManager {
 				}
 			}
 		}
-		return new URL(result);
+		try {
+			return new URL(result).toURI();
+		}
+		catch (MalformedURLException | URISyntaxException exc) {
+			throw new InternalServerErrorException(exc);
+		}
 	}
 
 

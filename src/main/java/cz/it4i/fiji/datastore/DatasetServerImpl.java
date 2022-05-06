@@ -16,9 +16,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Default;
-import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 
 import org.janelia.saalfeldlab.n5.DataBlock;
@@ -28,8 +25,6 @@ import org.janelia.saalfeldlab.n5.N5Writer;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import mpicbg.spim.data.SpimDataException;
 
-@Default
-@ApplicationScoped
 public class DatasetServerImpl implements Closeable, Serializable {
 
 
@@ -41,40 +36,35 @@ public class DatasetServerImpl implements Closeable, Serializable {
 	private static final Set<OperationMode> WRITING_MODES = EnumSet.of(
 		OperationMode.WRITE, OperationMode.READ_WRITE);
 
-	N5Access n5Access;
+	private N5Access n5Access;
 
-	@Inject
-	ApplicationConfiguration configuration;
+	private final int version;
 
-	String uuid;
+	private final boolean mixedVersion;
 
-	private int version;
+	private final OperationMode mode;
 
-	private boolean mixedVersion;
+	private final List<int[]> resolutionLevels;
 
-	private OperationMode mode;
+	private final DatasetHandler datasetHandler;
 
-	private List<int[]> resolutionLevels;
-
-	private DatasetHandler datasetHandler;
-
-	public synchronized void init(String aUuid, List<int[]> resolutions,
+	public DatasetServerImpl(DatasetHandler aDatasetHandler,
+		List<int[]> resolutions,
 		int aVersion, boolean aMixedVersion, OperationMode aMode)
 		throws SpimDataException, IOException
 	{
-		uuid = aUuid;
+
 		version = aVersion;
 		mixedVersion = aMixedVersion;
 		mode = aMode;
 		resolutionLevels = resolutions;
-		datasetHandler = configuration.getDatasetHandler(aUuid);
+		datasetHandler = aDatasetHandler;
 		initN5Access();
 	}
 
 	@Override
 	public synchronized void close() {
-		uuid = null;
-		n5Access = null;
+
 	}
 
 	public DataBlock<?> read(long[] gridPosition, int time, int channel,
@@ -110,7 +100,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 			if (mode.allowsWrite()) {
 				throw new IllegalArgumentException("Write is not possible for mixed version");
 			}
-			return datasetHandler.constructChainOfWriters(version);
+			return datasetHandler.constructChainOfWriters();
 		}
 		return datasetHandler.getWriter(version);
 
