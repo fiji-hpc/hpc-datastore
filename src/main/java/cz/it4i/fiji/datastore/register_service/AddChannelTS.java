@@ -53,16 +53,16 @@ public class AddChannelTS {
 	{
 		DatasetHandler datasetHandler = _configuration.getDatasetHandler(dataset
 			.getUuid());
-		SpimData spimData = datasetHandler.getSpimData();
-		for (DatasetVersion version : dataset.getDatasetVersion()) {
 
+		for (DatasetVersion version : dataset.getDatasetVersion()) {
+			SpimData spimData = datasetHandler.getSpimData(version.getValue());
 			Collection<ViewSetup> addedViewSetups =
 				new LinkedList<>();
 			createViewSetups(dataset, spimData, channels, addedViewSetups);
 			createViewRegistrations(spimData, addedViewSetups);
 			createN5Structure(datasetHandler.getWriter(version.getValue()), dataset,
 				spimData, compression, addedViewSetups);
-			datasetHandler.saveSpimData(spimData);
+			datasetHandler.saveSpimData(spimData, version.getValue());
 		}
 	}
 
@@ -85,11 +85,11 @@ public class AddChannelTS {
 		Collection<ViewSetup> addedViewSetups)
 	{
 		int firstEmptyChannelId = spimData.getSequenceDescription()
-			.getAllChannelsOrdered().stream().map(ch -> ch.getId() + 1).reduce((first,
-				second) -> second).orElse(0);
+			.getAllChannelsOrdered().stream().map(ch -> ch.getId()).reduce((first,
+				second) -> Math.max(first, second)).orElse(0) + 1;
 		int setupID = spimData.getSequenceDescription().getViewSetupsOrdered()
-			.stream().map(vs -> vs.getId() + 1).reduce((first, second) -> second)
-			.orElse(0);
+			.stream().map(vs -> vs.getId()).reduce((first, second) -> Math.max(first,
+				second)).orElse(0) + 1;
 		List<Channel> channelList = IntStream.range(firstEmptyChannelId,
 			firstEmptyChannelId + channels).mapToObj(id -> new Channel(id)).collect(
 				Collectors.toList());
