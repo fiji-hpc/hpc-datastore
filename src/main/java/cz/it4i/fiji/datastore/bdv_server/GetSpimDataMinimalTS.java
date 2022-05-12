@@ -80,68 +80,27 @@ public final class GetSpimDataMinimalTS {
 		Map<Integer, BasicViewSetup> setups = new HashMap<>();
 		Map<ViewId, ViewRegistration> viewRegistrations = new HashMap<>();
 		Collection<ViewId> missingViews = new LinkedList<>();
-		File path = null;
-		TimePoints timePoints = null;
-		BasicImgLoader basicImgLoader = null;
+
 		DatasetHandler handler = configuration.getDatasetHandler(uuid);
 		SpimDataMinimal spimDataMinimal;
 		spimDataMinimal = SpimDataMapper.asSpimDataMinimal(handler.getSpimData());
+		SequenceDescriptionMinimal seqMinimal = spimDataMinimal
+			.getSequenceDescription();
+		BasicImgLoader basicImgLoader = seqMinimal.getImgLoader();
+		TimePoints timePoints = seqMinimal.getTimePoints();
+
+		File path = spimDataMinimal.getBasePath();
+
 		for (DatasetVersion version : dataset.getDatasetVersion().stream().sorted(
 			comparingInt(DatasetVersion::getValue)).collect(toList()))
 		{
+			Version processedVersion = new Version(version.getValue());
 
-
-			Map<ViewRegistration, ViewRegistration> origViewregistrationPerNewOne =
-				new HashMap<>();
-			Map<Integer, Integer> origSetupIdPerNewOne = new HashMap<>();
-
-			SequenceDescriptionMinimal seqMinimal = spimDataMinimal
-				.getSequenceDescription();
-			if (timePoints == null) {
-				timePoints = seqMinimal.getTimePoints();
-			}
-			if (basicImgLoader == null) {
-				basicImgLoader = seqMinimal.getImgLoader();
-			}
-			if (path == null) {
-				path = spimDataMinimal.getBasePath();
-			}
-
-			for (BasicViewSetup viewSetup : seqMinimal.getViewSetupsOrdered()) {
-				BasicViewSetup newViewSetup = new BasicViewSetup(setups.size(),
-					getViewSetupName(viewSetup, version), viewSetup.getSize(),
-					viewSetup.getVoxelSize());
-
-				for (Entry<String, Entity> entries : viewSetup.getAttributes()
-					.entrySet())
-				{
-					newViewSetup.setAttribute(entries.getValue());
-				}
-				newViewSetup.setAttribute(new Version(version.getValue()));
-				setups.put(newViewSetup.getId(), newViewSetup);
-				origSetupIdPerNewOne.put(viewSetup.getId(), newViewSetup.getId());
-			}
-			for (ViewRegistration origViewRegistration : spimDataMinimal
-				.getViewRegistrations().getViewRegistrationsOrdered())
-			{
-				ViewRegistration viewRegistration = new ViewRegistration(
-					origViewRegistration.getTimePointId(), origSetupIdPerNewOne.get(
-						origViewRegistration.getViewSetupId()), new ArrayList<>(
-							origViewRegistration.getTransformList()));
-				viewRegistrations.put(viewRegistration, viewRegistration);
-				origViewregistrationPerNewOne.put(origViewRegistration,
-					viewRegistration);
-			}
-
-			MissingViews origMissingViews = spimDataMinimal.getSequenceDescription()
-				.getMissingViews();
-			if (origMissingViews != null) {
-				missingViews.addAll(origMissingViews.getMissingViews().stream().map(
-					oldViewId -> origViewregistrationPerNewOne.get(oldViewId)).collect(
-						toList()));
-			}
-
+			processVersion(processedVersion, setups, viewRegistrations, missingViews,
+				spimDataMinimal, seqMinimal);
 		}
+		processVersion(new Version(Version.MIXED_LATEST_VERSION_NAME), setups,
+			viewRegistrations, missingViews, spimDataMinimal, seqMinimal);
 
 		SequenceDescriptionMinimal sd = new SequenceDescriptionMinimal(timePoints,
 			setups, basicImgLoader, new MissingViews(missingViews));
@@ -151,12 +110,60 @@ public final class GetSpimDataMinimalTS {
 		return result;
 	}
 
-	private static String getViewSetupName(BasicViewSetup viewSetup,
-		DatasetVersion version)
+	public void processVersion(Version processedVersion,
+		Map<Integer, BasicViewSetup> setups,
+		Map<ViewId, ViewRegistration> viewRegistrations,
+		Collection<ViewId> missingViews, SpimDataMinimal spimDataMinimal,
+		SequenceDescriptionMinimal seqMinimal)
 	{
-		return String.format("Angle: %d, Channel: %d, Version: %d", viewSetup
+		Map<ViewRegistration, ViewRegistration> origViewregistrationPerNewOne =
+			new HashMap<>();
+		Map<Integer, Integer> origSetupIdPerNewOne = new HashMap<>();
+
+
+
+
+		for (BasicViewSetup viewSetup : seqMinimal.getViewSetupsOrdered()) {
+			BasicViewSetup newViewSetup = new BasicViewSetup(setups.size(),
+				getViewSetupName(viewSetup, processedVersion), viewSetup.getSize(),
+				viewSetup.getVoxelSize());
+
+			for (Entry<String, Entity> entries : viewSetup.getAttributes()
+				.entrySet())
+			{
+				newViewSetup.setAttribute(entries.getValue());
+			}
+			newViewSetup.setAttribute(processedVersion);
+			setups.put(newViewSetup.getId(), newViewSetup);
+			origSetupIdPerNewOne.put(viewSetup.getId(), newViewSetup.getId());
+		}
+		for (ViewRegistration origViewRegistration : spimDataMinimal
+			.getViewRegistrations().getViewRegistrationsOrdered())
+		{
+			ViewRegistration viewRegistration = new ViewRegistration(
+				origViewRegistration.getTimePointId(), origSetupIdPerNewOne.get(
+					origViewRegistration.getViewSetupId()), new ArrayList<>(
+						origViewRegistration.getTransformList()));
+			viewRegistrations.put(viewRegistration, viewRegistration);
+			origViewregistrationPerNewOne.put(origViewRegistration,
+				viewRegistration);
+		}
+
+		MissingViews origMissingViews = spimDataMinimal.getSequenceDescription()
+			.getMissingViews();
+		if (origMissingViews != null) {
+			missingViews.addAll(origMissingViews.getMissingViews().stream().map(
+				oldViewId -> origViewregistrationPerNewOne.get(oldViewId)).collect(
+					toList()));
+		}
+	}
+
+	private static String getViewSetupName(BasicViewSetup viewSetup,
+		Version version)
+	{
+		return String.format("Angle: %d, Channel: %d, Version: %s", viewSetup
 			.getAttribute(Angle.class).getId(), viewSetup.getAttribute(Channel.class)
-				.getId(), version.getValue());
+				.getId(), version.getName());
 	}
 
 
