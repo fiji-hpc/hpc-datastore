@@ -49,6 +49,7 @@ import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.janelia.saalfeldlab.n5.Lz4Compression;
+import org.janelia.saalfeldlab.n5.N5Reader;
 import org.janelia.saalfeldlab.n5.N5Writer;
 import org.janelia.saalfeldlab.n5.RawCompression;
 import org.janelia.saalfeldlab.n5.XzCompression;
@@ -69,6 +70,7 @@ import cz.it4i.fiji.datastore.core.MipmapInfoAssembler;
 import cz.it4i.fiji.datastore.management.DataServerManager;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
+import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 
@@ -95,6 +97,44 @@ public class DatasetRegisterServiceImpl {
 	WriteToVersionListener writeToVersionListener;
 
 	private Map<String, Compression> name2compression = null;
+
+	public void addExistingDataset(String uuid) throws IOException,
+		SpimDataException, SystemException, NotSupportedException
+	{
+		DatasetHandler handler = configuration.getDatasetHandler(uuid);
+		Collection<Integer> versions = handler.getAllVersions();
+		int firstVersion = Collections.min(versions);
+		final SpimData spimData = handler.getSpimData(firstVersion);
+		final N5Reader reader = handler.getWriter(firstVersion);
+		transaction.begin();
+		boolean trxActive = true;
+		try {
+			try {
+				datasetDAO.findByUUID(uuid);
+				throw new DatasetAlreadyInsertedException(uuid);
+			}
+			catch (NotFoundException e) {
+				// ignore this because it is correct behaviour
+			}
+			final Dataset dataset = DatasetAssembler.createDomainObject(uuid,
+				versions, reader, spimData);
+			log.info("Adding dataset: {}", dataset);
+			datasetDAO.persist(dataset);
+			trxActive = false;
+			transaction.commit();
+		}
+		catch (RollbackException | HeuristicMixedException
+				| HeuristicRollbackException
+				| SystemException exc)
+		{
+			log.error("commit", exc);
+		}
+		finally {
+			if (trxActive) {
+				transaction.rollback();
+			}
+		}
+	}
 
 	public UUID createEmptyDataset(DatasetDTO datasetDTO) throws IOException,
 		SpimDataException, NotSupportedException, SystemException

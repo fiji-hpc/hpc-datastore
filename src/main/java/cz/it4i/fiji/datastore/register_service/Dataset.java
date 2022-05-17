@@ -24,7 +24,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
+@ToString
 @Entity(name = "Dataset")
 @Builder
 @AllArgsConstructor
@@ -41,6 +43,7 @@ public class Dataset extends BaseEntity {
 	@ElementCollection(targetClass = ResolutionLevel.class)
 	private Collection<ResolutionLevel> resolutionLevel;
 	
+	@ToString.Exclude
 	@Transient
 	private Map<String, ResolutionLevel> resolutionLevelIndex;
 
@@ -50,7 +53,7 @@ public class Dataset extends BaseEntity {
 	@Transient
 	private Collection<DatasetVersion> datasetVersion;
 	
-
+	@ToString.Exclude
 	@Getter
 	@Setter
 	@Transient

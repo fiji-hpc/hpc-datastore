@@ -7,15 +7,29 @@
  ******************************************************************************/
 package cz.it4i.fiji.datastore.register_service;
 
+import static bdv.img.n5.BdvN5Format.getPathName;
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.collect.Streams;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.janelia.saalfeldlab.n5.DatasetAttributes;
+import org.janelia.saalfeldlab.n5.N5Reader;
+
+import bdv.img.n5.BdvN5Format;
 import cz.it4i.fiji.datastore.core.DatasetDTO;
+import cz.it4i.fiji.datastore.register_service.Dataset.DatasetBuilder;
+import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.sequence.SequenceDescription;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 
 
 
@@ -38,6 +52,72 @@ public class DatasetAssembler {
 				.label(dto.getLabel())
 				.build();
 	// @formatter:on
+	}
+
+	public static Dataset createDomainObject(String uuid,
+		Collection<Integer> versions, N5Reader reader, SpimData spimData)
+		throws IOException
+	{
+		final SequenceDescription sequenceDescription = spimData
+			.getSequenceDescription();
+
+		DatasetBuilder result = Dataset.builder();
+		final mpicbg.spim.data.sequence.ViewSetup viewSetup = sequenceDescription
+			.getViewSetupsOrdered().stream().findFirst().get();
+		final int setupId = viewSetup.getId();
+		final int timepointId = sequenceDescription.getTimePoints()
+			.getTimePointsOrdered().stream().findFirst().get().getId();
+		final VoxelDimensions voxelDimensions = viewSetup.getVoxelSize();
+		
+
+		final String path2Timepoint = getPathName(setupId, timepointId);
+		List<Integer> levelIDs = Arrays.stream(reader.list(path2Timepoint)).map(
+			lev -> lev.substring(1)).map(Integer::valueOf).sorted().collect(toList());
+
+		String voxelType = null;
+		String compression = null;
+		long[] dimensions = null;
+		final Collection<ResolutionLevel> levels = new LinkedList<>();
+		for (int levelId : levelIDs) {
+			final String path2Level = getPathName(setupId, timepointId, levelId);
+			final DatasetAttributes attributes = reader.getDatasetAttributes(
+				path2Level);
+			if (voxelType == null) {
+				voxelType = attributes.getDataType().toString();
+			}
+
+			if (compression == null) {
+				compression = attributes.getCompression().getType();
+			}
+
+			if (dimensions == null) {
+				dimensions = attributes.getDimensions();
+			}
+			
+			final int[] resolution = reader.getAttribute(path2Level,
+				BdvN5Format.DOWNSAMPLING_FACTORS_KEY, int[].class);
+			ResolutionLevel level = new ResolutionLevel(resolution, attributes
+				.getBlockSize());
+			levels.add(level);
+		}
+
+		final double[] voxelResolutions = new double[voxelDimensions
+			.numDimensions()];
+		voxelDimensions.dimensions(voxelResolutions);
+
+		result.angles(sequenceDescription.getAllAnglesOrdered().size());
+		result.channels(sequenceDescription.getAllChannelsOrdered().size());
+		result.timepoints(sequenceDescription.getTimePoints().size());
+		result.uuid(uuid);
+		result.voxelType(voxelType);
+		result.voxelUnit(voxelDimensions.unit());
+		result.voxelResolution(voxelResolutions);
+		result.compression(compression);
+		result.dimensions(dimensions);
+		result.resolutionLevel(levels);
+		result.datasetVersion(versions.stream().map(DatasetVersion::new).collect(
+			Collectors.toList()));
+		return result.build();
 	}
 
 	private static Resolution createDomainObject(DatasetDTO.Resolution dto) {

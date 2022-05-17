@@ -26,6 +26,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -169,6 +170,29 @@ public class DatasetRegisterServiceEndpoint {
 			return Response.serverError().entity(exc.getMessage()).type(
 				MediaType.TEXT_PLAIN).build();
 		}
+	}
+
+	@POST
+	@Path("datasets/{" + UUID + "}")
+	@Consumes(MediaType.TEXT_PLAIN)
+	public Response addExistingDataset(@PathParam(UUID) String uuid)
+	{
+		log.info("adding existing dataset {}", uuid);
+		try {
+			datasetRegisterServiceImpl.addExistingDataset(uuid);
+		}
+		catch (IOException exc) {
+			throw new NotFoundException("Dataset with uuid " + uuid +
+				"  was not located in storage ");
+		}
+		catch (DatasetAlreadyInsertedException exc) {
+			return Response.status(Status.CONFLICT).entity("Dataset with uuid " + exc
+				.getUuid() + " is already added.").build();
+		}
+		catch (Exception exc) {
+			throw new InternalServerErrorException("Cannot add dataset " + uuid);
+		}
+		return Response.ok().entity("Done.").build();
 	}
 
 	@GET
