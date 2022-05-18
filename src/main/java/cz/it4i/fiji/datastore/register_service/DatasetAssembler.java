@@ -55,7 +55,8 @@ public class DatasetAssembler {
 	}
 
 	public static Dataset createDomainObject(String uuid,
-		Collection<Integer> versions, N5Reader reader, SpimData spimData)
+		Collection<Integer> versions, N5Reader reader, SpimData spimData,
+		String label)
 		throws IOException
 	{
 		final SequenceDescription sequenceDescription = spimData
@@ -109,6 +110,7 @@ public class DatasetAssembler {
 		result.channels(sequenceDescription.getAllChannelsOrdered().size());
 		result.timepoints(sequenceDescription.getTimePoints().size());
 		result.uuid(uuid);
+		result.label(label);
 		result.voxelType(voxelType);
 		result.voxelUnit(voxelDimensions.unit());
 		result.voxelResolution(voxelResolutions);

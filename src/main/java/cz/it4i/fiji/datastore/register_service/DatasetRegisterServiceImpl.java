@@ -106,6 +106,7 @@ public class DatasetRegisterServiceImpl {
 		int firstVersion = Collections.min(versions);
 		final SpimData spimData = handler.getSpimData(firstVersion);
 		final N5Reader reader = handler.getWriter(firstVersion);
+		final String label = handler.getLabel();
 		transaction.begin();
 		boolean trxActive = true;
 		try {
@@ -117,7 +118,7 @@ public class DatasetRegisterServiceImpl {
 				// ignore this because it is correct behaviour
 			}
 			final Dataset dataset = DatasetAssembler.createDomainObject(uuid,
-				versions, reader, spimData);
+				versions, reader, spimData, label);
 			log.info("Adding dataset: {}", dataset);
 			datasetDAO.persist(dataset);
 			trxActive = false;
