@@ -199,9 +199,14 @@ public class DatasetRegisterServiceEndpoint {
 	@Path("datasets/{" + UUID + "}")
 	public Response queryDataset(@PathParam(UUID) String uuid) {
 		log.info("get JSON for dataset=" + uuid);
-		DatasetDTO result = datasetRegisterServiceImpl.query(uuid);
+		DatasetDTO result;
+		try {
+			result = datasetRegisterServiceImpl.query(uuid);
+		}
+		catch (SpimDataException exc) {
+			throw new InternalServerErrorException("Query to dataset failed", exc);
+		}
 		return Response.ok(result).type(MediaType.APPLICATION_JSON_TYPE).build();
-
 	}
 
 	@DELETE
@@ -314,7 +319,12 @@ public class DatasetRegisterServiceEndpoint {
 	public Response getChannels(@PathParam(UUID) String uuid)
 	{
 		DatasetDTO result;
-		result = datasetRegisterServiceImpl.query(uuid);
+		try {
+			result = datasetRegisterServiceImpl.query(uuid);
+		}
+		catch (SpimDataException exc) {
+			throw new InternalServerErrorException("Query to dataset failed", exc);
+		}
 		if (result == null) {
 			return Response.status(Status.NOT_FOUND).entity("Dataset with uuid=" +
 				uuid + " not found.").build();

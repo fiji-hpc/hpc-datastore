@@ -62,6 +62,7 @@ import bdv.export.ExportScalePyramid.LoopbackHeuristic;
 import cz.it4i.fiji.datastore.ApplicationConfiguration;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS;
 import cz.it4i.fiji.datastore.CreateNewDatasetTS.N5Description;
+import cz.it4i.fiji.datastore.CreateNewDatasetTS.N5Description.N5DescriptionBuilder;
 import cz.it4i.fiji.datastore.DatasetHandler;
 import cz.it4i.fiji.datastore.DatasetServerImpl;
 import cz.it4i.fiji.datastore.N5Access;
@@ -208,9 +209,12 @@ public class DatasetRegisterServiceImpl {
 		}
 	}
 
-	public DatasetDTO query(String uuid) {
-		Dataset dataset = getDataset(uuid);
-		DatasetDTO result = DatasetAssembler.createDatatransferObject(dataset);
+	public DatasetDTO query(String uuid) throws SpimDataException {
+		final Dataset dataset = getDataset(uuid);
+		final SpimData spimData = configuration.getDatasetHandler(uuid)
+			.getSpimData();
+		final DatasetDTO result = DatasetAssembler.createDatatransferObject(dataset,
+			spimData.getSequenceDescription().getTimePoints());
 		return result;
 	}
 
@@ -363,19 +367,26 @@ public class DatasetRegisterServiceImpl {
 
 	private N5Description convert(DatasetDTO dataset) {
 // @formatter:off
-		return N5Description.builder()
+		N5DescriptionBuilder result = N5Description.builder()
 				.voxelType(DataType.valueOf(dataset.getVoxelType().toUpperCase()))
 				.dimensions(dataset.getDimensions())
 				.voxelDimensions(new FinalVoxelDimensions(dataset.getVoxelUnit(), dataset.getVoxelResolution()))
-				.timepoints(dataset.getTimepoints())
 				.channels(dataset.getChannels())
 				.angles(dataset.getAngles())
 				.transforms(createTransfoms(dataset.getAngles(), dataset.getTransformations()))
 				.compression(createCompression(dataset.getCompression()))
 				.exportMipmapInfo(MipmapInfoAssembler.createExportMipmapInfo(dataset))
-				.viewRegistrations(dataset.getViewRegistrations())
-				.build();
-//	@formatter:on				
+				.viewRegistrations(dataset.getViewRegistrations());
+//	@formatter:on
+		if (dataset.getTimepointIds() != null && !dataset.getTimepointIds()
+			.isEmpty())
+		{
+			result.timepointIds(dataset.getTimepointIds());
+		}
+		else {
+			result.timepoints(dataset.getTimepoints());
+		}
+		return result.build();
 	}
 
 	private AffineTransform3D[] createTransfoms(int angles,

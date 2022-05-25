@@ -10,8 +10,9 @@ package cz.it4i.fiji.datastore;
 import static bdv.img.n5.BdvN5Format.DATA_TYPE_KEY;
 import static bdv.img.n5.BdvN5Format.DOWNSAMPLING_FACTORS_KEY;
 import static bdv.img.n5.BdvN5Format.getPathName;
-import static cz.it4i.fiji.datastore.DatasetFilesystemHandler.INITIAL_VERSION;
+import static cz.it4i.fiji.datastore.DatasetHandler.INITIAL_VERSION;
 import static cz.it4i.fiji.datastore.base.Factories.constructViewSetup;
+import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.io.IOException;
@@ -160,6 +161,8 @@ public class CreateNewDatasetTS {
 		@Builder.Default
 		private final int angles = 1;
 		
+		private final List<Integer> timepointIds;
+
 		private final AffineTransform3D[] transforms;
 
 		@NonNull
@@ -171,20 +174,19 @@ public class CreateNewDatasetTS {
 		private final Collection<cz.it4i.fiji.datastore.core.ViewRegistrationDTO> viewRegistrations;
 
 
+
 	}
 
 	private static class SPIMDataProducer {
 
-		final Collection<TimePoint> timepointsCol;
+		final List<TimePoint> timepointsCol;
 		final Collection<ViewSetup> viewSetups;
 		final SpimData spimData;
 		final Map<Integer, Map<Integer, ViewSetup>> perAngleAndChannelViewSetup =
 			new HashMap<>();
 
 		SPIMDataProducer(N5Description description) {
-			timepointsCol = IntStream.range(0, description.timepoints)
-				.<TimePoint> mapToObj(
-				TimePoint::new).collect(Collectors.toList());
+			timepointsCol = getTimePointsIds(description);
 
 			viewSetups = generateViewSetups(
 				description.dimensions, description.voxelDimensions,
@@ -266,6 +268,20 @@ public class CreateNewDatasetTS {
 			AffineTransform3D affineTransform3D = new AffineTransform3D();
 			affineTransform3D.set(tr.getRowPackedMatrix());
 			return new ViewTransformAffine(tr.getName(), affineTransform3D);
+		}
+
+		static private List<TimePoint> getTimePointsIds(
+			N5Description description)
+		{
+			List<Integer> timepointIds = description.timepointIds;
+			if (timepointIds == null) {
+				timepointIds = IntStream.range(0, description.timepoints).mapToObj(
+					Integer::valueOf).collect(toList());
+			}
+			else {
+				timepointIds.sort(Integer::compareTo);
+			}
+			return timepointIds.stream().map(TimePoint::new).collect(toList());
 		}
 
 	}

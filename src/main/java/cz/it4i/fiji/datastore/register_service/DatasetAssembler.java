@@ -29,6 +29,8 @@ import cz.it4i.fiji.datastore.core.DatasetDTO;
 import cz.it4i.fiji.datastore.register_service.Dataset.DatasetBuilder;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.SequenceDescription;
+import mpicbg.spim.data.sequence.TimePoint;
+import mpicbg.spim.data.sequence.TimePoints;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 
 
@@ -145,7 +147,8 @@ public class DatasetAssembler {
 			}).collect(Collectors.toList());
 	}
 
-	public static DatasetDTO createDatatransferObject(Dataset dataset)
+	public static DatasetDTO createDatatransferObject(Dataset dataset,
+		TimePoints timepoints)
 	{
 		
 		// @formatter:off
@@ -156,7 +159,9 @@ public class DatasetAssembler {
 				.dimensions(dataset.getDimensions())
 				.voxelUnit(dataset.getVoxelUnit())
 				.voxelResolution(dataset.getVoxelResolution())
-				.timepoints(dataset.getTimepoints()).timepointResolution(createDatatransferObject(dataset.getTimepointResolution()))
+				.timepoints(dataset.getTimepoints())
+				.timepointIds(timepoints.getTimePointsOrdered().stream().map(TimePoint::getId).sorted().collect(Collectors.toList()))
+				.timepointResolution(createDatatransferObject(dataset.getTimepointResolution()))
 				.channels(dataset.getChannels()).channelResolution(createDatatransferObject(dataset.getChannelResolution()))
 				.angles(dataset.getAngles()).angleResolution(createDatatransferObject(dataset.getAngleResolution()))
 				.compression(dataset.getCompression())

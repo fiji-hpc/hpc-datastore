@@ -301,7 +301,8 @@ public class CellHandlerTS
 	private static String buildMetadataJsonString(SpimDataMinimal spimData,
 		Dataset dataset)
 	{
-		DatasetDTO datasetDTO = DatasetAssembler.createDatatransferObject(dataset);
+		final DatasetDTO datasetDTO = DatasetAssembler.createDatatransferObject(
+			dataset, spimData.getSequenceDescription().getTimePoints());
 		final HPCDatastoreImageLoaderMetaData metadata =
 			new HPCDatastoreImageLoaderMetaData(datasetDTO, spimData
 				.getSequenceDescription(), DataType.fromString(dataset.getVoxelType()));
