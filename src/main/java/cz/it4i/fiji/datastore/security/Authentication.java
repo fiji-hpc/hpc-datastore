@@ -62,6 +62,7 @@ public class Authentication extends BaseEntity {
 			case "deleteDatasetVersions_viaGet":
 				checkDeleteDatasetVersions(ctx);
 				break;
+			case "writeBlock":
 			case "rebuild":
 			case "deleteDataset":
 			case "deleteDataset_viaGet":
