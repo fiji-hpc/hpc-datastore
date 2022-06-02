@@ -2,6 +2,7 @@ quarkus:
   http:
     port: 8080
     host: localhost
+    read-timeout: 600s
   datasource:
     db-kind: h2
     jdbc:
