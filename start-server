@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 useUpToThisAmountOfRAM=10G
 
-if [ ! $# -eq 4 ]; then
+if [ ! $# -eq 3 ]; then
 	echo "Start me with four parameters, e.g.:"
-	echo "./start-server /temp/RootDataFolder/ 192.168.3.123 9080 35000,35100"
-	echo
-	echo "Note: The last pair '35000,35100' needs to come without spaces so"
-	echo "      that it is indeed one parameter from the shell point of view."
+	echo "./start-server /temp/RootDataFolder/ 192.168.3.123 9080"
 	echo
 	echo "1st param: Path to an existing folder under which datasets will be kept,"
 	echo "           it is okay to re-use a folder populated from some previous session"
@@ -14,8 +11,6 @@ if [ ! $# -eq 4 ]; then
 	echo "           IP of the outside network interface if the server shall be reachable"
 	echo "           also from outside of this box, otherwise 'localhost' is fine too"
 	echo "3rd param: Port to which the main (24/7 controlling) server will bind to"
-	echo "4th param: Port range available for the dedicated, on-demand started (data"
-	echo "           transfering) servers"
 	echo
 	echo "Note: Check your firewall settings..."
 	echo "Note: Currently the server will consume up to $useUpToThisAmountOfRAM of main memory,"
@@ -24,6 +19,5 @@ else
 	java -Xmx${useUpToThisAmountOfRAM} -Dquarkus.datasource.jdbc.url="jdbc:h2:$1/h2;MODE=PostgreSQL;INIT=CREATE SCHEMA IF NOT EXISTS datastore" \
 	          -Ddatastore.path=$1 \
 	          -Dquarkus.http.host=$2 -Dquarkus.http.port=$3 \
-	          -Ddatastore.ports=$4 \
 	          -jar target/quarkus-app/quarkus-run.jar
 fi
