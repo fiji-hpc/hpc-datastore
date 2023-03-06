@@ -1,0 +1,4 @@
+# copy dataset '73c0f152-48ba-4936-833b-2ad97d9751cc' to a folder which reads the localhost:9081 server
+# then fire this command to make the server to notice the newly added folder,
+# the server will re-read its structure and will start serving this dataset together with others it might know already about
+curl -X POST  http://localhost:9081/datasets/73c0f152-48ba-4936-833b-2ad97d9751cc
