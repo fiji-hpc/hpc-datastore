@@ -49,3 +49,5 @@ cookies.txt
 # Mac #
 .DS_Store
 
+
+src/main/resources/META-INF/resources/emptyStore.keystore
