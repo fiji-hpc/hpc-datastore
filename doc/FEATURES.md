@@ -18,13 +18,18 @@ This happens transparently on the server-side, client only needs to choose versi
 
 ## Querying the DataStore Server
 [Similar to fetching the XML for BigDataViewer](APPLICATIONS.md#bdv-opens-tailored-xml)
-one can query the DataStore server about datasets parameters. This is achieved by opening the URL
+one can query the DataStore server about datasets parameters.
+
+This can be achieved **via Fiji**, go to Plugins -> HPC DataStore -> Query -> Dataset info.
+A console window should pop up (if not, go to Window -> Console) and should summarize the dataset parameters.
+
+Alternatively, the querying can be achieved by opening the URL
 
 ```
 http://HOST:PORT/datasets/DATASETID
 ```
 
-in a web browser. The `HOST:PORT` is an address to where the relevant *DatasetsRegisterService* is running,
+**in a web browser**. The `HOST:PORT` is an address to where the relevant *DatasetsRegisterService* is running,
 and the `DATASETID` is the name of the queried dataset.
 
 The server returns a JSON file, which makes it easy to parse by machine and which many browsers
