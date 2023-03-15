@@ -31,6 +31,7 @@ In this documentation of the DataStore project you can learn about the following
 
 # [Features](FEATURES.md)
 - [Server-side Auto Pyramids](FEATURES.md#server-side-auto-pyramids)
+- [Client-side Auto Pyramids](FEATURES.md#client-side-auto-pyramids)
 - [Mixing of Versions](FEATURES.md#mixing-of-versions)
 - [Querying the DataStore Server](FEATURES.md#querying-the-datastore-server)
 - [Adding a New Channel to Existing Dataset](FEATURES.md#adding-a-new-channel-to-existing-dataset)
@@ -51,3 +52,6 @@ In this documentation of the DataStore project you can learn about the following
 - [Creating from an Existing HDF5/XML](HOWTO.md#creating-from-an-existing-hdf5-xml)
 - [Converting Between TIFFs and DataStore](HOWTO.md#converting-between-tiffs-and-datastore)
 - [Adding a New Channel](HOWTO.md#adding-a-new-channel)
+- [Viewing DataStore content with BigDataViewer](HOWTO.md#viewing-datastore-content-with-bigdataviewer)
+  - [Legacy BigDataServer and BDV](HOWTO.md#legacy-bigdataserver-and-bdv)
+  - [DataStore and BDV](HOWTO.md#datastore-and-bdv)
