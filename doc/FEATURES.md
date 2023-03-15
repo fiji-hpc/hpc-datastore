@@ -8,12 +8,14 @@ help us -> drop us a line, please, on: ulman@fi.muni.cz
 ## Client-side Auto Pyramids
 This is implemented (and can be turned off if desired) in the plugin Fiji -> Plugins -> HPC DataStore -> Write full image.
 
-![write_full_image_plugin](doc/imgs/plugin-write-full-image.png)
+![write_full_image_plugin](imgs/plugin-write-full-image.png)
 
 As shown above, if the checkbox "Write also lower resolutions" is clicked, the plugin writes the currently opened
 image to DataStore to the indicated resolution level, then it internally makes a copy of the opened image which is transfered
 to the next lower resolution level of the dataset and this repeats until the most downscaled-level is reached. The plugin
 (intentionally) does not upscale and thus, following still this example, the finest resolution level "[1,1,1]" is not touched in here.
+
+(Please, overlook the "timeout" option which is still present in the most of the plugins but is obsolete and influences nothing.)
 
 ## Mixing of Versions
 [The DataStore supports versioning of image data](DESCRIPTION.md#versions-of-data), a very basic one though.
