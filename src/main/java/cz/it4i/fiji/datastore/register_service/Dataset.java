@@ -19,6 +19,7 @@ import javax.persistence.Entity;
 import javax.persistence.Transient;
 
 import cz.it4i.fiji.datastore.BaseEntity;
+import cz.it4i.fiji.datastore.zarr.fileTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -113,6 +114,10 @@ public class Dataset extends BaseEntity {
 	@Setter
 	@Transient
 	private String label;
+
+	@Getter
+	@Setter
+	private String datasetType;
 
 	public ResolutionLevel getResolutionLevel(int[] resolution) {
 		return getResolutionLevelIndex().get(Arrays.toString(resolution));

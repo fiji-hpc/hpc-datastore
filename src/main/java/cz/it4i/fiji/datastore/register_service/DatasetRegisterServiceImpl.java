@@ -38,6 +38,7 @@ import javax.transaction.Transactional;
 import javax.transaction.UserTransaction;
 import javax.ws.rs.NotFoundException;
 
+
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -138,18 +139,20 @@ public class DatasetRegisterServiceImpl {
 		}
 	}
 
-	public UUID createEmptyDataset(DatasetDTO datasetDTO) throws IOException,
+	public UUID createEmptyDataset(DatasetDTO datasetDTO,String datasetType) throws IOException,
 		SpimDataException, NotSupportedException, SystemException
 	{
 		UUID result = UUID.randomUUID();
+
 		new CreateNewDatasetTS().run(configuration.getDatasetHandler(result
-			.toString()), convert(datasetDTO));
+			.toString(),datasetType), convert(datasetDTO));
 		transaction.begin();
 		boolean trxActive = true;
 		try {
 			Dataset dataset = DatasetAssembler.createDomainObject(datasetDTO);
 			dataset.setUuid(result.toString());
 			dataset.setDatasetVersion(new LinkedList<>());
+			dataset.setDatasetType(datasetType);
 			dataset.getDatasetVersion().add(DatasetVersion.builder().value(0)
 				.build());
 			datasetDAO.persist(dataset);

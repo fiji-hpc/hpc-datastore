@@ -38,6 +38,7 @@ hs_err_pid*
 /output*
 
 /ObjectStore/
+testdata/
 
 uuid.txt
 export.xml
@@ -49,3 +50,7 @@ cookies.txt
 # Mac #
 .DS_Store
 
+start-server-win.cmd
+testdata/h2.mv.db
+start-server-win.cmd
+start-server-win.cmd

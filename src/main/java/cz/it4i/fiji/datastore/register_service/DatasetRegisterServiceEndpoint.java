@@ -161,7 +161,7 @@ public class DatasetRegisterServiceEndpoint {
 		log.debug("dataset=" + dataset);
 		try {
 			java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
-				dataset);
+				dataset,"N5");
 			return Response.ok().entity(result.toString()).type(
 				MediaType.TEXT_PLAIN).build();
 		}
@@ -169,6 +169,25 @@ public class DatasetRegisterServiceEndpoint {
 			log.warn("read", exc);
 			return Response.serverError().entity(exc.getMessage()).type(
 				MediaType.TEXT_PLAIN).build();
+		}
+	}
+	@POST
+	@Path("datasetszarr/")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response createEmptyZarrDataset(DatasetDTO dataset)
+	{
+		log.info("creating empty dataset");
+		log.debug("dataset=" + dataset);
+		try {
+			java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
+					dataset,"zarr");
+			return Response.ok().entity(result.toString()).type(
+					MediaType.TEXT_PLAIN).build();
+		}
+		catch (Exception exc) {
+			log.warn("read", exc);
+			return Response.serverError().entity(exc.getMessage()).type(
+					MediaType.TEXT_PLAIN).build();
 		}
 	}
 

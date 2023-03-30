@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+
 import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5Reader;
 
@@ -160,15 +161,16 @@ public class DatasetAssembler {
 				.voxelUnit(dataset.getVoxelUnit())
 				.voxelResolution(dataset.getVoxelResolution())
 				.timepoints(dataset.getTimepoints())
-				.timepointIds(timepoints.getTimePointsOrdered().stream().map(TimePoint::getId).sorted().collect(Collectors.toList()))
+				.timepointIds(timepoints.getTimePointsOrdered().stream().map(TimePoint::getId).sorted().collect(toList()))
 				.timepointResolution(createDatatransferObject(dataset.getTimepointResolution()))
 				.channels(dataset.getChannels()).channelResolution(createDatatransferObject(dataset.getChannelResolution()))
 				.angles(dataset.getAngles()).angleResolution(createDatatransferObject(dataset.getAngleResolution()))
 				.compression(dataset.getCompression())
 				.resolutionLevels(createDatatransferObject(dataset.getResolutionLevel()))
-				.versions(dataset.getDatasetVersion().stream().map(DatasetVersion::getValue).collect(Collectors.toList()))
+				.versions(dataset.getDatasetVersion().stream().map(DatasetVersion::getValue).collect(toList()))
 				.label(dataset.getLabel())
 				.build();
+
 	// @formatter:on
 	}
 
