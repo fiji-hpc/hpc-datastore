@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+if [ -f "access_token.txt" ]; then
+	ACCESS_TOKEN=`cat access_token.txt`
+	AUTHORIZATION_HEADER="Authorization: Bearer $ACCESS_TOKEN"
+else
+	AUTHORIZATION_HEADER=
+fi
+
+curl -X POST -d ' { "label":"An empty N5 dataset", "voxelType":"uint64", "dimensions":[1000,1000,1], "timepoints":10, "channels":3, "angles":5, "voxelUnit": "um", "voxelResolution": [0.4, 0.4, 1], "timepointResolution": {"value":1,"unit":"min"}, "channelResolution": {"value":0,"unit":null}, "angleResolution": {"value":0,"unit":null}, "compression": "raw", "resolutionLevels": [ {"resolutions":[1,1,1],"blockDimensions":[64,64,64] }, {"resolutions":[2,2,1],"blockDimensions":[64,64,64]} ]}' \
+   -H "Content-Type: application/json" \
+   -H "$AUTHORIZATION_HEADER" \
+   http://localhost:8080/datasets | tee uuidN5.txt
+
+
+UUID=`cat uuidN5.txt`
+printf "0: %.8x" 32 | xxd -r -g0 > input.bin
+printf "0: %.8x" 32 | xxd -r -g0 >> input.bin
+printf "0: %.8x" 32 | xxd -r -g0 >> input.bin
+head -c 262144 /dev/urandom >> input.bin
+
+REDIRECT=`curl -X GET -w %{redirect_url}  -H "$AUTHORIZATION_HEADER" \
+  http://localhost:9080/datasets/$UUID/1/1/1/new/write?timeout=10000`
+
+echo $REDIRECT
+
+curl -X POST -c cookies.txt --data-binary "@input.bin" \
+  -H "$AUTHORIZATION_HEADER" \
+  -H "Content-Type: application/octet-stream" $REDIRECT'0/0/0/0/0/0/' 
+  
+curl -X POST -H "$AUTHORIZATION_HEADER" -b cookies.txt $REDIRECT'stop'
+
+//zapis ukončen
+
+curl -X POST -d ' { "label":"An empty Zarr dataset", "voxelType":"uint64", "dimensions":[1000,1000,1], "timepoints":10, "channels":3, "angles":5, "voxelUnit": "um", "voxelResolution": [0.4, 0.4, 1], "timepointResolution": {"value":1,"unit":"min"}, "channelResolution": {"value":0,"unit":null}, "angleResolution": {"value":0,"unit":null}, "compression": "raw/Zarr", "resolutionLevels": [ {"resolutions":[1,1,1],"blockDimensions":[64,64,64] }, {"resolutions":[2,2,1],"blockDimensions":[64,64,64]} ]}' \
+   -H "Content-Type: application/json" \
+   -H "$AUTHORIZATION_HEADER" \
+   http://localhost:8080/datasets | tee uuidZarr.txt
+
+UUIDZarr=`cat uuidZarr.txt`
+
+
+REDIRECT=`curl -X GET -H "$AUTHORIZATION_HEADER" -w %{redirect_url} \
+  http://localhost:9080/datasets/$UUID/1/1/1/latest/read?timeout=10000`
+
+echo $REDIRECT'0/0/0/0/0/0/'
+
+curl -X GET -H "$AUTHORIZATION_HEADER" -b cookies.txt $REDIRECT'0/0/0/0/0/0/' --output output.bin
+
+curl -X POST -H "$AUTHORIZATION_HEADER" -b cookies.txt $REDIRECT'stop'
+
+
+REDIRECT=`curl -X GET -w %{redirect_url}  -H "$AUTHORIZATION_HEADER" \
+  http://localhost:9080/datasets/$UUIDZarr/1/1/1/new/write?timeout=10000`
+
+echo $REDIRECT
+
+curl -X POST -c cookies.txt --data-binary "@output.bin" \
+  -H "$AUTHORIZATION_HEADER" \
+  -H "Content-Type: application/octet-stream" $REDIRECT'0/0/0/0/0/0/' 
+  
+curl -X POST -H "$AUTHORIZATION_HEADER" -b cookies.txt $REDIRECT'stop'
+
+REDIRECT=`curl -X GET -H "$AUTHORIZATION_HEADER" -w %{redirect_url} \
+  http://localhost:9080/datasets/$UUIDZarr/1/1/1/latest/read?timeout=10000`
+
+echo $REDIRECT'0/0/0/0/0/0/'
+
+curl -X GET -H "$AUTHORIZATION_HEADER" -b cookies.txt $REDIRECT'0/0/0/0/0/0/' --output outputzarr.bin
+
+curl -X POST -H "$AUTHORIZATION_HEADER" -b cookies.txt $REDIRECT'stop'
+
+
+
+diff input.bin outputzarr.bin
+rm input.bin output.bin cookies.txt
+

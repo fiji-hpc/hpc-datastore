@@ -114,6 +114,10 @@ public class Dataset extends BaseEntity {
 	@Transient
 	private String label;
 
+	@Getter
+	@Setter
+	private String datasetType;
+
 	public ResolutionLevel getResolutionLevel(int[] resolution) {
 		return getResolutionLevelIndex().get(Arrays.toString(resolution));
 	}

@@ -133,6 +133,19 @@ public class DatasetServerEndpoint implements Serializable {
 		@PathParam(ANGLE_PARAM) int angle,
 		@PathParam(BLOCKS_PARAM) String blocks, InputStream inputStream)
 	{
+		String uuid = dataServerManager.getUUID();
+		try {
+			datasetServer = new DatasetServerImpl(configuration.getDatasetHandler(
+					uuid), dataServerManager.getResolutionLevels(), dataServerManager
+					.getVersion(), dataServerManager.isMixedVersion(), dataServerManager
+					.getMode());
+
+		} catch (SpimDataException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
 		return blockRequestHandler.writeBlock(datasetServer, x, y, z, time, channel,
 			angle, blocks, inputStream);
 	}
@@ -167,7 +180,6 @@ public class DatasetServerEndpoint implements Serializable {
 		catch (SpimDataException | IOException exc) {
 			log.error("init", exc);
 		}
-
 	}
 
 

@@ -70,8 +70,6 @@ public class BlockRequestHandler {
 				MediaType.TEXT_PLAIN).build();
 		}
 	}
-
-
 	public Response writeBlock(DatasetServerImpl datasetServer, long x, long y,
 		long z, int time, int channel, int angle, String blocks,
 		InputStream inputStream)
@@ -81,7 +79,6 @@ public class BlockRequestHandler {
 			angle));
 		BlockIdentification.extract(blocks, blocksId);
 		try {
-
 			for (BlockIdentification blockId : blocksId) {
 				datasetServer.write(blockId.gridPosition, blockId.time, blockId.channel,
 					blockId.angle, inputStream);

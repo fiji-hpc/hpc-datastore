@@ -38,6 +38,7 @@ hs_err_pid*
 /output*
 
 /ObjectStore/
+testdata/
 
 uuid.txt
 export.xml

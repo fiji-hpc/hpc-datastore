@@ -13,14 +13,7 @@ import com.google.common.base.Strings;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -38,6 +31,8 @@ import javax.transaction.Transactional;
 import javax.transaction.UserTransaction;
 import javax.ws.rs.NotFoundException;
 
+
+import cz.it4i.fiji.datastore.zarr.FileTypeEnum;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -143,7 +138,7 @@ public class DatasetRegisterServiceImpl {
 	{
 		UUID result = UUID.randomUUID();
 		new CreateNewDatasetTS().run(configuration.getDatasetHandler(result
-			.toString()), convert(datasetDTO));
+			.toString(),datasetDTO.getDatasetType()), convert(datasetDTO));
 		transaction.begin();
 		boolean trxActive = true;
 		try {
@@ -221,6 +216,19 @@ public class DatasetRegisterServiceImpl {
 	public String getCommonMetadata(String uuid) {
 		Dataset dataset = getDataset(uuid);
 		return Strings.nullToEmpty(dataset.getMetadata());
+	}
+	public FileTypeEnum getDataType(String uuid)
+	{
+		Dataset dataset = getDataset(uuid);
+		String type=dataset.getDatasetType();
+		if(Objects.equals("Zarr",type))
+		{
+			return FileTypeEnum.ZARR;
+		}
+		else
+		{
+			return  FileTypeEnum.N5;
+		}
 	}
 
 	public <T extends RealType<T> & NativeType<T>> void rebuild(String uuid,
