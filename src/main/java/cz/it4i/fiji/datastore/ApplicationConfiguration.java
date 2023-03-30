@@ -20,9 +20,14 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.ws.rs.NotFoundException;
 
+import cz.it4i.fiji.datastore.register_service.Dataset;
+import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.s3.DatasetS3Handler;
 import cz.it4i.fiji.datastore.s3.S3Settings;
+import cz.it4i.fiji.datastore.zarr.DatasetFileSystemHandlerZarr;
+import cz.it4i.fiji.datastore.zarr.HandlerFactory;
 
 @ApplicationScoped
 public class ApplicationConfiguration implements Serializable{
@@ -38,28 +43,33 @@ public class ApplicationConfiguration implements Serializable{
 	private static final String DATASTORE_S3_BUCKET = "datastore.s3.bucket";
 
 	private static final String DATASTORE_S3_ACCESS_KEY =
-		"datastore.s3.accessKey";
+			"datastore.s3.accessKey";
 
 	private static final String DATASTORE_S3_SECRET_KEY =
-		"datastore.s3.secretKey";
+			"datastore.s3.secretKey";
 
 	private static final String DATASTORE_S3_SECRET_KEY_VAR =
-		"DATATASTORE_S3_SECRET_KEY";
+			"DATATASTORE_S3_SECRET_KEY";
 
 	public static final String DEFAULT_PATH_PREFIX = "target/output";
 
 	public static final Set<String> _properties = Arrays.asList(DATASTORE_PATH,
-		DATASTORE_S3_HOST_URL, DATASTORE_S3_BUCKET, DATASTORE_S3_REGION,
-		DATASTORE_S3_ACCESS_KEY, DATASTORE_S3_SECRET_KEY).stream().collect(toSet());
-
+			DATASTORE_S3_HOST_URL, DATASTORE_S3_BUCKET, DATASTORE_S3_REGION,
+			DATASTORE_S3_ACCESS_KEY, DATASTORE_S3_SECRET_KEY).stream().collect(toSet());
 	public static final String BASE_NAME = "export";
-
 	public DatasetHandler getDatasetHandler(String uuid) {
 		String s3HostUrl = getProperty(DATASTORE_S3_HOST_URL);
 		if (s3HostUrl != null) {
 			return constructDataS3Handler(uuid, s3HostUrl);
 		}
-		return new DatasetFilesystemHandler(uuid, getDatasetPath(uuid));
+		return HandlerFactory.CreateHandlerByAtribute(uuid,getDatasetPath(uuid));
+	}
+	public DatasetHandler getDatasetHandler(String uuid,String type) {
+		String s3HostUrl = getProperty(DATASTORE_S3_HOST_URL);
+		if (s3HostUrl != null) {
+			return constructDataS3Handler(uuid, s3HostUrl);
+		}
+		return HandlerFactory.CreateHandlerByType(type,uuid,getDatasetPath(uuid));
 	}
 
 	public Path getDatastorePath() {
@@ -87,8 +97,8 @@ public class ApplicationConfiguration implements Serializable{
 		String pathPrefix = getProperty(DATASTORE_PATH, "");
 		S3Settings.S3SettingsBuilder result = S3Settings.builder();
 		result.hostURL(s3HostUrl).bucket(getProperty(DATASTORE_S3_BUCKET))
-			.accessKey(getProperty(DATASTORE_S3_ACCESS_KEY)).secretKey(
-				getSecretKey());
+				.accessKey(getProperty(DATASTORE_S3_ACCESS_KEY)).secretKey(
+						getSecretKey());
 		String region = getProperty(DATASTORE_S3_REGION);
 		if (region != null) {
 			result.region(region);

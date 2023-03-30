@@ -62,7 +62,6 @@ public class DatasetFilesystemHandler implements DatasetHandler {
 
 	@Override
 	public SpimData getSpimData(int version) throws SpimDataException {
-
 		try {
 			int versionForReading = version < 0 ? getLatestVersion() : version;
 			return SetN5LoaderToSpimData.$(loadFromXML(getXMLFile(
