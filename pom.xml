@@ -107,8 +107,8 @@
                 <stage>development</stage>
             </properties>
             <activation>
-		      <activeByDefault>true</activeByDefault>
-		    </activation>
+              <activeByDefault>true</activeByDefault>
+            </activation>
         </profile>
     </profiles>
     <dependencyManagement>
@@ -122,19 +122,19 @@
             </dependency>
             <dependency>
                <groupId>org.scijava</groupId>
-		       <artifactId>pom-scijava</artifactId>
-		       <version>30.0.0</version>
-		       <type>pom</type>
+               <artifactId>pom-scijava</artifactId>
+               <version>30.0.0</version>
+               <type>pom</type>
                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
-		<dependency>
-			<groupId>cz.it4i.fiji</groupId>
-    		<artifactId>hpc-datastore-core</artifactId>
-			<version>2.3.0</version>
-		</dependency>
+        <dependency>
+            <groupId>cz.it4i.fiji</groupId>
+            <artifactId>hpc-datastore-core</artifactId>
+            <version>2.3.0</version>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -142,45 +142,43 @@
             <scope>provided</scope>
         </dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.janelia.saalfeldlab/n5 -->
+        <!-- https://mvnrepository.com/artifact/org.janelia.saalfeldlab/n5 -->
         <dependency>
             <groupId>org.janelia.saalfeldlab</groupId>
             <artifactId>n5</artifactId>
         </dependency>
-     
+
         <dependency>
             <groupId>sc.fiji</groupId>
             <artifactId>bigdataviewer-core</artifactId>
         </dependency>
-        
+
         <!-- https://mvnrepository.com/artifact/xerces/xercesImpl -->
-		<dependency>
-		    <groupId>xerces</groupId>
-		    <artifactId>xercesImpl</artifactId>
-		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/com.fasterxml.woodstox/woodstox-core -->
-		<dependency>
-		    <groupId>com.fasterxml.woodstox</groupId>
-		    <artifactId>woodstox-core</artifactId>
-		</dependency>
-		
-				
-     
-		<!-- https://mvnrepository.com/artifact/xalan/xalan -->
-		<dependency>
-		    <groupId>xalan</groupId>
-		    <artifactId>xalan</artifactId>
-		</dependency>
-		
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.woodstox/woodstox-core -->
+        <dependency>
+            <groupId>com.fasterxml.woodstox</groupId>
+            <artifactId>woodstox-core</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/xalan/xalan -->
+        <dependency>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
             <exclusions>
-            	<exclusion>
-            		<groupId>org.jboss.slf4j</groupId>
-    				<artifactId>slf4j-jboss-logmanager</artifactId>
-            	</exclusion>
+                <exclusion>
+                    <groupId>org.jboss.slf4j</groupId>
+                    <artifactId>slf4j-jboss-logmanager</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -227,19 +225,18 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-config-yaml</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5</artifactId>
             <scope>test</scope>
             <exclusions>
-            	<exclusion>
-            		<groupId>org.jboss.slf4j</groupId>
-    				<artifactId>slf4j-jboss-logmanager</artifactId>
-            	</exclusion>
+                <exclusion>
+                    <groupId>org.jboss.slf4j</groupId>
+                    <artifactId>slf4j-jboss-logmanager</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
-        
 
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
@@ -248,10 +245,10 @@
 
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <dependency>
-        	<groupId>com.google.guava</groupId>
-    		<artifactId>guava</artifactId>
-    	</dependency>
-       
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -271,28 +268,28 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
         </dependency>
-     
+
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.17.1</version>
         </dependency>
-		
-		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-iostreams -->
-		<dependency>
-		    <groupId>org.apache.logging.log4j</groupId>
-		    <artifactId>log4j-iostreams</artifactId>
-		    <version>2.17.1</version>
-		</dependency>
-        
+
+        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-iostreams -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-iostreams</artifactId>
+            <version>2.17.1</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/com.nimbusds/oauth2-oidc-sdk -->
-		<dependency>
-		    <groupId>com.nimbusds</groupId>
-		    <artifactId>oauth2-oidc-sdk</artifactId>
-		     <version>9.32</version>
-		</dependency>
-		 <dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>oauth2-oidc-sdk</artifactId>
+             <version>9.32</version>
+        </dependency>
+         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
         </dependency>
@@ -315,10 +312,10 @@
                 </executions>
             </plugin>
             <plugin>
-            	<groupId>org.apache.maven.plugins</groupId>
-            	<artifactId>maven-surefire-plugin</artifactId>
-            	<version>2.22.2</version>
-        	</plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+            </plugin>
         </plugins>
         <resources>
             <resource>
