@@ -51,8 +51,8 @@ The easiest way to get the server up and running is to execute the following:
 git clone https://github.com/fiji-hpc/hpc-datastore.git
 cd hpc-datastore
 git checkout -b production origin/production
-./mvnw -Dmaven.test.skip=true clean package
-(on Windows: mvnw.cmd -Dmaven.test.skip=true clean package)
+./mvnw clean package
+(on Windows: mvnw.cmd clean package)
 ./start-server
 ```
 
@@ -60,6 +60,9 @@ This downloads the recent sources, compiles them (also downloads dependencies wh
 will take some time) and runs the starting script. The starting script will only
 print out help and ask you to provide path to where datasets shall be stored, hostname
 and port to which the server shall bind to (where it should listen at).
+
+(There used to be a period of time when Fiji client and this server was out-of-sync,
+this is no longer truth and one can/should be using the latest code from the client(s) and server.)
 
 The server is for real started with the following command:
 ```
@@ -79,6 +82,7 @@ Run the class _cz.it4i.fiji.datastore.App_. It accepts the following properties:
 - datastore.ports
 
 You can pass them as a parameter to the JVM with the `-D<property.name>` construct.
+The last parameter (`datastore.ports`) is currently not used.
 
 # Public testing server
 We are running a demo server for testing it out. Please, be nice to it :-) (don't upload tons of data).
