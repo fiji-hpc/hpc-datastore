@@ -11,6 +11,8 @@ The server communicates with its clients using [our own simple protocol.](https:
 [Motivation](doc/HISTORY.md) as well [some reasoning, application examples and more
 details in general can be found here.](doc/OUTLINE.md)
 
+:tada: __DataStore is actively working on storing data in [NGFF OME.Zarr](https://ngff.openmicroscopy.org/latest/)__ :sparkles::sparkles:
+
 ## [Table of contents is here.](doc/OUTLINE.md)
 
 ## Notes that shall not be overlooked...
