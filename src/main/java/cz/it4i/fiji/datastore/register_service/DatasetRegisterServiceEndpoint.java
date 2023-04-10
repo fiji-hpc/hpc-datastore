@@ -41,6 +41,7 @@ import javax.ws.rs.core.UriInfo;
 
 import cz.it4i.fiji.datastore.core.DatasetDTO;
 import cz.it4i.fiji.datastore.security.Authorization;
+import cz.it4i.fiji.datastore.zarr.DatasetDTOEnchanted;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
 
@@ -170,6 +171,27 @@ public class DatasetRegisterServiceEndpoint {
 			return Response.serverError().entity(exc.getMessage()).type(
 				MediaType.TEXT_PLAIN).build();
 		}
+	}
+	@POST
+	@Path("datasets/")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response createEmptyDataset(DatasetDTOEnchanted dataset)
+	{
+		log.info("creating empty dataset");
+		log.debug("dataset=" + dataset);
+		/*try {
+			java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
+					dataset,"N5");
+			return Response.ok().entity(result.toString()).type(
+					MediaType.TEXT_PLAIN).build();
+		}
+		catch (Exception exc) {
+			log.warn("read", exc);
+			return Response.serverError().entity(exc.getMessage()).type(
+					MediaType.TEXT_PLAIN).build();
+		}*/
+		return Response.serverError().entity("exc.getMessage()").type(
+				MediaType.TEXT_PLAIN).build();
 	}
 	@POST
 	@Path("datasetszarr/")
