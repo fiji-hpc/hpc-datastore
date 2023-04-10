@@ -13,6 +13,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import cz.it4i.fiji.datastore.core.DatasetDTO;
 import cz.it4i.fiji.datastore.core.ViewRegistrationDTO;
+
+import cz.it4i.fiji.datastore.core.DatasetDTO.Resolution;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,6 +29,33 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class DatasetDTOEnchanted {
+
+    public DatasetDTO getDatasetDTO() {
+        DatasetDTO datasetDTO = new DatasetDTO();
+        datasetDTO.setUuid(this.getUuid());
+        datasetDTO.setVoxelType(this.getVoxelType());
+        datasetDTO.setDimensions(this.getDimensions());
+        datasetDTO.setTimepoints(this.getTimepoints());
+        datasetDTO.setChannels(this.getChannels());
+        datasetDTO.setAngles(this.getAngles());
+        datasetDTO.setTransformations(this.getTransformations());
+        datasetDTO.setVoxelUnit(this.getVoxelUnit());
+        datasetDTO.setVoxelResolution(this.getVoxelResolution());
+        Resolution rest=new Resolution(timepointResolution.value, timepointResolution.unit);
+        datasetDTO.setTimepointResolution(rest);
+        Resolution rest2=new Resolution(channelResolution.value, channelResolution.unit);
+        datasetDTO.setChannelResolution(rest2);
+        Resolution rest3=new Resolution(angleResolution.value, angleResolution.unit);
+        datasetDTO.setAngleResolution(rest3);
+        datasetDTO.setCompression(this.getCompression());
+        //datasetDTO.setResolutionLevels(this.getResolutionLevels());
+        datasetDTO.setVersions(this.getVersions());
+        datasetDTO.setLabel(this.getLabel());
+        //datasetDTO.setViewRegistrations(this.getViewRegistrations());
+        //datasetDTO.setTimepointIds(this.getTimepointIds());
+        return datasetDTO;
+    }
+
 
 
     @NoArgsConstructor

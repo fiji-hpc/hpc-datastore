@@ -73,7 +73,7 @@ public class ApplicationConfiguration implements Serializable{
 			return constructDataS3Handler(uuid, s3HostUrl);
 		}
 
-		if(type.equals("zarr")) {
+		if(type.equals("Zarr")) {
 			return new DatasetFileSystemHandlerZarr(uuid, getDatasetPath(uuid));
 		}
 		else

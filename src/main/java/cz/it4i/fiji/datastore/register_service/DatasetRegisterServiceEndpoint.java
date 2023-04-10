@@ -158,41 +158,71 @@ public class DatasetRegisterServiceEndpoint {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response createEmptyDataset(DatasetDTO dataset)
 	{
+		String test=dataset.getCompression();
+		String[] splitted=test.split("/");
+		dataset.setCompression(splitted[0]);
+		log.info(splitted[0]);
+		//if(test.equals(gzip))
 		log.info("creating empty dataset");
 		log.debug("dataset=" + dataset);
-		try {
-			java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
-				dataset,"N5");
-			return Response.ok().entity(result.toString()).type(
-				MediaType.TEXT_PLAIN).build();
+		if(splitted.length==1)
+		{
+			try {
+				java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
+						dataset,"N5");
+				return Response.ok().entity(result.toString()).type(
+						MediaType.TEXT_PLAIN).build();
+			}
+			catch (Exception exc) {
+				log.warn("read", exc);
+				return Response.serverError().entity(exc.getMessage()).type(
+						MediaType.TEXT_PLAIN).build();
+			}
 		}
-		catch (Exception exc) {
-			log.warn("read", exc);
-			return Response.serverError().entity(exc.getMessage()).type(
-				MediaType.TEXT_PLAIN).build();
+		else
+		{
+			try {
+				java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
+						dataset,splitted[1]);
+				return Response.ok().entity(result.toString()).type(
+						MediaType.TEXT_PLAIN).build();
+			}
+			catch (Exception exc) {
+				log.warn("read", exc);
+				return Response.serverError().entity(exc.getMessage()).type(
+						MediaType.TEXT_PLAIN).build();
+			}
 		}
+
+
+
 	}
-	@POST
-	@Path("datasets/")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public Response createEmptyDataset(DatasetDTOEnchanted dataset)
-	{
-		log.info("creating empty dataset");
-		log.debug("dataset=" + dataset);
-		/*try {
-			java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
-					dataset,"N5");
-			return Response.ok().entity(result.toString()).type(
-					MediaType.TEXT_PLAIN).build();
-		}
-		catch (Exception exc) {
-			log.warn("read", exc);
-			return Response.serverError().entity(exc.getMessage()).type(
-					MediaType.TEXT_PLAIN).build();
-		}*/
-		return Response.serverError().entity("exc.getMessage()").type(
-				MediaType.TEXT_PLAIN).build();
-	}
+	/*
+        @POST
+        @Path("datasets/")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response createEmptyDatasetMultitype(DatasetDTOEnchanted dataset)
+        {
+
+            log.info("creating empty dataset");
+            log.debug("dataset=" + dataset);
+
+            try {
+                java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
+                        dataset.getDatasetDTO(),"N5");
+                return Response.ok().entity(result.toString()).type(
+                        MediaType.TEXT_PLAIN).build();
+            }
+            catch (Exception exc) {
+                log.warn("read", exc);
+                return Response.serverError().entity(exc.getMessage()).type(
+                        MediaType.TEXT_PLAIN).build();
+            }
+
+            return Response.serverError().entity("exc.getMessage()").type(
+                    MediaType.TEXT_PLAIN).build();
+        }
+    */
 	@POST
 	@Path("datasetszarr/")
 	@Consumes(MediaType.APPLICATION_JSON)
