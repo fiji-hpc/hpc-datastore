@@ -160,7 +160,7 @@ public class DatasetServerEndpoint implements Serializable {
 			if (uuid == null || datasetServer != null) {
 				return;
 			}
-			datasetServer = new DatasetServerImpl(configuration.getDatasetHandler(
+			datasetServer = new DatasetServerImpl(configuration.getDatasetHandlerWR(
 				uuid), dataServerManager.getResolutionLevels(), dataServerManager
 					.getVersion(), dataServerManager.isMixedVersion(), dataServerManager
 						.getMode());
