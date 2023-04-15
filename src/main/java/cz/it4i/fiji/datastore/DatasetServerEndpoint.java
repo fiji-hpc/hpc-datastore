@@ -133,6 +133,8 @@ public class DatasetServerEndpoint implements Serializable {
 		@PathParam(ANGLE_PARAM) int angle,
 		@PathParam(BLOCKS_PARAM) String blocks, InputStream inputStream)
 	{
+		//TODO WRITE FULL IMAGE
+		System.out.println("im right here");
 		return blockRequestHandler.writeBlock(datasetServer, x, y, z, time, channel,
 			angle, blocks, inputStream);
 	}

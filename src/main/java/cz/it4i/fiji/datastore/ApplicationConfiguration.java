@@ -65,6 +65,7 @@ public class ApplicationConfiguration implements Serializable{
 			return constructDataS3Handler(uuid, s3HostUrl);
 		}
 			return new DatasetFilesystemHandler(uuid, getDatasetPath(uuid));
+		/////TODO DODELAT KVULI VRITE ROZDELENI NA TYPE
 
 	}
 	public DatasetHandler getDatasetHandler(String uuid,String type) {

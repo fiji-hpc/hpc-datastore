@@ -82,6 +82,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		if (!WRITING_MODES.contains(mode)) {
 			throw new IllegalStateException("Cannot write in mode: " + mode);
 		}
+		System.out.println("Tracuju dal");
 		n5Access.write(gridPosition, time, channel, angle, inputStream);
 	}
 

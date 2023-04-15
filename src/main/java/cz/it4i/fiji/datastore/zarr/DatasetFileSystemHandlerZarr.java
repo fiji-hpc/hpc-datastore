@@ -1,6 +1,8 @@
 package cz.it4i.fiji.datastore.zarr;
 
 import cz.it4i.fiji.datastore.DatasetFilesystemHandler;
+import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.SpimDataException;
 import org.janelia.saalfeldlab.n5.N5Writer;
 import org.janelia.saalfeldlab.n5.zarr.N5ZarrWriter;
 
@@ -26,5 +28,11 @@ public class DatasetFileSystemHandlerZarr extends DatasetFilesystemHandler {
     public N5Writer getWriter(int versionNumber) throws IOException {
         Path result =getDataPath(pathOfDataset, versionNumber);
         return new N5ZarrWriter(result.toString());
+    }
+
+    @Override
+    public SpimData getSpimData() throws SpimDataException {
+
+        return getSpimData(INITIAL_VERSION);
     }
 }

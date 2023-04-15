@@ -39,6 +39,7 @@ import javax.transaction.UserTransaction;
 import javax.ws.rs.NotFoundException;
 
 
+import cz.it4i.fiji.datastore.zarr.fileTypeEnum;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -224,6 +225,20 @@ public class DatasetRegisterServiceImpl {
 	public String getCommonMetadata(String uuid) {
 		Dataset dataset = getDataset(uuid);
 		return Strings.nullToEmpty(dataset.getMetadata());
+	}
+	public fileTypeEnum getDataType(String uuid)
+	{
+		Dataset dataset = getDataset(uuid);
+		String type=dataset.getDatasetType();
+		if(type.equals("Zarr"))
+		{
+			return fileTypeEnum.ZARR;
+		}
+		else
+		{
+			return  fileTypeEnum.N5;
+		}
+
 	}
 
 	public <T extends RealType<T> & NativeType<T>> void rebuild(String uuid,

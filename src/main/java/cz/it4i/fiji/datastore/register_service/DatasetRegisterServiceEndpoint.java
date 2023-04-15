@@ -42,6 +42,7 @@ import javax.ws.rs.core.UriInfo;
 import cz.it4i.fiji.datastore.core.DatasetDTO;
 import cz.it4i.fiji.datastore.security.Authorization;
 import cz.it4i.fiji.datastore.zarr.DatasetDTOEnchanted;
+import cz.it4i.fiji.datastore.zarr.fileTypeEnum;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
 
@@ -153,6 +154,18 @@ public class DatasetRegisterServiceEndpoint {
 		}
 	}
 
+	@GET
+	@Path("datasets/{" + UUID + "}/type")
+	public Response getDatasetType(@PathParam(UUID) String uuid)
+	{
+		fileTypeEnum type=datasetRegisterServiceImpl.getDataType(uuid);
+
+		return Response.ok().entity(type.toString()).type(
+				MediaType.TEXT_PLAIN).build();
+
+	}
+
+
 	@POST
 	@Path("datasets/")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -223,7 +236,7 @@ public class DatasetRegisterServiceEndpoint {
                     MediaType.TEXT_PLAIN).build();
         }
     */
-	@POST
+	/*@POST
 	@Path("datasetszarr/")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response createEmptyZarrDataset(DatasetDTO dataset)
@@ -241,7 +254,7 @@ public class DatasetRegisterServiceEndpoint {
 			return Response.serverError().entity(exc.getMessage()).type(
 					MediaType.TEXT_PLAIN).build();
 		}
-	}
+	}*/
 
 	@POST
 	@Path("datasets/{" + UUID + "}")

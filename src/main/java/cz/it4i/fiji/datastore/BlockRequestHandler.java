@@ -76,22 +76,27 @@ public class BlockRequestHandler {
 		long z, int time, int channel, int angle, String blocks,
 		InputStream inputStream)
 	{
+		System.out.println("Nechapem zacatek");
 		List<BlockIdentification> blocksId = new LinkedList<>();
 		blocksId.add(new BlockIdentification(new long[] { x, y, z }, time, channel,
 			angle));
 		BlockIdentification.extract(blocks, blocksId);
 		try {
-
+			System.out.println("nevim");
 			for (BlockIdentification blockId : blocksId) {
 				datasetServer.write(blockId.gridPosition, blockId.time, blockId.channel,
 					blockId.angle, inputStream);
 			}
+			System.out.println("Netusim");
 		}
 		catch (IOException exc) {
 			log.warn("write", exc);
+			//TODO CLEAN
+			System.out.println("Cachnutej error");
 			return Response.serverError().entity(exc.getMessage()).type(
 				MediaType.TEXT_PLAIN).build();
 		}
+		System.out.println("Nechapem");
 		return Response.ok().build();
 	}
 

@@ -148,8 +148,12 @@ public class SharedDatasetServerEndpoint implements Serializable {
 		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle,
 		@PathParam(BLOCKS_PARAM) String blocks, InputStream inputStream)
 	{
+		//todo writefull mg
+		System.out.println("im right here");
+		//return Response.ok().build();
 		return requestHandler.writeBlock(getDataSetserver(uuid, rX, rY, rZ,
 			version), x, y, z, time, channel, angle, blocks, inputStream);
+
 	}
 
 	@Authorization
