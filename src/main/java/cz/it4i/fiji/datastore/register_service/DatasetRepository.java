@@ -44,12 +44,26 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 
 	@Inject
 	ApplicationConfiguration configuration;
+	public String findTypebyUUID(String uuid)
+	{
+		Optional<Dataset> result = find("from Dataset where uuid = :uuid",
+				Parameters.with("uuid",
+						uuid)).singleResultOptional();
+		if (result.isEmpty()) {
 
+			throw new NotFoundException("Dataset with UUID = " + uuid +
+					" not found ");
+		}
+		Dataset resultDataset = result.get();
+
+		return resultDataset.getDatasetType();
+	}
 	public Dataset findByUUID(String uuid) {
 		Optional<Dataset> result = find("from Dataset where uuid = :uuid",
 			Parameters.with("uuid",
 			uuid)).singleResultOptional();
 		if (result.isEmpty()) {
+
 			throw new NotFoundException("Dataset with UUID = " + uuid +
 				" not found ");
 		}
@@ -57,6 +71,7 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 		DatasetHandler dfh = configuration.getDatasetHandler(uuid);
 		try {
 			Dataset resultDataset = result.get();
+			//System.out.println("Break"+resultDataset.getDatasetType());
 			resolveVersion(dfh, resultDataset);
 			resolveLabel(resultDataset);
 			resolveViewSetups(resultDataset);

@@ -30,6 +30,8 @@ import java.util.Objects;
 
 import javax.ws.rs.NotFoundException;
 
+import cz.it4i.fiji.datastore.register_service.Dataset;
+import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.N5FSWriter;
 import org.janelia.saalfeldlab.n5.N5Reader;
@@ -39,6 +41,7 @@ import bdv.img.n5.N5ImageLoader;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
+import org.janelia.saalfeldlab.n5.zarr.N5ZarrWriter;
 
 public class DatasetFilesystemHandler implements DatasetHandler {
 
@@ -62,7 +65,6 @@ public class DatasetFilesystemHandler implements DatasetHandler {
 
 	@Override
 	public SpimData getSpimData(int version) throws SpimDataException {
-		System.out.println("--------------------------------------------------------------------------"+pathOfDataset+"-");
 		try {
 			int versionForReading = version < 0 ? getLatestVersion() : version;
 			return SetN5LoaderToSpimData.$(loadFromXML(getXMLFile(
@@ -113,6 +115,12 @@ public class DatasetFilesystemHandler implements DatasetHandler {
 	@Override
 	public N5Writer getWriter(int versionNumber) throws IOException {
 		Path result = getDataPath(pathOfDataset, versionNumber);
+		/*DatasetRepository datasetDAO=new DatasetRepository();
+		Dataset dataset = datasetDAO.findByUUID(uuid);
+		if(dataset.getDatasetType().equals("Zarr"))
+		{
+			return new N5ZarrWriter(result.toString());
+		}*/
 		return new N5FSWriter(result.toString());
 	}
 

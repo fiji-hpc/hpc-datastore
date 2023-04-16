@@ -236,21 +236,21 @@ public class N5Access {
 	public void write(long[] gridPosition, int time, int channel, int angle,
 		InputStream inputStream) throws IOException
 	{
-		System.out.println(channel+" "+time+" "+channel);
+
 		if (!mode.allowsWrite()) {
 			throw new IllegalStateException("Mode " + mode +
 				" does not allow writing");
 		}
 		String path = getViewSetupTimepoint(time, channel, angle).getPath(
 			resolutionLevel);
-		System.out.println(path);
+
 		DatasetAttributes attributes = writer.getDatasetAttributes(path);
 		DataBlock<?> dataBlock = constructDataBlock(gridPosition, attributes,
 			inputStream);
 		checkBlockSize(dataBlock, attributes.getBlockSize());
 		writer.writeBlock(path, attributes, dataBlock);
 		writeBlockToOtherResolutions(dataBlock, gridPosition, path);
-		System.out.println("i write smt");
+
 	}
 
 	public DataType getType(int time, int channel, int angle)
@@ -275,11 +275,10 @@ public class N5Access {
 				key);
 			if (result == null) {
 				ViewSetup viewSetup = getViewSetup(spimData, channelID, angleID);
-				System.out.println(spimData+" "+channelID+" "+angleID);
+
 				if (viewSetup == null) {
-					System.out.println("theres chyba");
+
 					throw new IllegalArgumentException(String.format(
-							//TODO chybahre
 						"Channel=%d and angle=%d not found.", channelID, angleID));
 				}
 				result = new ViewSetupTimepoint(viewSetup, timeID);

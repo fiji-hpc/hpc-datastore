@@ -125,6 +125,7 @@ public class DatasetServerEndpoint implements Serializable {
 			+ "/{" + ANGLE_PARAM + ":\\d+}"
 			+ "{" + BLOCKS_PARAM + ":/?.*}")
 	// @formatter:on
+
 	@POST
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	public Response writeBlock(@PathParam(X_PARAM) long x,
@@ -134,7 +135,19 @@ public class DatasetServerEndpoint implements Serializable {
 		@PathParam(BLOCKS_PARAM) String blocks, InputStream inputStream)
 	{
 		//TODO WRITE FULL IMAGE
-		System.out.println("im right here");
+		String uuid = dataServerManager.getUUID();
+		try {
+			datasetServer = new DatasetServerImpl(configuration.getDatasetHandlerWR(
+					uuid), dataServerManager.getResolutionLevels(), dataServerManager
+					.getVersion(), dataServerManager.isMixedVersion(), dataServerManager
+					.getMode());
+
+		} catch (SpimDataException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
 		return blockRequestHandler.writeBlock(datasetServer, x, y, z, time, channel,
 			angle, blocks, inputStream);
 	}
@@ -155,11 +168,13 @@ public class DatasetServerEndpoint implements Serializable {
 
 	@PostConstruct
 	void init() {
+
 		try {
 			String uuid = dataServerManager.getUUID();
 			if (uuid == null || datasetServer != null) {
 				return;
 			}
+
 			datasetServer = new DatasetServerImpl(configuration.getDatasetHandlerWR(
 				uuid), dataServerManager.getResolutionLevels(), dataServerManager
 					.getVersion(), dataServerManager.isMixedVersion(), dataServerManager

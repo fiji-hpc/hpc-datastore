@@ -30,9 +30,9 @@ public class DatasetFileSystemHandlerZarr extends DatasetFilesystemHandler {
         return new N5ZarrWriter(result.toString());
     }
 
-    @Override
+  /*  @Override
     public SpimData getSpimData() throws SpimDataException {
 
         return getSpimData(INITIAL_VERSION);
-    }
+    }*/
 }

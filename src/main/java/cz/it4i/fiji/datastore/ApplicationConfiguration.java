@@ -61,19 +61,10 @@ public class ApplicationConfiguration implements Serializable{
 
 	public DatasetHandler getDatasetHandler(String uuid) {
 		String s3HostUrl = getProperty(DATASTORE_S3_HOST_URL);
+
 		if (s3HostUrl != null) {
 			return constructDataS3Handler(uuid, s3HostUrl);
 		}
-		//DatasetRepository datasetDAO=new DatasetRepository();
-		//Dataset dataset = datasetDAO.findByUUID(uuid);
-		/*if(dataset.getDatasetType().equals("Zarr"))
-		{
-			return new DatasetFileSystemHandlerZarr(uuid, getDatasetPath(uuid));
-		}
-		else {
-			return new DatasetFilesystemHandler(uuid, getDatasetPath(uuid));
-		}*/
-		/////TODO DODELAT KVULI VRITE ROZDELENI NA TYPE
 		return new DatasetFilesystemHandler(uuid, getDatasetPath(uuid));
 
 	}
@@ -83,16 +74,15 @@ public class ApplicationConfiguration implements Serializable{
 			return constructDataS3Handler(uuid, s3HostUrl);
 		}
 		DatasetRepository datasetDAO=new DatasetRepository();
-		Dataset dataset = datasetDAO.findByUUID(uuid);
-		if(dataset.getDatasetType().equals("Zarr"))
+		String datasettype = datasetDAO.findTypebyUUID(uuid);
+
+		if(datasettype.equals("Zarr"))
 		{
 			return new DatasetFileSystemHandlerZarr(uuid, getDatasetPath(uuid));
 		}
 		else {
 			return new DatasetFilesystemHandler(uuid, getDatasetPath(uuid));
 		}
-		/////TODO DODELAT KVULI VRITE ROZDELENI NA TYPE
-		//return new DatasetFilesystemHandler(uuid, getDatasetPath(uuid));
 
 	}
 	public DatasetHandler getDatasetHandler(String uuid,String type) {
