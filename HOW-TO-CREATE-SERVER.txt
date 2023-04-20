@@ -1,5 +1,5 @@
-# ideally, make sure you are on the "production" branch
-git checkout -b production origin/production
+# make sure you are on the "matches-fiji-client" branch
+git checkout -b matches-fiji-client origin/matches-fiji-client
 
 # starts the compilation process, may take some time for the first time
 on Linux, Mac: ./mvnw -Dmaven.test.skip=true clean package

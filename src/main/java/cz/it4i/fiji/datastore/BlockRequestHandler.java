@@ -76,6 +76,7 @@ public class BlockRequestHandler {
 		long z, int time, int channel, int angle, String blocks,
 		InputStream inputStream)
 	{
+
 		List<BlockIdentification> blocksId = new LinkedList<>();
 		blocksId.add(new BlockIdentification(new long[] { x, y, z }, time, channel,
 			angle));
@@ -86,12 +87,14 @@ public class BlockRequestHandler {
 				datasetServer.write(blockId.gridPosition, blockId.time, blockId.channel,
 					blockId.angle, inputStream);
 			}
+
 		}
 		catch (IOException exc) {
 			log.warn("write", exc);
 			return Response.serverError().entity(exc.getMessage()).type(
 				MediaType.TEXT_PLAIN).build();
 		}
+
 		return Response.ok().build();
 	}
 

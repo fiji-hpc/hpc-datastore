@@ -44,6 +44,8 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import cz.it4i.fiji.datastore.DatasetServerEndpoint.RootResponse;
 import cz.it4i.fiji.datastore.core.Version;
+import cz.it4i.fiji.datastore.register_service.Dataset;
+import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import cz.it4i.fiji.datastore.security.Authorization;
 import lombok.extern.log4j.Log4j2;
@@ -122,6 +124,7 @@ public class SharedDatasetServerEndpoint implements Serializable {
 
 	}
 
+
 	@Authorization
 	// @formatter:off
 	@Path("datasets"
@@ -148,8 +151,10 @@ public class SharedDatasetServerEndpoint implements Serializable {
 		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle,
 		@PathParam(BLOCKS_PARAM) String blocks, InputStream inputStream)
 	{
+
 		return requestHandler.writeBlock(getDataSetserver(uuid, rX, rY, rZ,
 			version), x, y, z, time, channel, angle, blocks, inputStream);
+
 	}
 
 	@Authorization
@@ -192,7 +197,22 @@ public class SharedDatasetServerEndpoint implements Serializable {
 		try {
 			final boolean mixedVersion = Version.MIXED_LATEST_VERSION_NAME.equals(
 				version);
+
 			DatasetHandler handler = configuration.getDatasetHandler(uuid);
+			try {
+				DatasetRepository datasetDAO=new DatasetRepository();
+				String type = datasetDAO.findTypebyUUID(uuid);
+
+				if(type.equals("Zarr")) {
+					handler = configuration.getDatasetHandler(uuid, "Zarr");
+				}
+			} catch (Exception e) {
+				//TODO trow cant find dataset expectitation
+			}
+
+
+
+
 			int versionInt = mixedVersion?handler.getLatestVersion():stringToIntVersion(version);
 			OperationMode mode = mixedVersion ? READ : READ_WRITE;
 			return new DatasetServerImpl(handler, singletonList(new int[] { rX, rY,

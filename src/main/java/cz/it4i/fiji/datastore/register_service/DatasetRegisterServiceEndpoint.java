@@ -41,6 +41,8 @@ import javax.ws.rs.core.UriInfo;
 
 import cz.it4i.fiji.datastore.core.DatasetDTO;
 import cz.it4i.fiji.datastore.security.Authorization;
+import cz.it4i.fiji.datastore.zarr.DatasetDTOEnchanted;
+import cz.it4i.fiji.datastore.zarr.fileTypeEnum;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
 
@@ -152,24 +154,61 @@ public class DatasetRegisterServiceEndpoint {
 		}
 	}
 
+	@GET
+	@Path("datasets/{" + UUID + "}/type")
+	public Response getDatasetType(@PathParam(UUID) String uuid)
+	{
+		fileTypeEnum type=datasetRegisterServiceImpl.getDataType(uuid);
+
+		return Response.ok().entity(type.toString()).type(
+				MediaType.TEXT_PLAIN).build();
+
+	}
+
+
 	@POST
 	@Path("datasets/")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response createEmptyDataset(DatasetDTO dataset)
 	{
+		String test=dataset.getCompression();
+		String[] splitted=test.split("/");
+		dataset.setCompression(splitted[0]);
+		log.info(splitted[0]);
+		//if(test.equals(gzip))
 		log.info("creating empty dataset");
 		log.debug("dataset=" + dataset);
-		try {
-			java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
-				dataset);
-			return Response.ok().entity(result.toString()).type(
-				MediaType.TEXT_PLAIN).build();
+		if(splitted.length==1)
+		{
+			try {
+				java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
+						dataset,"N5");
+				return Response.ok().entity(result.toString()).type(
+						MediaType.TEXT_PLAIN).build();
+			}
+			catch (Exception exc) {
+				log.warn("read", exc);
+				return Response.serverError().entity(exc.getMessage()).type(
+						MediaType.TEXT_PLAIN).build();
+			}
 		}
-		catch (Exception exc) {
-			log.warn("read", exc);
-			return Response.serverError().entity(exc.getMessage()).type(
-				MediaType.TEXT_PLAIN).build();
+		else
+		{
+			try {
+				java.util.UUID result = datasetRegisterServiceImpl.createEmptyDataset(
+						dataset,splitted[1]);
+				return Response.ok().entity(result.toString()).type(
+						MediaType.TEXT_PLAIN).build();
+			}
+			catch (Exception exc) {
+				log.warn("read", exc);
+				return Response.serverError().entity(exc.getMessage()).type(
+						MediaType.TEXT_PLAIN).build();
+			}
 		}
+
+
+
 	}
 
 	@POST

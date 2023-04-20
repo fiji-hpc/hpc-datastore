@@ -20,9 +20,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.ws.rs.NotFoundException;
 
+import cz.it4i.fiji.datastore.register_service.Dataset;
+import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.s3.DatasetS3Handler;
 import cz.it4i.fiji.datastore.s3.S3Settings;
+import cz.it4i.fiji.datastore.zarr.DatasetFileSystemHandlerZarr;
 
 @ApplicationScoped
 public class ApplicationConfiguration implements Serializable{
@@ -54,12 +58,47 @@ public class ApplicationConfiguration implements Serializable{
 
 	public static final String BASE_NAME = "export";
 
+
 	public DatasetHandler getDatasetHandler(String uuid) {
 		String s3HostUrl = getProperty(DATASTORE_S3_HOST_URL);
+
 		if (s3HostUrl != null) {
 			return constructDataS3Handler(uuid, s3HostUrl);
 		}
 		return new DatasetFilesystemHandler(uuid, getDatasetPath(uuid));
+
+	}
+	public DatasetHandler getDatasetHandlerWR(String uuid) {
+		String s3HostUrl = getProperty(DATASTORE_S3_HOST_URL);
+		if (s3HostUrl != null) {
+			return constructDataS3Handler(uuid, s3HostUrl);
+		}
+		DatasetRepository datasetDAO=new DatasetRepository();
+		String datasettype = datasetDAO.findTypebyUUID(uuid);
+
+		if(datasettype.equals("Zarr"))
+		{
+			return new DatasetFileSystemHandlerZarr(uuid, getDatasetPath(uuid));
+		}
+		else {
+			return new DatasetFilesystemHandler(uuid, getDatasetPath(uuid));
+		}
+
+	}
+	public DatasetHandler getDatasetHandler(String uuid,String type) {
+		String s3HostUrl = getProperty(DATASTORE_S3_HOST_URL);
+		if (s3HostUrl != null) {
+			return constructDataS3Handler(uuid, s3HostUrl);
+		}
+
+		if(type.equals("Zarr")) {
+			return new DatasetFileSystemHandlerZarr(uuid, getDatasetPath(uuid));
+		}
+		else
+		{
+			return new DatasetFilesystemHandler(uuid, getDatasetPath(uuid));
+		}
+
 	}
 
 	public Path getDatastorePath() {

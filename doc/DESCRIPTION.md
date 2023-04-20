@@ -149,8 +149,6 @@ The server-side can be understood [as an HTTP server with own addressing scheme]
 that wraps around the N5 API. As hinted [above](#connection-scheme) it is possible
 to switch to using the Zarr N5 backend in the NGFF dialect.
 
-:tada: __DataStore is actively working on storing data in [NGFF OME.Zarr](https://ngff.openmicroscopy.org/latest/)__ :sparkles::sparkles:
-
 ## Clients
 We anticipate an ensemble of DataStore clients written in Java, Python and C++. At the
 moment, we have a [reference Java client in the form of Fiji plugin](https://github.com/fiji-hpc/hpc-datastore-fiji).

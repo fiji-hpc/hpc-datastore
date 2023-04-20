@@ -190,6 +190,8 @@ public class N5Access {
 			}
 		}
 		this.spimData = spimData;
+		System.out.println("Base path:"+spimData.getBasePath());
+
 		writer = new CachingAttributesN5Writer(aWriter, DOWNSAMPLING_FACTORS);
 		if (aMode == OperationMode.WRITE_TO_OTHER_RESOLUTIONS ||
 			aMode == OperationMode.NO_ACCESS)
@@ -221,6 +223,7 @@ public class N5Access {
 			throw new IllegalStateException("Mode " + mode +
 				" does not allow reading");
 		}
+
 		String path = getViewSetupTimepoint(time, channel, angle).getPath(
 			resolutionLevel);
 		if (path == null) {
@@ -233,18 +236,21 @@ public class N5Access {
 	public void write(long[] gridPosition, int time, int channel, int angle,
 		InputStream inputStream) throws IOException
 	{
+
 		if (!mode.allowsWrite()) {
 			throw new IllegalStateException("Mode " + mode +
 				" does not allow writing");
 		}
 		String path = getViewSetupTimepoint(time, channel, angle).getPath(
 			resolutionLevel);
+
 		DatasetAttributes attributes = writer.getDatasetAttributes(path);
 		DataBlock<?> dataBlock = constructDataBlock(gridPosition, attributes,
 			inputStream);
 		checkBlockSize(dataBlock, attributes.getBlockSize());
 		writer.writeBlock(path, attributes, dataBlock);
 		writeBlockToOtherResolutions(dataBlock, gridPosition, path);
+
 	}
 
 	public DataType getType(int time, int channel, int angle)
@@ -269,7 +275,9 @@ public class N5Access {
 				key);
 			if (result == null) {
 				ViewSetup viewSetup = getViewSetup(spimData, channelID, angleID);
+
 				if (viewSetup == null) {
+
 					throw new IllegalArgumentException(String.format(
 						"Channel=%d and angle=%d not found.", channelID, angleID));
 				}
@@ -390,6 +398,7 @@ public class N5Access {
 		AbstractSpimData<SequenceDescription> spimData, int channel,
 		long angle)
 	{
+
 		return spimData.getSequenceDescription().getViewSetupsOrdered().stream().filter(
 			lvs -> lvs.getChannel().getId() == channel && lvs.getAngle()
 				.getId() == angle).findFirst().orElse(null);

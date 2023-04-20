@@ -18,6 +18,8 @@ import java.util.Set;
 
 import javax.ws.rs.NotFoundException;
 
+import cz.it4i.fiji.datastore.register_service.Dataset;
+import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
 import org.janelia.saalfeldlab.n5.N5Writer;
@@ -59,6 +61,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		mode = aMode;
 		resolutionLevels = resolutions;
 		datasetHandler = aDatasetHandler;
+
 		initN5Access();
 	}
 
@@ -82,6 +85,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 		if (!WRITING_MODES.contains(mode)) {
 			throw new IllegalStateException("Cannot write in mode: " + mode);
 		}
+
 		n5Access.write(gridPosition, time, channel, angle, inputStream);
 	}
 
@@ -100,8 +104,10 @@ public class DatasetServerImpl implements Closeable, Serializable {
 			if (mode.allowsWrite()) {
 				throw new IllegalArgumentException("Write is not possible for mixed version");
 			}
+			//TODO CHain
 			return datasetHandler.constructChainOfWriters();
 		}
+
 		return datasetHandler.getWriter(version);
 
 	}
