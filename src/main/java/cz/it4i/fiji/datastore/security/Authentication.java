@@ -14,6 +14,8 @@ import java.util.Objects;
 
 import javax.interceptor.InvocationContext;
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.container.ContainerRequestContext;
 
@@ -38,8 +40,9 @@ public class Authentication extends BaseEntity {
 	private String accessToken;
 
 	private String userID;
-
+	@OneToOne
 	private User user;
+	@ManyToOne
 
 	private OAuthServer server;
 

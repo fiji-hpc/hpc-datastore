@@ -16,10 +16,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -38,8 +35,11 @@ public class SecurityEndpoint {
 	@Inject
 	SecurityRegistry registry;
 
+
 	@GET()
+
 	@Path("{" + OAUTH_SERVER + "}")
+
 	public Response get(@Context UriInfo requestURI, @Context HttpHeaders headers,
 		@PathParam(OAUTH_SERVER) String oauthServer, @QueryParam(CODE) String code)
 	{
@@ -76,7 +76,7 @@ public class SecurityEndpoint {
 		else if (acceptedTypes.contains(MediaType.TEXT_HTML_TYPE)) {
 			getResponseAsHTML(responseBuilder, userInfo, tokens);
 		}
-		
+
 		return responseBuilder.build();
 	}
 

@@ -69,7 +69,7 @@ public class SecurityModule {
 				.getUserId(), server);
 			if (auth != null) {
 				auth.setAccessToken(token.getAccessToken());
-				securityRegistry.updateAuthentication(auth);
+				//securityRegistry.updateAuthentication(auth);
 				return auth;
 			} 
 			return new NotAutorizatedUserAuthenticationCase(userInfo);

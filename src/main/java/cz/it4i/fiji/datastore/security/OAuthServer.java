@@ -31,13 +31,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 
-import javax.persistence.Entity;
+import javax.persistence.*;
 
 import cz.it4i.fiji.datastore.BaseEntity;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import lombok.*;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -45,10 +43,14 @@ import lombok.extern.log4j.Log4j2;
 @AllArgsConstructor
 @Builder
 @Getter
+@Setter
 @Entity
-class OAuthServer extends BaseEntity {
+public class OAuthServer  {
 
 	private static final long serialVersionUID = 1L;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
 	private URI authURI;
 
@@ -57,9 +59,7 @@ class OAuthServer extends BaseEntity {
 	private URI userInfoURI;
 
 	private URI tokenEndpointURI;
-
 	private String clientID;
-
 	private String clientSecret;
 
 	private String name;
@@ -92,7 +92,6 @@ class OAuthServer extends BaseEntity {
 		}
 		return null;
 	}
-	
 	public UserTokens getuUserAccessToken(String code, URI callback) {
 		// Construct the code grant from the code obtained from the authz endpoint
 		// and the original callback URI used at the authz endpoint
@@ -132,6 +131,6 @@ class OAuthServer extends BaseEntity {
 		return new UserTokens(accessToken.getValue(), Optional.ofNullable(
 			refreshToken).map(RefreshToken::getValue).orElse(""));
 	}
-	
+
 	
 }
