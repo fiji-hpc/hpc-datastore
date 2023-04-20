@@ -17,7 +17,7 @@ final class Constants {
 
 	static final String SECURITY_USERS = "cz.it4i.fiji.datastore.security.users";
 
-	static final String SECURITY_SERVERS =
-		"cz.it4i.fiji.datastore.security.servers";
+	static final String SECURITY_SERVERS = "cz.it4i.fiji.datastore.security.servers";
+	static final String SECURITY_ABLED ="cz.it4i.fiji.datastore.security.able";
 
 }

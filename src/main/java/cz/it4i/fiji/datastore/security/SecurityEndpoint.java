@@ -14,12 +14,10 @@ import io.vertx.core.json.JsonObject;
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -38,10 +36,13 @@ public class SecurityEndpoint {
 	@Inject
 	SecurityRegistry registry;
 
+
 	@GET()
+
 	@Path("{" + OAUTH_SERVER + "}")
+
 	public Response get(@Context UriInfo requestURI, @Context HttpHeaders headers,
-		@PathParam(OAUTH_SERVER) String oauthServer, @QueryParam(CODE) String code)
+		@PathParam(OAUTH_SERVER) String oauthServer, @QueryParam(CODE) String code,String device_id,String device_name)
 	{
 		//@formatter:off
 		return registry.findServer(oauthServer)
@@ -51,9 +52,20 @@ public class SecurityEndpoint {
 
 	}
 
+	@GET
+	@Path("/refresh")
+	public Response refresh()
+	{
+		registry.refreshServers();
+		registry.refreshUsers();
+		return Response.ok("Refresh OK").build();
+	}
+
+
 	private Response processRequest(Collection<MediaType> acceptedTypes,
 		UriInfo request, OAuthServer s, String code)
 	{
+		//registry.initUsers();
 		if (code == null || code.isBlank()) {
 			return redirectToOAuthServerLogin(request, s);
 		}
@@ -145,6 +157,7 @@ public class SecurityEndpoint {
 			"%s?client_id=%s&redirect_uri=%s&response_type=code&scope=openid", server
 				.getAuthURI(), server.getClientID(), redirectURI.toString())))
 			.build();
+
 	}
 
 	private static URI fixURI(URI uri) {
