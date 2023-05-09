@@ -32,6 +32,8 @@ class SecurityRegistry {
 
 	private Map<String, OAuthServer> servers;
 
+	private List<OAuthGroup> groups;
+
 	private Boolean securityDisabled;
 	private Boolean staticSecurity;
 
@@ -63,7 +65,6 @@ class SecurityRegistry {
 			list_server.add(list_all_servers.get(i).BCSerlialize().split(";"));
 
 		}
-		//TODO depredicated
 		for (int i=0;i<list_all_servers.size();i++){
 			for (String server : list_server.get(i)) {
 
@@ -144,7 +145,7 @@ class SecurityRegistry {
 					securityDisabled=true;
 				}
 		}
-		System.out.println("Security State:"+securityDisabled);
+		System.out.println("Security State:"+!securityDisabled);
 		return securityDisabled;
 
 	}
@@ -166,49 +167,33 @@ class SecurityRegistry {
 		return ofNullable(servers.get(oauthServer.toLowerCase()));
 	}
 
-	public void initServers() {
+	private void initServers() {
 		if (isSecurityDisabled()) {
 			return;
 		}
-		List<String[]> list_server= new ArrayList<>();
+		String[] serversTokens = getProperty(SECURITY_SERVERS).split(";");
 		LinkedList<OAuthServer> temp = new LinkedList<>();
 
-		if(isStaticSercuritySet()) {
-			String[] serversTokens = getProperty(SECURITY_SERVERS).split(";");
-			list_server.add(serversTokens);
-		}
-
-		List<OAuthServerNew> list_all_servers;
-		OAuthServerService oauthServerService=new OAuthServerService();
-
-		list_all_servers=oauthServerService.getAllOAuthServers();
-
-		for (int i=0;i<list_all_servers.size();i++){
-			list_server.add(list_all_servers.get(i).BCSerlialize().split(";"));
-
-		}
-
-		//TODO depredicated
-		for (int i=0;i<list_all_servers.size();i++){
-			for (String server : list_server.get(i)) {
-				String[] serverTokens = server.trim().split(",");
-				temp.add(OAuthServer.builder().name(serverTokens[0]).attributeIDName(
+		for (String server : serversTokens) {
+			String[] serverTokens = server.trim().split(",");
+			temp.add(OAuthServer.builder().name(serverTokens[0]).attributeIDName(
 					serverTokens[1]).authURI(URI.create(serverTokens[2])).userInfoURI(URI
-						.create(serverTokens[3])).tokenEndpointURI(URI.create(
-							serverTokens[4])).clientID(serverTokens[5]).clientSecret(
-								serverTokens[6]).build());
+					.create(serverTokens[3])).tokenEndpointURI(URI.create(
+					serverTokens[4])).clientID(serverTokens[5]).clientSecret(
+					serverTokens[6]).build());
 
-			}
 		}
+
 
 		servers = temp.stream().collect(Collectors.toMap(OAuthServer::getName,
-			s -> s));
+				s -> s));
+		System.out.println("inited servers"+servers.size());
 	}
-
-	public void initUsers() {
+	private void initUsers() {
 		if (isSecurityDisabled()) {
 			return;
 		}
+
 		users = new LinkedList<>();
 		String[] usersProperty = ofNullable(getProperty(SECURITY_USERS)).map(
 				prop -> prop.split("&")).orElse(new String[0]);
@@ -237,30 +222,25 @@ class SecurityRegistry {
 					.build();
 			users.add(temp);
 		}
+
 	}
-	public void refreshUsers() {
+	public void refreshGroups() {
 		if (isSecurityDisabled()) {
 			return;
 		}
-		users = new LinkedList<>();
-		List<OAuthUserNew> list_all_users;
-		List<String[]> list_user = new ArrayList<>();
-		if(isStaticSercuritySet()) {
-			String[] usersProperty = ofNullable(getProperty(SECURITY_USERS)).map(
-					prop -> prop.split("&")).orElse(new String[0]);
-			list_user.add(usersProperty); //TODO depredicated
-		}
-		list_all_users = OAuthUserNew.listAll();
-
-		for (int i = 0; i < list_all_users.size(); i++) {
-			list_user.add(list_all_users.get(i).BCSerlialize_user().split(";"));
-
-		}
-
-		for (int i = 0; i < list_all_users.size(); i++) {
-			for (String user : list_user.get(i)) {
-
-				String[] userTokens = user.split(":");
+		List<OAuthUserNew> user =OAuthUserNew.listAll();
+		groups = OAuthGroup.listAll();
+		for(int i=0;i<groups.size();i++)
+		{
+			if(!groups.get(i).getACL().isWrite())
+			{
+				continue;
+			}
+			List<Integer> userids=groups.get(i).getUsersIDs();
+			for(int j=0;j<userids.size();j++)
+			{
+				String serialized_user=user.get(userids.get(j)).BCSerlialize_user();
+				String[] userTokens = serialized_user.split(":");
 				if (userTokens.length < 3) {
 					throw new IllegalArgumentException("Invalid specification for user: " +
 							user);
@@ -278,7 +258,59 @@ class SecurityRegistry {
 				if (userTokens.length > 3) {
 					builder.write(userTokens[3].toLowerCase().equals("write"));
 				}
-				//TODO zde muže být problém
+				Authentication temp = Authentication.builder().server(server).userID(
+								userID).user(new User(internalID, Arrays.asList(builder.build())))
+						.build();
+				users.add(temp);
+			}
+		}
+
+
+
+
+	}
+	public void refreshUsers() {
+		if (isSecurityDisabled()) {
+			return;
+		}
+		users = new LinkedList<>();
+		List<OAuthUserNew> list_all_users;
+		List<String[]> list_user = new ArrayList<>();
+		if(isStaticSercuritySet()) {
+			String[] usersProperty = ofNullable(getProperty(SECURITY_USERS)).map(
+					prop -> prop.split("&")).orElse(new String[0]);
+			list_user.add(usersProperty);
+		}
+		list_all_users = OAuthUserNew.listAll();
+
+		for (int i = 0; i < list_all_users.size(); i++) {
+			list_user.add(list_all_users.get(i).BCSerlialize_user().split(";"));
+
+		}
+
+		for (int i = 0; i < list_all_users.size(); i++) {
+			for (String user : list_user.get(i)) {
+
+				String[] userTokens = user.split(":");
+				if (userTokens.length < 3) {
+					throw new IllegalArgumentException("Invalid specification for user: " +
+							user);
+					//continue;
+				}
+				OAuthServer server = servers.get(userTokens[0].toLowerCase());
+				if (server == null) {
+
+					throw new IllegalArgumentException("Unknown OAUthserver: " +
+							userTokens[0] + " for user: " + user);
+					//continue;
+				}
+				String userID = userTokens[1];
+
+				Long internalID = Long.parseLong(userTokens[2]);
+				ACL.ACLBuilder builder = ACL.builder();
+				if (userTokens.length > 3) {
+					builder.write(userTokens[3].toLowerCase().equals("write"));
+				}
 				Authentication temp = Authentication.builder().server(server).userID(
 								userID).user(new User(internalID, Arrays.asList(builder.build())))
 						.build();

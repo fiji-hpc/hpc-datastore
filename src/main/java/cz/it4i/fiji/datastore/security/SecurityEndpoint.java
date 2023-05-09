@@ -44,6 +44,9 @@ public class SecurityEndpoint {
 	public Response get(@Context UriInfo requestURI, @Context HttpHeaders headers,
 		@PathParam(OAUTH_SERVER) String oauthServer, @QueryParam(CODE) String code,String device_id,String device_name)
 	{
+		registry.refreshServers();
+		registry.refreshUsers();
+		registry.refreshGroups();
 		//@formatter:off
 		return registry.findServer(oauthServer)
 				    .map(s -> processRequest(new HashSet<>( headers.getAcceptableMediaTypes()),requestURI, s, code))
@@ -58,6 +61,7 @@ public class SecurityEndpoint {
 	{
 		registry.refreshServers();
 		registry.refreshUsers();
+		registry.refreshGroups();
 		return Response.ok("Refresh OK").build();
 	}
 
