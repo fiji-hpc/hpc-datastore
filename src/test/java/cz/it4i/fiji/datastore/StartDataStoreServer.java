@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 @QuarkusTest()
-public class startDataStoreServer {
+public class StartDataStoreServer {
 
 	@Test
 	public void testRunning() throws IOException {
