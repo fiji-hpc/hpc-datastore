@@ -20,9 +20,7 @@ public class OAuthUserService {
 
     public List<OAuthUserNew> getAllOAuthUsers() {
 
-         return entityManager.createQuery("SELECT os FROM OAuthUserNew os", OAuthUserNew.class)
-                 .getResultList();
-       // return  new DatabaseHandler().findServers();
+         return OAuthUserNew.findAll().list();
     }
 
     public Optional<OAuthUserNew> getOAuthUserById(Long id) {

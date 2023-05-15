@@ -7,13 +7,17 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "oauth_user")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class OAuthUserNew extends PanacheEntityBase {
 
     @Id
@@ -24,16 +28,8 @@ public class OAuthUserNew extends PanacheEntityBase {
     private String ClientID;
     private String ClientSecret;
 
-    public OAuthUserNew()
-    {}
-
-    public OAuthUserNew( String ClientToken, String ClientID, String ClientSecret) {
-        this.ClientToken = ClientToken;
-        this.ClientID = ClientID;
-        this.ClientSecret = ClientSecret;
-
-    }
-    public String BCSerlialize_user(){
+    @Override
+    public String toString() {
         String result=ClientToken+","+ClientID+","+ClientSecret;
         return result;
     }

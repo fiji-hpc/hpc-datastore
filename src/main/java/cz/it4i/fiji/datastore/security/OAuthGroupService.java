@@ -1,13 +1,16 @@
 package cz.it4i.fiji.datastore.security;
+
+import cz.it4i.fiji.datastore.register_service.Dataset;
+import cz.it4i.fiji.datastore.register_service.DatasetRepository;
+import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
+import javax.inject.Inject;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.Response;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,57 +20,99 @@ import java.util.UUID;
 @Slf4j
 public class OAuthGroupService {
 
-    @PersistenceContext
-    EntityManager entityManager;
+    @Inject
+    OAuthGroupRepository repository;
 
-    public void createOAuthGroup(OAuthGroup group) {
-        entityManager.persist(group);
+    @Inject
+    OAuthUserNewRepository userNewRepository;
+
+    public void createOAuthGroup(OAuthGroupDTO groupDTO) {
+        OAuthGroup group = new OAuthGroup();
+        group.setOwner((OAuthUserNew) OAuthUserNew.find(groupDTO.getOwnerId()));
+        group.setName(groupDTO.getName());
+        repository.persist(group);
     }
 
-    public OAuthGroup getOAuthGroupById(int id) {
-        return entityManager.find(OAuthGroup.class, id);
+    public OAuthGroup getOAuthGroupById(Long id) {
+        return repository.findById(id);
     }
 
     public List<OAuthGroup> getAllOAuthGroups() {
-        TypedQuery<OAuthGroup> query = entityManager.createQuery("SELECT g FROM OAuthGroup g", OAuthGroup.class);
-        return query.getResultList();
+        return repository.listAll();
     }
 
     public void updateOAuthGroup(OAuthGroup group) {
-        entityManager.merge(group);
+        repository.update(String.valueOf(group));
     }
 
     public void deleteOAuthGroup(OAuthGroup group) {
-        entityManager.remove(group);
+        repository.delete(group);
     }
 
-    public void addUserToGroup(int groupId, int userId) {
+    public void addUserToGroup(long groupId, Long userId) {
         OAuthGroup group = getOAuthGroupById(groupId);
-        group.addUser(userId);
-        entityManager.merge(group);
+        OAuthUserNew user = userNewRepository.findById(userId);
+        group.addUser(user);
+        repository.update(String.valueOf(group));
     }
 
-    public void removeUserFromGroup(int groupId, int userId) {
-        OAuthGroup group = getOAuthGroupById(groupId);
-        group.deleteUsers(userId);
-        entityManager.merge(group);
+    public boolean removeUserFromGroup(int groupId, Long userId) {
+        OAuthGroup group = getOAuthGroupById((long) groupId);
+        OAuthUserNew user = userNewRepository.findById(userId);
+        boolean ok=group.removeUser(user);
+        if(ok) {
+            repository.update(String.valueOf(group));
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
-    public void addDatasetToGroup(int groupId, UUID datasetId) {
+    public void addDatasetToGroup(long groupId, String datasetId) {
         OAuthGroup group = getOAuthGroupById(groupId);
-        group.addDatasetbyUUID(datasetId);
-        entityManager.merge(group);
+        DatasetRepository datasetRepository=new DatasetRepository();
+        Dataset dataset = datasetRepository.findByUUID(datasetId);
+        group.addDataset(dataset);
+        repository.update(String.valueOf(group));
     }
 
-    public void removeDatasetFromGroup(int groupId, UUID datasetId) {
+    public void removeDatasetFromGroup(long groupId,String datasetId) {
         OAuthGroup group = getOAuthGroupById(groupId);
-        group.deleteDatasetbyUUID(datasetId);
-        entityManager.merge(group);
+        DatasetRepository datasetRepository=new DatasetRepository();
+        Dataset dataset = datasetRepository.findByUUID(datasetId);
+        group.removeDataset(dataset);
+        repository.update(String.valueOf(group));
     }
 
-    public void changeGroupPermission(int groupId, PermissionType permissionType) {
+    public boolean changeGroupPermission(long groupId, String permissionType) {
         OAuthGroup group = getOAuthGroupById(groupId);
-        group.changePermission(permissionType);
-        entityManager.merge(group);
+        EnumSet<PermissionType> ptSet = EnumSet.noneOf(PermissionType.class);
+        if (group != null) {
+            if (permissionType.length() > 3 || permissionType.length() < 1) {
+                return false;
+            } else {
+                for (int i = 0; i < permissionType.length(); i++) {
+                    char ptChar = permissionType.charAt(i);
+                    PermissionType pt = PermissionType.fromString(ptChar+"");
+                    if (pt != null) {
+                        ptSet.add(pt);
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            group.setPermissionType(ptSet);
+            updateOAuthGroup(group);
+            return true;
+        } else {
+            return false;
+        }
     }
+}
+
+interface OAuthGroupRepository extends PanacheRepository<OAuthGroup> {
+}
+
+interface OAuthUserNewRepository extends PanacheRepository<OAuthUserNew> {
 }

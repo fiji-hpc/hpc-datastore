@@ -10,18 +10,14 @@ package cz.it4i.fiji.datastore.security;
 import static com.google.common.base.Strings.emptyToNull;
 import static cz.it4i.fiji.datastore.security.Constants.*;
 import static java.lang.System.getProperty;
-import static java.lang.System.setProperty;
 import static java.util.Optional.ofNullable;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
-import javax.inject.Inject;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -120,7 +116,7 @@ class SecurityRegistry {
 	public boolean isStaticSercuritySet()
 	{
 		System.out.println("Security token:"+getProperty(SECURITY_TOKEN));
-		System.out.println("Security token:"+getProperty(SECURITY_ABLED));
+		System.out.println("Security token:"+getProperty(SECURITY_ON));
 		System.out.println("Security users:"+getProperty(Constants.SECURITY_USERS));
 		System.out.println("Security servers:"+getProperty(Constants.SECURITY_SERVERS));
 		if(staticSecurity==null) {
@@ -136,7 +132,7 @@ class SecurityRegistry {
 
 	public boolean isSecurityDisabled() {
 		if (securityDisabled == null) {
-				if(getProperty(Constants.SECURITY_ABLED).equals("YES"))
+				if(getProperty(Constants.SECURITY_ON).equals("YES"))
 				{
 					securityDisabled=false;
 				}

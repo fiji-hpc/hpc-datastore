@@ -5,7 +5,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
-import java.util.UUID;
 
 @Path("/oauth-groups")
 @Produces(MediaType.APPLICATION_JSON)
@@ -14,16 +13,19 @@ public class OAuthGroupEndpoint {
 
     @Inject
     OAuthGroupService oAuthGroupService;
+    private static final String GROUP_ID = "group_id";
+    private static final String DATASET_ID = "dataset_id";
+    private static final String CLIENT_ID = "client_id";
 
     @POST
-    public Response createOAuthGroup(OAuthGroup group) {
-        oAuthGroupService.createOAuthGroup(group);
+    public Response createOAuthGroup(OAuthGroupDTO groupDTO) {
+        oAuthGroupService.createOAuthGroup(groupDTO);
         return Response.status(Response.Status.CREATED).build();
     }
 
     @GET
-    @Path("/{id}")
-    public Response getOAuthGroupById(@PathParam("id") int id) {
+    @Path("/{"+ GROUP_ID +"}")
+    public Response getOAuthGroupById(@PathParam(GROUP_ID) long id) {
         OAuthGroup group = oAuthGroupService.getOAuthGroupById(id);
         if (group != null) {
             return Response.ok(group).build();
@@ -39,11 +41,11 @@ public class OAuthGroupEndpoint {
     }
 
     @PUT
-    @Path("/{id}")
-    public Response updateOAuthGroup(@PathParam("id") int id, OAuthGroup updatedGroup) {
+    @Path("/{"+ GROUP_ID +"}")
+    public Response updateOAuthGroup(@PathParam(GROUP_ID) long id, OAuthGroup updatedGroup) {
         OAuthGroup group = oAuthGroupService.getOAuthGroupById(id);
         if (group != null) {
-            updatedGroup.setId(id);
+            updatedGroup.setId((int)id);
             oAuthGroupService.updateOAuthGroup(updatedGroup);
             return Response.ok().build();
         } else {
@@ -52,8 +54,8 @@ public class OAuthGroupEndpoint {
     }
 
     @DELETE
-    @Path("/{id}")
-    public Response deleteOAuthGroup(@PathParam("id") int id) {
+    @Path("/{"+ GROUP_ID +"}")
+    public Response deleteOAuthGroup(@PathParam(GROUP_ID) long id) {
         OAuthGroup group = oAuthGroupService.getOAuthGroupById(id);
         if (group != null) {
             oAuthGroupService.deleteOAuthGroup(group);
@@ -64,45 +66,43 @@ public class OAuthGroupEndpoint {
     }
 
     @POST
-    @Path("/{groupId}/users/{userId}")
-    public Response addUserToGroup(@PathParam("groupId") int groupId, @PathParam("userId") int userId) {
+    @Path("/{"+GROUP_ID+"}/users/{"+CLIENT_ID+"}")
+    public Response addUserToGroup(@PathParam(GROUP_ID) int groupId, @PathParam(CLIENT_ID) long userId) {
         oAuthGroupService.addUserToGroup(groupId, userId);
         return Response.ok().build();
     }
 
     @DELETE
-    @Path("/{groupId}/users/{userId}")
-    public Response removeUserFromGroup(@PathParam("groupId") int groupId, @PathParam("userId") int userId) {
-        oAuthGroupService.removeUserFromGroup(groupId, userId);
-        return Response.ok().build();
+    @Path("/{"+GROUP_ID+"}/users/{"+CLIENT_ID+"}")
+    public Response removeUserFromGroup(@PathParam(GROUP_ID) int groupId, @PathParam(CLIENT_ID) long userId) {
+        if(oAuthGroupService.removeUserFromGroup(groupId, userId)) {
+            return Response.ok().build();
+        }
+        return Response.status(Response.Status.BAD_REQUEST).build();
     }
 
     @POST
-    @Path("/{groupId}/datasets/{datasetId}")
-    public Response addDatasetToGroup(@PathParam("groupId") int groupId, @PathParam("datasetId") String datasetId) {
-        UUID uuid = UUID.fromString(datasetId);
-        oAuthGroupService.addDatasetToGroup(groupId, uuid);
+    @Path("/{"+GROUP_ID+"}/datasets/{"+DATASET_ID+"}")
+    public Response addDatasetToGroup(@PathParam(GROUP_ID) int groupId, @PathParam(DATASET_ID) String datasetId) {
+        oAuthGroupService.addDatasetToGroup(groupId, datasetId);
         return Response.ok().build();
     }
 
     @DELETE
-    @Path("/{groupId}/datasets/{datasetId}")
-    public Response removeDatasetFromGroup(@PathParam("groupId") int groupId, @PathParam("datasetId") String datasetId) {
-        UUID uuid = UUID.fromString(datasetId);
-        oAuthGroupService.removeDatasetFromGroup(groupId, uuid);
+    @Path("/{"+GROUP_ID+"}/datasets/{"+DATASET_ID+"}")
+    public Response removeDatasetFromGroup(@PathParam(GROUP_ID) int groupId, @PathParam(DATASET_ID) String datasetId) {
+        oAuthGroupService.removeDatasetFromGroup(groupId, datasetId);
         return Response.ok().build();
     }
 
     @PUT
-    @Path("/{groupId}/permission")
-    public Response changeGroupPermission(@PathParam("groupId") int groupId, String permissionType) {
-        OAuthGroup group = oAuthGroupService.getOAuthGroupById(groupId);
-        if (group != null) {
-            group.setPermisionType(PermissionType.fromString(permissionType));
-            oAuthGroupService.updateOAuthGroup(group);
+    @Path("/{"+GROUP_ID+"}/setPermission/{"+DATASET_ID+"}")
+    public Response changeGroupPermission(@PathParam(GROUP_ID) long groupId, @PathParam(DATASET_ID) String permissionType) {
+        if(oAuthGroupService.changeGroupPermission(groupId,permissionType))
+        {
             return Response.ok().build();
-        } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
         }
+        return Response.status(Response.Status.BAD_REQUEST).build();
     }
+
 }

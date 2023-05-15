@@ -1,12 +1,17 @@
 package cz.it4i.fiji.datastore.security;
 
+import cz.it4i.fiji.datastore.register_service.Dataset;
+import cz.it4i.fiji.datastore.security.ACL;
+import cz.it4i.fiji.datastore.security.PermissionType;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
 import javax.ws.rs.NotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
 
 @Entity
 @Table(name = "oauth_group")
@@ -17,70 +22,78 @@ public class OAuthGroup extends PanacheEntityBase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
-    private int ownerID;
-    @ElementCollection
-    private List<Integer> usersIDs;
-    @ElementCollection
-    private List<UUID> datasetUUIDs;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "owner_id")
+    private OAuthUserNew owner;
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<OAuthUserNew> users;
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Dataset> datasets;
     private ACL acl;
-    private PermissionType permisionType;
+    @Convert(converter = PermissionTypeSetConverter.class)
+    private EnumSet<PermissionType> permissionType;
 
-    public OAuthGroup(int id, String name, int owner) {
+    public OAuthGroup(int id, String name, OAuthUserNew owner) {
         this.id = id;
         this.name = name;
-        this.ownerID = owner;
+        this.owner = owner;
         acl.setWrite(true);
-        usersIDs=new ArrayList<>();
-        datasetUUIDs=new ArrayList<>();
-        usersIDs.add(owner);
+        users = new ArrayList<>();
+        datasets = new ArrayList<>();
+        users.add(owner);
     }
 
     public OAuthGroup() {
 
     }
 
-    public void addUser(int userID)
-    {
-        usersIDs.add(userID);
+    public void addUser(OAuthUserNew user) {
+        users.add(user);
     }
-    public void deleteUsers(int user)
-    {
-            if(usersIDs.contains(user)) {
-                usersIDs.remove(user);
-            }
-            else
-            {
-                throw new NotFoundException();
-            }
-    }
-    public void addDatasetbyUUID(UUID id)
-    {
-            datasetUUIDs.add(id);
-    }
-    public void deleteDatasetbyUUID(UUID id)
-    {
-            if(datasetUUIDs.contains(id)) {
-                datasetUUIDs.remove(id);
-            }
-            else
-            {
-                throw new NotFoundException();
-            }
-    }
-    public void changePermission(PermissionType type)
-    {
-        permisionType=type;
-        if (type==PermissionType.RW || type==PermissionType.W)
-        {
-            acl.setWrite(true);
-        }
-        else{
-            acl.setWrite(false);
+
+    public void deleteUser(OAuthUserNew user) {
+        if (users.contains(user)) {
+            users.remove(user);
+        } else {
+            throw new NotFoundException();
         }
     }
-    public ACL getACL(){return acl;};
 
+    public void addDataset(Dataset dataset) {
+        datasets.add(dataset);
+    }
 
+    public void deleteDataset(Dataset dataset) {
+        if (datasets.contains(dataset)) {
+            datasets.remove(dataset);
+        } else {
+            throw new NotFoundException();
+        }
+    }
 
+    public void changePermission(EnumSet<PermissionType> types) {
+        permissionType = types;
+        acl.setWrite(types.contains(PermissionType.W));
+    }
+
+    public ACL getACL() {
+        return acl;
+    }
+
+    public void removeDataset(Dataset dataset) {
+        if (datasets.contains(dataset)) {
+            datasets.remove(dataset);
+        } else {
+            throw new NotFoundException();
+        }
+    }
+
+    public boolean removeUser(OAuthUserNew user) {
+        if (users.contains(user)) {
+            users.remove(user);
+        } else {
+            return false;
+        }
+        return true;
+    }
 }
-

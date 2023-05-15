@@ -1,75 +1,61 @@
 package cz.it4i.fiji.datastore.security;
-import com.google.gson.Gson;
-
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import java.util.List;
 
-
 @Path("/oauth-users")
+@Produces(MediaType.APPLICATION_JSON)
 public class OAuthUserEndpoint {
 
     @Inject
     OAuthUserService oauthUserService;
 
+    private static final String CLIENT_ID = "client_id";
+
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
     public List<OAuthUserNew> getAllOAuthUsers() {
-        return oauthUserService.getAllOAuthUsers();
-    }
-    @GET
-    @Path("/json")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllOAuthUsersJSON() {
-        List<OAuthUserNew> list=oauthUserService.getAllOAuthUsers();
-        for(OAuthUserNew oa :list)
-        {
-            //TODO Anonimize tokens
-            oa.setClientID("censored");
-            oa.setClientSecret("censored");
+        List<OAuthUserNew> list = oauthUserService.getAllOAuthUsers();
+        for (OAuthUserNew oa : list) {
+            oa.setClientID(null);
+            oa.setClientSecret(null);
         }
-        Gson gson = new Gson();
-        String json = gson.toJson(list);
-        return Response.ok(json, MediaType.APPLICATION_JSON).build();
+        return list;
     }
 
-
     @GET
-    @Path("/{client_id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public OAuthUserNew getUserByAlias(@PathParam("client_id") String alias)
-    {
-        List<OAuthUserNew> list=oauthUserService.getAllOAuthUsers();
-        for(int i=0;i<list.size()-1;i++) {
-            if(list.get(i).getClientID().equals(alias))
-            {
-                return list.get(i);
+    @Path("/{"+CLIENT_ID+"}")
+    public OAuthUserNew getUserByAlias(@PathParam(CLIENT_ID) String alias) {
+        List<OAuthUserNew> list = oauthUserService.getAllOAuthUsers();
+        for (OAuthUserNew user : list) {
+            if (user.getClientID().equals(alias)) {
+                return user;
             }
         }
-        return new OAuthUserNew();
+        return null;
     }
+
     @PUT
-    @Path("/{id}")
+    @Path("/{"+CLIENT_ID+"}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void updateOAuthUser(@PathParam("id") String ClientID, OAuthUserNew oauthUser) {
-        oauthUserService.updateOAuthServer(Long.valueOf(ClientID), oauthUser);
+    public Response updateOAuthUser(@PathParam(CLIENT_ID) String clientID, OAuthUserNew oauthUser) {
+        oauthUserService.updateOAuthServer(Long.valueOf(clientID), oauthUser);
+        return Response.noContent().build();
     }
 
     @DELETE
-    @Path("/{id}")
-    public void deleteOAuthUserById(@PathParam("id") String ClientID) {
-        oauthUserService.deleteOAuthUserById(Long.valueOf(ClientID));
+    @Path("/{"+CLIENT_ID+"}")
+    public Response deleteOAuthUserById(@PathParam(CLIENT_ID) String clientID) {
+        oauthUserService.deleteOAuthUserById(Long.valueOf(clientID));
+        return Response.noContent().build();
     }
 
     @POST
-    @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void createOAuthUser(OAuthUserNew oauthUser) {
-
+    public Response createOAuthUser(OAuthUserNew oauthUser) {
         oauthUserService.createOAuthUser(oauthUser);
+        return Response.status(Response.Status.CREATED).build();
     }
-
-
 }

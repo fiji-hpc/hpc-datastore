@@ -42,7 +42,7 @@ public class SecurityEndpoint {
 	@Path("{" + OAUTH_SERVER + "}")
 
 	public Response get(@Context UriInfo requestURI, @Context HttpHeaders headers,
-		@PathParam(OAUTH_SERVER) String oauthServer, @QueryParam(CODE) String code,String device_id,String device_name)
+		@PathParam(OAUTH_SERVER) String oauthServer, @QueryParam(CODE) String code)
 	{
 		registry.refreshServers();
 		registry.refreshUsers();
@@ -55,21 +55,9 @@ public class SecurityEndpoint {
 
 	}
 
-	@GET
-	@Path("/refresh")
-	public Response refresh()
-	{
-		registry.refreshServers();
-		registry.refreshUsers();
-		registry.refreshGroups();
-		return Response.ok("Refresh OK").build();
-	}
-
-
 	private Response processRequest(Collection<MediaType> acceptedTypes,
 		UriInfo request, OAuthServer s, String code)
 	{
-		//registry.initUsers();
 		if (code == null || code.isBlank()) {
 			return redirectToOAuthServerLogin(request, s);
 		}
@@ -161,7 +149,6 @@ public class SecurityEndpoint {
 			"%s?client_id=%s&redirect_uri=%s&response_type=code&scope=openid", server
 				.getAuthURI(), server.getClientID(), redirectURI.toString())))
 			.build();
-
 	}
 
 	private static URI fixURI(URI uri) {

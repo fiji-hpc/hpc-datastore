@@ -1,89 +1,64 @@
 package cz.it4i.fiji.datastore.security;
-import com.google.gson.Gson;
 
 import javax.inject.Inject;
-        import javax.ws.rs.*;
-        import javax.ws.rs.core.MediaType;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
-
+import java.util.Optional;
 
 @Path("/oauth-servers")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class OAuthServerEndpoint {
-
-    @Path("/hello")
-    @GET
-    public Response hello() {
-        return Response.ok("<h1>Hello world</h1>").build();
-    }
 
     @Inject
     OAuthServerService oauthServerService;
-
+    private static final String SERVER_ID = "client_id";
     @GET
-
-    //@Produces(MediaType.APPLICATION_JSON)
     public Response getAllOAuthServers() {
-        String vysledek="";
-        List<OAuthServerNew> list=oauthServerService.getAllOAuthServers();
-        for(int i=0;i<list.size()-1;i++){
-            vysledek=vysledek+"<a href="+list.get(i).getAlias()+">"+list.get(i).getAlias()+"</a>";
-        }
-        return Response.ok("<p>"+vysledek+"</p>").build();
-    }
-    @GET
-    @Path("/json")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllOAuthServersJSON() {
-        List<OAuthServerNew> list = oauthServerService.getAllOAuthServers();
-        Gson gson = new Gson();
-        String json = gson.toJson(list);
-        return Response.ok(json, MediaType.APPLICATION_JSON).build();
+        List<OAuthServerNew> servers = oauthServerService.getAllOAuthServers();
+        return Response.ok(servers).build();
     }
 
     @GET
-    @Path("/{alias}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public OAuthServerNew getServerByAlias(@PathParam("alias") String alias)
-    {
-        List<OAuthServerNew> list=oauthServerService.getAllOAuthServers();
-        for(int i=0;i<list.size()-1;i++) {
-            if(list.get(i).getAlias().equals(alias))
-            {
-                return list.get(i);
-            }
+    @Path("/{"+SERVER_ID+"}")
+    public Response getServerById(@PathParam(SERVER_ID) Long id) {
+        Optional<OAuthServerNew> serverOptional = oauthServerService.getOAuthServerById(id);
+        OAuthServerNew server = serverOptional.orElse(null);
+        if (server != null) {
+            return Response.ok(server).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return new OAuthServerNew();
     }
-    /*
-    @GET
-    @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public OAuthServerNew getOAuthServerById(@PathParam("id") Long id) {
-        return oauthServerService.getOAuthServerById(id);
-    }
-    */
+
     @PUT
-    @Path("/{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void updateOAuthServer(@PathParam("id") Long id, OAuthServerNew oauthServer) {
-        oauthServerService.updateOAuthServer(id, oauthServer);
-
+    @Path("/{"+SERVER_ID+"}")
+    public Response updateOAuthServer(@PathParam(SERVER_ID) Long id, OAuthServerNew oauthServer) {
+        boolean success = oauthServerService.updateOAuthServer(id, oauthServer);
+        if (success) {
+            return Response.noContent().build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
 
     @DELETE
-    @Path("/{id}")
-    public void deleteOAuthServerById(@PathParam("id") Long id) {
-        oauthServerService.deleteOAuthServerById(id);
+    @Path("/{"+SERVER_ID+"}")
+    public Response deleteOAuthServerById(@PathParam(SERVER_ID) Long id) {
+        boolean success = oauthServerService.deleteOAuthServerById(id);
+        if (success) {
+            return Response.noContent().build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
 
     @POST
     @Path("/create")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void createOAuthServer(OAuthServerNew oauthServer) {
-
+    public Response createOAuthServer(OAuthServerNew oauthServer) {
         oauthServerService.createOAuthServer(oauthServer);
+        return Response.status(Response.Status.CREATED).build();
     }
-
-
 }
