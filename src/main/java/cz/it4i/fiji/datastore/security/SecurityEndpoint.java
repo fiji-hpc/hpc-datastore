@@ -14,7 +14,6 @@ import io.vertx.core.json.JsonObject;
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -44,9 +43,6 @@ public class SecurityEndpoint {
 	public Response get(@Context UriInfo requestURI, @Context HttpHeaders headers,
 		@PathParam(OAUTH_SERVER) String oauthServer, @QueryParam(CODE) String code)
 	{
-		registry.refreshServers();
-		registry.refreshUsers();
-		registry.refreshGroups();
 		//@formatter:off
 		return registry.findServer(oauthServer)
 				    .map(s -> processRequest(new HashSet<>( headers.getAcceptableMediaTypes()),requestURI, s, code))
@@ -80,7 +76,7 @@ public class SecurityEndpoint {
 		else if (acceptedTypes.contains(MediaType.TEXT_HTML_TYPE)) {
 			getResponseAsHTML(responseBuilder, userInfo, tokens);
 		}
-		
+
 		return responseBuilder.build();
 	}
 

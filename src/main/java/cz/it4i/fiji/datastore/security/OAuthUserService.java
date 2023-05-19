@@ -18,29 +18,29 @@ public class OAuthUserService {
     @Inject
     EntityManager entityManager;
 
-    public List<OAuthUserNew> getAllOAuthUsers() {
+    public List<User> getAllOAuthUsers() {
 
-         return OAuthUserNew.findAll().list();
+         return User.findAll().list();
     }
 
-    public Optional<OAuthUserNew> getOAuthUserById(Long id) {
-        OAuthUserNew oAuthServer = entityManager.find(OAuthUserNew.class, id);
+    public Optional<User> getOAuthUserById(Long id) {
+        User oAuthServer = entityManager.find(User.class, id);
         return Optional.ofNullable(oAuthServer);
     }
 
     @Transactional
-    public void createOAuthUser(OAuthUserNew oAuthServer) {
+    public void createOAuthUser(User oAuthServer) {
         entityManager.persist(oAuthServer);
     }
 
     @Transactional
-    public void updateOAuthServer(Long id,OAuthUserNew oAuthServer) {
+    public void updateOAuthServer(Long id,User oAuthServer) {
         entityManager.merge(oAuthServer);
     }
 
     @Transactional
     public void deleteOAuthUserById(Long id) {
-        Optional<OAuthUserNew> oAuthServer = getOAuthUserById(id);
+        Optional<User> oAuthServer = getOAuthUserById(id);
         oAuthServer.ifPresent(entityManager::remove);
     }
 }

@@ -17,15 +17,15 @@ public class OAuthServerEndpoint {
     private static final String SERVER_ID = "client_id";
     @GET
     public Response getAllOAuthServers() {
-        List<OAuthServerNew> servers = oauthServerService.getAllOAuthServers();
+        List<OAuthServer> servers = oauthServerService.getAllOAuthServers();
         return Response.ok(servers).build();
     }
 
     @GET
     @Path("/{"+SERVER_ID+"}")
     public Response getServerById(@PathParam(SERVER_ID) Long id) {
-        Optional<OAuthServerNew> serverOptional = oauthServerService.getOAuthServerById(id);
-        OAuthServerNew server = serverOptional.orElse(null);
+        Optional<OAuthServer> serverOptional = oauthServerService.getOAuthServerById(id);
+        OAuthServer server = serverOptional.orElse(null);
         if (server != null) {
             return Response.ok(server).build();
         } else {
@@ -35,7 +35,7 @@ public class OAuthServerEndpoint {
 
     @PUT
     @Path("/{"+SERVER_ID+"}")
-    public Response updateOAuthServer(@PathParam(SERVER_ID) Long id, OAuthServerNew oauthServer) {
+    public Response updateOAuthServer(@PathParam(SERVER_ID) Long id, OAuthServer oauthServer) {
         boolean success = oauthServerService.updateOAuthServer(id, oauthServer);
         if (success) {
             return Response.noContent().build();
@@ -57,7 +57,7 @@ public class OAuthServerEndpoint {
 
     @POST
     @Path("/create")
-    public Response createOAuthServer(OAuthServerNew oauthServer) {
+    public Response createOAuthServer(OAuthServer oauthServer) {
         oauthServerService.createOAuthServer(oauthServer);
         return Response.status(Response.Status.CREATED).build();
     }

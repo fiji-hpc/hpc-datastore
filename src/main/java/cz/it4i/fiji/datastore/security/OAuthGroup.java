@@ -18,22 +18,24 @@ import java.util.List;
 @Getter
 @Setter
 public class OAuthGroup extends PanacheEntityBase {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "owner_id")
-    private OAuthUserNew owner;
+    private User owner;
     @OneToMany(cascade = CascadeType.ALL)
-    private List<OAuthUserNew> users;
+    private List<User> users;
     @OneToMany(cascade = CascadeType.ALL)
     private List<Dataset> datasets;
+    @OneToOne(cascade = CascadeType.ALL)
     private ACL acl;
     @Convert(converter = PermissionTypeSetConverter.class)
     private EnumSet<PermissionType> permissionType;
 
-    public OAuthGroup(int id, String name, OAuthUserNew owner) {
+    public OAuthGroup(int id, String name, User owner) {
         this.id = id;
         this.name = name;
         this.owner = owner;
@@ -47,11 +49,11 @@ public class OAuthGroup extends PanacheEntityBase {
 
     }
 
-    public void addUser(OAuthUserNew user) {
+    public void addUser(User user) {
         users.add(user);
     }
 
-    public void deleteUser(OAuthUserNew user) {
+    public void deleteUser(User user) {
         if (users.contains(user)) {
             users.remove(user);
         } else {
@@ -88,7 +90,7 @@ public class OAuthGroup extends PanacheEntityBase {
         }
     }
 
-    public boolean removeUser(OAuthUserNew user) {
+    public boolean removeUser(User user) {
         if (users.contains(user)) {
             users.remove(user);
         } else {

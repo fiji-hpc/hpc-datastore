@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
 import java.util.EnumSet;
@@ -19,70 +20,66 @@ import java.util.UUID;
 @Default
 @Slf4j
 public class OAuthGroupService {
-
     @Inject
-    OAuthGroupRepository repository;
-
-    @Inject
-    OAuthUserNewRepository userNewRepository;
+    EntityManager entityManager;
 
     public void createOAuthGroup(OAuthGroupDTO groupDTO) {
         OAuthGroup group = new OAuthGroup();
-        group.setOwner((OAuthUserNew) OAuthUserNew.find(groupDTO.getOwnerId()));
+        group.setOwner((User) User.find(groupDTO.getOwnerId()));
         group.setName(groupDTO.getName());
-        repository.persist(group);
+        entityManager.persist(group);
     }
 
     public OAuthGroup getOAuthGroupById(Long id) {
-        return repository.findById(id);
+        return entityManager.find(OAuthGroup.class, id);
     }
 
     public List<OAuthGroup> getAllOAuthGroups() {
-        return repository.listAll();
+        return entityManager.createQuery("SELECT g FROM OAuthGroup g", OAuthGroup.class)
+                .getResultList();
     }
 
     public void updateOAuthGroup(OAuthGroup group) {
-        repository.update(String.valueOf(group));
+        entityManager.merge(group);
     }
 
     public void deleteOAuthGroup(OAuthGroup group) {
-        repository.delete(group);
+        entityManager.remove(group);
     }
 
     public void addUserToGroup(long groupId, Long userId) {
         OAuthGroup group = getOAuthGroupById(groupId);
-        OAuthUserNew user = userNewRepository.findById(userId);
+        User user = entityManager.find(User.class, userId);
         group.addUser(user);
-        repository.update(String.valueOf(group));
+        entityManager.merge(group);
     }
 
     public boolean removeUserFromGroup(int groupId, Long userId) {
         OAuthGroup group = getOAuthGroupById((long) groupId);
-        OAuthUserNew user = userNewRepository.findById(userId);
-        boolean ok=group.removeUser(user);
-        if(ok) {
-            repository.update(String.valueOf(group));
+        User user = entityManager.find(User.class, userId);
+        boolean ok = group.removeUser(user);
+        if (ok) {
+            entityManager.merge(group);
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }
 
     public void addDatasetToGroup(long groupId, String datasetId) {
         OAuthGroup group = getOAuthGroupById(groupId);
-        DatasetRepository datasetRepository=new DatasetRepository();
+        DatasetRepository datasetRepository = new DatasetRepository();
         Dataset dataset = datasetRepository.findByUUID(datasetId);
         group.addDataset(dataset);
-        repository.update(String.valueOf(group));
+        entityManager.merge(group);
     }
 
-    public void removeDatasetFromGroup(long groupId,String datasetId) {
+    public void removeDatasetFromGroup(long groupId, String datasetId) {
         OAuthGroup group = getOAuthGroupById(groupId);
-        DatasetRepository datasetRepository=new DatasetRepository();
+        DatasetRepository datasetRepository = new DatasetRepository();
         Dataset dataset = datasetRepository.findByUUID(datasetId);
         group.removeDataset(dataset);
-        repository.update(String.valueOf(group));
+        entityManager.merge(group);
     }
 
     public boolean changeGroupPermission(long groupId, String permissionType) {
@@ -94,7 +91,7 @@ public class OAuthGroupService {
             } else {
                 for (int i = 0; i < permissionType.length(); i++) {
                     char ptChar = permissionType.charAt(i);
-                    PermissionType pt = PermissionType.fromString(ptChar+"");
+                    PermissionType pt = PermissionType.fromString(ptChar + "");
                     if (pt != null) {
                         ptSet.add(pt);
                     } else {
@@ -109,10 +106,4 @@ public class OAuthGroupService {
             return false;
         }
     }
-}
-
-interface OAuthGroupRepository extends PanacheRepository<OAuthGroup> {
-}
-
-interface OAuthUserNewRepository extends PanacheRepository<OAuthUserNew> {
 }

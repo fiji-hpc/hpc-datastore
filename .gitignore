@@ -52,3 +52,4 @@ cookies.txt
 myDb.mv.db
 
 src/main/resources/META-INF/resources/emptyStore.keystore
+start-server-https.cmd

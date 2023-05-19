@@ -22,7 +22,7 @@ import javax.ws.rs.ext.Provider;
 public class OAuthSecurityFilter implements ContainerRequestFilter {
 
 	@Inject
-	SecurityRegistry securityRegistry;
+    SecurityRegistry securityRegistry;
 
 	@Inject
 	SecurityModule module;
@@ -30,7 +30,7 @@ public class OAuthSecurityFilter implements ContainerRequestFilter {
 	@Override
 	public void filter(ContainerRequestContext requestContext) throws IOException
 	{
-		if (securityRegistry.isSecurityDisabled()) {
+		if (securityRegistry.getSecurityDisabled()) {
 			return;
 		}
 		BearerToken token = extractToken(requestContext);

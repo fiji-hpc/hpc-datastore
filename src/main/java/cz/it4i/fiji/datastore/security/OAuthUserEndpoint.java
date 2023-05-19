@@ -16,20 +16,19 @@ public class OAuthUserEndpoint {
     private static final String CLIENT_ID = "client_id";
 
     @GET
-    public List<OAuthUserNew> getAllOAuthUsers() {
-        List<OAuthUserNew> list = oauthUserService.getAllOAuthUsers();
-        for (OAuthUserNew oa : list) {
+    public List<User> getAllOAuthUsers() {
+        List<User> list = oauthUserService.getAllOAuthUsers();
+        for (User oa : list) {
             oa.setClientID(null);
-            oa.setClientSecret(null);
         }
         return list;
     }
 
     @GET
     @Path("/{"+CLIENT_ID+"}")
-    public OAuthUserNew getUserByAlias(@PathParam(CLIENT_ID) String alias) {
-        List<OAuthUserNew> list = oauthUserService.getAllOAuthUsers();
-        for (OAuthUserNew user : list) {
+    public User getUserByAlias(@PathParam(CLIENT_ID) String alias) {
+        List<User> list = oauthUserService.getAllOAuthUsers();
+        for (User user : list) {
             if (user.getClientID().equals(alias)) {
                 return user;
             }
@@ -40,7 +39,7 @@ public class OAuthUserEndpoint {
     @PUT
     @Path("/{"+CLIENT_ID+"}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateOAuthUser(@PathParam(CLIENT_ID) String clientID, OAuthUserNew oauthUser) {
+    public Response updateOAuthUser(@PathParam(CLIENT_ID) String clientID, User oauthUser) {
         oauthUserService.updateOAuthServer(Long.valueOf(clientID), oauthUser);
         return Response.noContent().build();
     }
@@ -54,7 +53,7 @@ public class OAuthUserEndpoint {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createOAuthUser(OAuthUserNew oauthUser) {
+    public Response createOAuthUser(User oauthUser) {
         oauthUserService.createOAuthUser(oauthUser);
         return Response.status(Response.Status.CREATED).build();
     }

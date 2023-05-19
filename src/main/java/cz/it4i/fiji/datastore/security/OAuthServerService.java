@@ -19,32 +19,32 @@ public class OAuthServerService {
     @Inject
     EntityManager entityManager;
 
-    public List<OAuthServerNew> getAllOAuthServers() {
+    public List<OAuthServer> getAllOAuthServers() {
         if (entityManager == null) {
             return Collections.emptyList();
         }
-        return OAuthServerNew.listAll();
+        return OAuthServer.listAll();
     }
 
-    public Optional<OAuthServerNew> getOAuthServerById(Long id) {
-        return Optional.ofNullable(entityManager.find(OAuthServerNew.class, id));
+    public Optional<OAuthServer> getOAuthServerById(Long id) {
+        return Optional.ofNullable(entityManager.find(OAuthServer.class, id));
     }
 
     @Transactional
-    public boolean createOAuthServer(OAuthServerNew oAuthServer) {
+    public boolean createOAuthServer(OAuthServer oAuthServer) {
         entityManager.persist(oAuthServer);
         return true;
     }
 
     @Transactional
-    public boolean updateOAuthServer(Long id, OAuthServerNew oAuthServer) {
-        OAuthServerNew existingServer = entityManager.find(OAuthServerNew.class, id);
+    public boolean updateOAuthServer(Long id,OAuthServer oAuthServer) {
+        OAuthServer existingServer = entityManager.find(OAuthServer.class, id);
         if (existingServer != null) {
-            existingServer.setAlias(oAuthServer.getAlias());
-            existingServer.setSub(oAuthServer.getSub());
-            existingServer.setLink_oauth(oAuthServer.getLink_oauth());
-            existingServer.setLink_user_info(oAuthServer.getLink_user_info());
-            existingServer.setLink_token(oAuthServer.getLink_token());
+            existingServer.setName(oAuthServer.getName());
+            existingServer.setAuthURI(oAuthServer.getAuthURI());
+            existingServer.setRedirectURI(oAuthServer.getRedirectURI());
+            existingServer.setTokenEndpointURI(oAuthServer.getTokenEndpointURI());
+            existingServer.setUserInfoURI(oAuthServer.getUserInfoURI());
             entityManager.merge(existingServer);
             return true;
         } else {
@@ -54,7 +54,7 @@ public class OAuthServerService {
 
     @Transactional
     public boolean deleteOAuthServerById(Long id) {
-        OAuthServerNew existingServer = entityManager.find(OAuthServerNew.class, id);
+        OAuthServer existingServer = entityManager.find(OAuthServer.class, id);
         if (existingServer != null) {
             entityManager.remove(existingServer);
             return true;
