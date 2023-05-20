@@ -24,7 +24,7 @@ import javax.persistence.OneToMany;
 @Getter
 @Setter
 @Entity
-public class User extends PanacheEntityBase {
+public class User{
 
 	private static final long serialVersionUID = 1L;
 

@@ -26,14 +26,14 @@ public class OAuthUserEndpoint {
 
     @GET
     @Path("/{"+CLIENT_ID+"}")
-    public User getUserByAlias(@PathParam(CLIENT_ID) String alias) {
+    public Response getUserById(@PathParam(CLIENT_ID) Long id) {
         List<User> list = oauthUserService.getAllOAuthUsers();
         for (User user : list) {
-            if (user.getClientID().equals(alias)) {
-                return user;
+            if (user.getId().equals(id)) {
+                return Response.ok(user).build();
             }
         }
-        return null;
+        return Response.ok(null).build();
     }
 
     @PUT

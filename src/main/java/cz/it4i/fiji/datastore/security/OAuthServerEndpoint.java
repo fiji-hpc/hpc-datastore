@@ -18,6 +18,7 @@ public class OAuthServerEndpoint {
     @GET
     public Response getAllOAuthServers() {
         List<OAuthServer> servers = oauthServerService.getAllOAuthServers();
+        System.out.println("sIZE"+servers.size());
         return Response.ok(servers).build();
     }
 
@@ -38,7 +39,7 @@ public class OAuthServerEndpoint {
     public Response updateOAuthServer(@PathParam(SERVER_ID) Long id, OAuthServer oauthServer) {
         boolean success = oauthServerService.updateOAuthServer(id, oauthServer);
         if (success) {
-            return Response.noContent().build();
+            return Response.ok().build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }

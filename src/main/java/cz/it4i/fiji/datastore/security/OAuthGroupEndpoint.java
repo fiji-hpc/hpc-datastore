@@ -20,7 +20,7 @@ public class OAuthGroupEndpoint {
     @POST
     public Response createOAuthGroup(OAuthGroupDTO groupDTO) {
         oAuthGroupService.createOAuthGroup(groupDTO);
-        return Response.status(Response.Status.CREATED).build();
+        return Response.ok().build();
     }
 
     @GET

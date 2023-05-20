@@ -24,8 +24,9 @@ public class OAuthGroupService {
     EntityManager entityManager;
 
     public void createOAuthGroup(OAuthGroupDTO groupDTO) {
+        //TODO Opravit
         OAuthGroup group = new OAuthGroup();
-        group.setOwner((User) User.find(groupDTO.getOwnerId()));
+        group.setOwner(entityManager.find(User.class, groupDTO.getOwnerId()));
         group.setName(groupDTO.getName());
         entityManager.persist(group);
     }

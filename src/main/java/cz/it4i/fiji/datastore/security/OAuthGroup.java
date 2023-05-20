@@ -4,7 +4,9 @@ import cz.it4i.fiji.datastore.register_service.Dataset;
 import cz.it4i.fiji.datastore.security.ACL;
 import cz.it4i.fiji.datastore.security.PermissionType;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -17,7 +19,9 @@ import java.util.List;
 @Table(name = "oauth_group")
 @Getter
 @Setter
-public class OAuthGroup extends PanacheEntityBase {
+@NoArgsConstructor
+@AllArgsConstructor
+public class OAuthGroup  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,33 +39,19 @@ public class OAuthGroup extends PanacheEntityBase {
     @Convert(converter = PermissionTypeSetConverter.class)
     private EnumSet<PermissionType> permissionType;
 
-    public OAuthGroup(int id, String name, User owner) {
-        this.id = id;
-        this.name = name;
-        this.owner = owner;
-        acl.setWrite(true);
-        users = new ArrayList<>();
-        datasets = new ArrayList<>();
-        users.add(owner);
-    }
-
-    public OAuthGroup() {
-
-    }
-
     public void addUser(User user) {
+        if(users==null)
+        {
+            users=new ArrayList<>();
+        }
         users.add(user);
     }
 
-    public void deleteUser(User user) {
-        if (users.contains(user)) {
-            users.remove(user);
-        } else {
-            throw new NotFoundException();
-        }
-    }
-
     public void addDataset(Dataset dataset) {
+        if(datasets==null)
+        {
+            datasets=new ArrayList<>();
+        }
         datasets.add(dataset);
     }
 
@@ -91,6 +81,11 @@ public class OAuthGroup extends PanacheEntityBase {
     }
 
     public boolean removeUser(User user) {
+        if(users==null)
+        {
+            users=new ArrayList<>();
+            return false;
+        }
         if (users.contains(user)) {
             users.remove(user);
         } else {

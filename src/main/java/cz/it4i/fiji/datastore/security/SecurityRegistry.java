@@ -23,6 +23,8 @@ public class SecurityRegistry {
     OAuthServerService oauthServerService;
     @Inject
     OAuthUserService oauthUserService;
+    @Inject
+    OAuthGroupService oAuthGroupService;
     private Map<String, OAuthServer> servers;
     @Getter
     private Boolean securityDisabled;
@@ -61,8 +63,33 @@ public class SecurityRegistry {
     private static boolean propertyIsNotEmpty(String propertyName) {
         return emptyToNull(getProperty(propertyName)) != null;
     }
+    List<Authentication> getPersistenceUserAsAuthentication()
+    {
+        List<User> persistentUsers=oauthUserService.getAllOAuthUsers();
+        List<Authentication> authenticationForUserList=new ArrayList<>();
+        for(int i=0;i<persistentUsers.size();i++)
+        {
+            OAuthServer server=servers.get(persistentUsers.get(i).getOauthAlias());
+            Authentication temp = Authentication.builder().server(server).userID(persistentUsers.get(i).getId().toString()).user(persistentUsers.get(i)).build();
+            authenticationForUserList.add(temp);
+        }
+        return authenticationForUserList;
+    }
+    List<Authentication> getUsersAsAuthenticationFromGroup(OAuthGroup group)
+    {
+        List<User> groupUsers=group.getUsers();
+        List<Authentication> authenticationForUserList=new ArrayList<>();
+        for(int i=0;i<groupUsers.size();i++)
+        {
+            OAuthServer server=servers.get(groupUsers.get(i).getOauthAlias());
+            GroupsAuthentication temp = (GroupsAuthentication) GroupsAuthentication.builder().server(server).userID(groupUsers.get(i).getId().toString()).user(groupUsers.get(i)).build();
+            temp.setDatasets(group.getDatasets());
+            temp.setPermissionType(group.getPermissionType());
+            authenticationForUserList.add(temp);
+        }
+        return authenticationForUserList;
+    }
 
-    //TODO ADD GroupsAuthentication
     Authentication findAuthentication(String userID, OAuthServer server) {
         return users.stream().filter(a -> a.getUserID().equals(userID) && a
                 .getServer().equals(server)).findFirst().orElse(null);
@@ -80,9 +107,15 @@ public class SecurityRegistry {
             }
             return new StaticAuthenticationCase(exclusiveToken);
         }
+        List<Authentication> persistenceUsers=getPersistenceUserAsAuthentication();
+        List<OAuthGroup> groups=oAuthGroupService.getAllOAuthGroups();
+        for(int i=0;i<groups.size();i++)
+        {
+            persistenceUsers.addAll(getUsersAsAuthenticationFromGroup(groups.get(i)));
+        }
+        persistenceUsers.addAll(users);
 
-
-        return users.stream().filter(a -> token.getAccessToken().equals(a
+        return persistenceUsers.stream().filter(a -> token.getAccessToken().equals(a
                 .getAccessToken())).findFirst().orElse(null);
     }
 

@@ -6,6 +6,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +21,8 @@ public class OAuthUserService {
 
     public List<User> getAllOAuthUsers() {
 
-         return User.findAll().list();
+        TypedQuery<User> query = entityManager.createQuery("SELECT s FROM User s", User.class);
+        return query.getResultList();
     }
 
     public Optional<User> getOAuthUserById(Long id) {
