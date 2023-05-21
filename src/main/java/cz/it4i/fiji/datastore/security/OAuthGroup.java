@@ -16,7 +16,6 @@ import java.util.EnumSet;
 import java.util.List;
 
 @Entity
-@Table(name = "oauth_group")
 @Getter
 @Setter
 @NoArgsConstructor

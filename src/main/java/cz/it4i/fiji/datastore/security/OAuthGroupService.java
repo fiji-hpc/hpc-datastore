@@ -9,6 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
 import java.util.EnumSet;
@@ -23,18 +24,32 @@ public class OAuthGroupService {
     @Inject
     EntityManager entityManager;
 
-    public void createOAuthGroup(OAuthGroupDTO groupDTO) {
-        //TODO Opravit
-        OAuthGroup group = new OAuthGroup();
-        group.setOwner(entityManager.find(User.class, groupDTO.getOwnerId()));
-        group.setName(groupDTO.getName());
-        entityManager.persist(group);
-    }
+    public boolean createOAuthGroup(OAuthGroupDTO groupDTO) {
+        try {
+            Long ownerId = Long.parseLong(groupDTO.getOwnerId());
+            User owner = entityManager.find(User.class, ownerId);
 
+            if (owner == null) {
+                return false;
+            }
+
+            OAuthGroup group = new OAuthGroup();
+            group.setOwner(owner);
+            group.setName(groupDTO.getName());
+
+            entityManager.persist(group);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
     public OAuthGroup getOAuthGroupById(Long id) {
         return entityManager.find(OAuthGroup.class, id);
     }
 
+    @Transactional
     public List<OAuthGroup> getAllOAuthGroups() {
         return entityManager.createQuery("SELECT g FROM OAuthGroup g", OAuthGroup.class)
                 .getResultList();

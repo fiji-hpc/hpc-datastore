@@ -19,6 +19,7 @@ public class OAuthUserService {
     @Inject
     EntityManager entityManager;
 
+    @Transactional
     public List<User> getAllOAuthUsers() {
 
         TypedQuery<User> query = entityManager.createQuery("SELECT s FROM User s", User.class);

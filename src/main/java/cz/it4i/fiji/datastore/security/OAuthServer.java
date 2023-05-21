@@ -45,9 +45,7 @@ import lombok.extern.log4j.Log4j2;
 @Getter
 @Setter
 @Entity
-public
-//@Table(name = "oauth_server")
-class OAuthServer  {
+public class OAuthServer  {
 
 	private static final long serialVersionUID = 1L;
 	@Id

@@ -4,6 +4,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.List;
 
 @Path("/oauth-groups")
@@ -19,8 +20,12 @@ public class OAuthGroupEndpoint {
 
     @POST
     public Response createOAuthGroup(OAuthGroupDTO groupDTO) {
-        oAuthGroupService.createOAuthGroup(groupDTO);
-        return Response.ok().build();
+        if(oAuthGroupService.createOAuthGroup(groupDTO)) {
+            return Response.ok().build();
+        }
+        else {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
     }
 
     @GET
@@ -37,7 +42,16 @@ public class OAuthGroupEndpoint {
     @GET
     public Response getAllOAuthGroups() {
         List<OAuthGroup> groups = oAuthGroupService.getAllOAuthGroups();
-        return Response.ok(groups).build();
+        List<OAuthGroupDTO> list = new ArrayList<>();
+        for(int i=0;i<groups.size();i++)
+        {
+            OAuthGroupDTO dto=new OAuthGroupDTO();
+            dto.setName(groups.get(i).getName());
+            dto.setOwnerId(groups.get(i).getName());
+            list.add(dto);
+
+        }
+        return Response.ok(list).build();
     }
 
     @PUT

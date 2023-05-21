@@ -139,7 +139,6 @@ public class SecurityRegistry {
 
         servers = temp.stream().collect(Collectors.toMap(OAuthServer::getName,
                 s -> s));
-        System.out.println("inited servers"+servers.size());
     }
     private void initUsers() {
         if (securityDisabled) {
