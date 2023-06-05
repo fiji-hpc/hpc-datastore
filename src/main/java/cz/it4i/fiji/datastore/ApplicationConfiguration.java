@@ -20,13 +20,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.ws.rs.NotFoundException;
 
-import cz.it4i.fiji.datastore.register_service.Dataset;
-import cz.it4i.fiji.datastore.register_service.DatasetRepository;
+import cz.it4i.fiji.datastore.register_service.DatasetType;
 import cz.it4i.fiji.datastore.s3.DatasetS3Handler;
 import cz.it4i.fiji.datastore.s3.S3Settings;
-import cz.it4i.fiji.datastore.zarr.DatasetFileSystemHandlerZarr;
+import cz.it4i.fiji.datastore.zarr.DatasetTypeEnum;
 import cz.it4i.fiji.datastore.zarr.HandlerFactory;
 
 @ApplicationScoped
@@ -56,20 +54,22 @@ public class ApplicationConfiguration implements Serializable{
 	public static final Set<String> _properties = Arrays.asList(DATASTORE_PATH,
 			DATASTORE_S3_HOST_URL, DATASTORE_S3_BUCKET, DATASTORE_S3_REGION,
 			DATASTORE_S3_ACCESS_KEY, DATASTORE_S3_SECRET_KEY).stream().collect(toSet());
+
 	public static final String BASE_NAME = "export";
-	public DatasetHandler getDatasetHandler(String uuid) {
-		String s3HostUrl = getProperty(DATASTORE_S3_HOST_URL);
-		if (s3HostUrl != null) {
-			return constructDataS3Handler(uuid, s3HostUrl);
+
+	public DatasetHandler getDatasetHandler( String uuid, DatasetType type )
+	{
+		String s3HostUrl = getProperty( DATASTORE_S3_HOST_URL );
+
+		if ( s3HostUrl != null )
+		{
+			if ( type == DatasetTypeEnum.ZARR )
+			{
+				throw new UnsupportedOperationException( "S3 is not supported with zarr" );
+			}
+			return constructDataS3Handler( uuid, s3HostUrl );
 		}
-		return HandlerFactory.CreateHandlerByAtribute(uuid,getDatasetPath(uuid));
-	}
-	public DatasetHandler getDatasetHandler(String uuid,String type) {
-		String s3HostUrl = getProperty(DATASTORE_S3_HOST_URL);
-		if (s3HostUrl != null) {
-			return constructDataS3Handler(uuid, s3HostUrl);
-		}
-		return HandlerFactory.CreateHandlerByType(type,uuid,getDatasetPath(uuid));
+		return HandlerFactory.createHandler( uuid, getDatasetPath( uuid ), type );
 	}
 
 	public Path getDatastorePath() {

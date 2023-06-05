@@ -6,7 +6,7 @@ quarkus:
   datasource:
     db-kind: h2
     jdbc:
-      url: jdbc:h2:./target/output/myDb;create=true
+      url: jdbc:h2:./target/DataStore_DataRoot/h2;create=true
   hibernate-orm:
     log:
       sql: true

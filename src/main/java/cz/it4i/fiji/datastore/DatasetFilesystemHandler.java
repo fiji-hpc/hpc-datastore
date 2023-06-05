@@ -73,7 +73,6 @@ public class DatasetFilesystemHandler implements DatasetHandler {
 		catch (IOException exc) {
 			throw new SpimDataException(exc);
 		}
-
 	}
 
 	@Override

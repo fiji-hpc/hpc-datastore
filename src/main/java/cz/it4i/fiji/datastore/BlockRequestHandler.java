@@ -70,6 +70,7 @@ public class BlockRequestHandler {
 				MediaType.TEXT_PLAIN).build();
 		}
 	}
+
 	public Response writeBlock(DatasetServerImpl datasetServer, long x, long y,
 		long z, int time, int channel, int angle, String blocks,
 		InputStream inputStream)

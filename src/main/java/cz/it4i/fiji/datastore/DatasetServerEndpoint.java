@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import cz.it4i.fiji.datastore.management.DataServerManager;
+import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import cz.it4i.fiji.datastore.security.Authorization;
 import cz.it4i.fiji.datastore.timout_shutdown.TimeoutTimer;
@@ -58,7 +59,6 @@ public class DatasetServerEndpoint implements Serializable {
 	@Inject
 	TimeoutTimer timer;
 
-
 	@Inject
 	DataServerManager dataServerManager;
 
@@ -67,6 +67,9 @@ public class DatasetServerEndpoint implements Serializable {
 
 	@Inject
 	ApplicationConfiguration configuration;
+
+	@Inject
+	DatasetRepository repository;
 
 	private DatasetServerImpl datasetServer;
 
@@ -133,19 +136,6 @@ public class DatasetServerEndpoint implements Serializable {
 		@PathParam(ANGLE_PARAM) int angle,
 		@PathParam(BLOCKS_PARAM) String blocks, InputStream inputStream)
 	{
-		String uuid = dataServerManager.getUUID();
-		try {
-			datasetServer = new DatasetServerImpl(configuration.getDatasetHandler(
-					uuid), dataServerManager.getResolutionLevels(), dataServerManager
-					.getVersion(), dataServerManager.isMixedVersion(), dataServerManager
-					.getMode());
-
-		} catch (SpimDataException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-
 		return blockRequestHandler.writeBlock(datasetServer, x, y, z, time, channel,
 			angle, blocks, inputStream);
 	}
@@ -172,7 +162,7 @@ public class DatasetServerEndpoint implements Serializable {
 				return;
 			}
 			datasetServer = new DatasetServerImpl(configuration.getDatasetHandler(
-				uuid), dataServerManager.getResolutionLevels(), dataServerManager
+					uuid, repository.getDatasetTypeByUUID( uuid ) ), dataServerManager.getResolutionLevels(), dataServerManager
 					.getVersion(), dataServerManager.isMixedVersion(), dataServerManager
 						.getMode());
 			log.info("DatasetServer initialized");

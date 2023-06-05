@@ -32,7 +32,7 @@ import javax.transaction.UserTransaction;
 import javax.ws.rs.NotFoundException;
 
 
-import cz.it4i.fiji.datastore.zarr.FileTypeEnum;
+import cz.it4i.fiji.datastore.zarr.DatasetTypeEnum;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -97,7 +97,7 @@ public class DatasetRegisterServiceImpl {
 	public void addExistingDataset(String uuid) throws IOException,
 		SpimDataException, SystemException, NotSupportedException
 	{
-		DatasetHandler handler = configuration.getDatasetHandler(uuid);
+		DatasetHandler handler = configuration.getDatasetHandler( uuid, DatasetTypeEnum.N5 );
 		Collection<Integer> versions = handler.getAllVersions();
 		int firstVersion = Collections.min(versions);
 		final SpimData spimData = handler.getSpimData(firstVersion);
@@ -137,8 +137,8 @@ public class DatasetRegisterServiceImpl {
 		SpimDataException, NotSupportedException, SystemException
 	{
 		UUID result = UUID.randomUUID();
-		new CreateNewDatasetTS().run(configuration.getDatasetHandler(result
-			.toString(),datasetDTO.getDatasetType()), convert(datasetDTO));
+		DatasetType type = new DatasetTypeConverter().convertToEntityAttribute( datasetDTO.getDatasetType() );
+		new CreateNewDatasetTS().run( configuration.getDatasetHandler( result.toString(), type ), convert( datasetDTO ) );
 		transaction.begin();
 		boolean trxActive = true;
 		try {
@@ -189,7 +189,7 @@ public class DatasetRegisterServiceImpl {
 	public void deleteDataset(String uuid) {
 		Dataset dataset = getDataset(uuid);
 		log.debug("dataset with UUID {} is deleted", uuid);
-		DatasetHandler dfs = configuration.getDatasetHandler(uuid);
+		DatasetHandler dfs = configuration.getDatasetHandler( uuid, datasetDAO.getDatasetTypeByUUID( uuid ) );
 		datasetDAO.delete(dataset);
 		dfs.deleteDataset();
 
@@ -198,7 +198,7 @@ public class DatasetRegisterServiceImpl {
 	public void deleteVersions(String uuid, List<Integer> versionList)
 		throws IOException
 	{
-		DatasetHandler dfs = configuration.getDatasetHandler(uuid);
+		DatasetHandler dfs = configuration.getDatasetHandler( uuid, datasetDAO.getDatasetTypeByUUID( uuid ) );
 		for (Integer version : versionList) {
 			dfs.deleteVersion(version);
 		}
@@ -206,7 +206,7 @@ public class DatasetRegisterServiceImpl {
 
 	public DatasetDTO query(String uuid) throws SpimDataException {
 		final Dataset dataset = getDataset(uuid);
-		final SpimData spimData = configuration.getDatasetHandler(uuid)
+		final SpimData spimData = configuration.getDatasetHandler( uuid, dataset.getDatasetType() )
 			.getSpimData();
 		final DatasetDTO result = DatasetAssembler.createDatatransferObject(dataset,
 			spimData.getSequenceDescription().getTimePoints());
@@ -217,18 +217,11 @@ public class DatasetRegisterServiceImpl {
 		Dataset dataset = getDataset(uuid);
 		return Strings.nullToEmpty(dataset.getMetadata());
 	}
-	public FileTypeEnum getDataType(String uuid)
+
+	public DatasetType getDataType( String uuid )
 	{
 		Dataset dataset = getDataset(uuid);
-		String type=dataset.getDatasetType();
-		if(Objects.equals("Zarr",type))
-		{
-			return FileTypeEnum.ZARR;
-		}
-		else
-		{
-			return  FileTypeEnum.N5;
-		}
+		return dataset.getDatasetType();
 	}
 
 	public <T extends RealType<T> & NativeType<T>> void rebuild(String uuid,
@@ -237,7 +230,7 @@ public class DatasetRegisterServiceImpl {
 	{
 		
 		Dataset dataset = getDataset(uuid);
-		DatasetHandler dh = configuration.getDatasetHandler(uuid);
+		DatasetHandler dh = configuration.getDatasetHandler( uuid, dataset.getDatasetType() );
 
 		N5Access n5Access = new N5Access(dh.getSpimData(), dh.getWriter(version),
 			Collections.singletonList(dataset.getSortedResolutionLevels().get(0)
@@ -319,7 +312,7 @@ public class DatasetRegisterServiceImpl {
 	}
 
 	private void mergeVersions(Dataset dataset) throws IOException {
-		DatasetHandler dfh = configuration.getDatasetHandler(dataset.getUuid());
+		DatasetHandler dfh = configuration.getDatasetHandler( dataset.getUuid(), dataset.getDatasetType() );
 		Collection<Integer> versions = dfh.getAllVersions();
 		int minVersion = Collections.min(versions);
 		for (int ver : versions.stream().filter(ver -> ver > minVersion).collect(
@@ -444,7 +437,7 @@ public class DatasetRegisterServiceImpl {
 	private int resolveVersion(Dataset dataset, String version,
 		OperationMode mode) throws IOException
 	{
-		DatasetHandler dfs = configuration.getDatasetHandler(dataset.getUuid());
+		DatasetHandler dfs = configuration.getDatasetHandler( dataset.getUuid(), dataset.getDatasetType() );
 		switch (version) {
 			case "latest":
 				return dfs.getLatestVersion();

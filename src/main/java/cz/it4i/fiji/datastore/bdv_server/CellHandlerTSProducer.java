@@ -78,10 +78,10 @@ class CellHandlerTSProducer implements WriteToVersionListener {
 	private CellHandlerTS create(String baseURL, String uuid, int version) {
 
 		// only for check that version exists
-		repository.findByUUIDVersion(uuid, version);
+		repository.findByUUIDVersion( uuid, version );
 
 		try {
-			return new CellHandlerTS(configuration.getDatasetHandler(uuid), () ->repository.findByUUID(uuid),
+			return new CellHandlerTS( configuration.getDatasetHandler( uuid, repository.getDatasetTypeByUUID( uuid ) ), () -> repository.findByUUID( uuid ),
 				baseURL, version, uuid + "_version-" + version, GetThumbnailsDirectoryTS
 					.$());
 		}

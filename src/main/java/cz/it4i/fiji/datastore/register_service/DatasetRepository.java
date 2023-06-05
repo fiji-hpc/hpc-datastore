@@ -44,37 +44,19 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 
 	@Inject
 	ApplicationConfiguration configuration;
-	public String findTypebyUUID(String uuid)
-	{
-		Optional<Dataset> result = find("from Dataset where uuid = :uuid",
-				Parameters.with("uuid",
-						uuid)).singleResultOptional();
-		if (result.isEmpty()) {
-			throw new NotFoundException("Dataset with UUID = " + uuid +
-					" not found ");
-		}
-		Dataset resultDataset = result.get();
+	
 
-		return resultDataset.getDatasetType();
-	}
 	public void updateDatasetTypebyUUID(String uuid, String newDatasetType) {
 		long updatedRows = update("UPDATE Dataset SET datasetType = ?1 WHERE uuid = ?2", newDatasetType, uuid);
 		if (updatedRows == 0) {
 			throw new NotFoundException("Dataset with UUID = " + uuid + " not found");
 		}
 	}
-	public Dataset findByUUID(String uuid) {
-		Optional<Dataset> result = find("from Dataset where uuid = :uuid",
-			Parameters.with("uuid",
-			uuid)).singleResultOptional();
-		if (result.isEmpty()) {
-			throw new NotFoundException("Dataset with UUID = " + uuid +
-				" not found ");
-		}
 
-		DatasetHandler dfh = configuration.getDatasetHandler(uuid);
+	public Dataset findByUUID(String uuid) {
+		Dataset resultDataset = findByUUIDInternal(uuid);
 		try {
-			Dataset resultDataset = result.get();
+			DatasetHandler dfh = configuration.getDatasetHandler( uuid, resultDataset.getDatasetType() );
 			resolveVersion(dfh, resultDataset);
 			resolveLabel(resultDataset);
 			resolveViewSetups(resultDataset);
@@ -106,8 +88,18 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 	@Override
 	public void persist(Dataset entity) {
 		PanacheRepository.super.persist(entity);
-		configuration.getDatasetHandler(entity.getUuid()).setLabel(entity
-			.getLabel());
+		configuration.getDatasetHandler( entity.getUuid(), entity.getDatasetType() ).setLabel( entity.getLabel() );
+	}
+
+	private Dataset findByUUIDInternal(String uuid) {
+		Optional<Dataset> result = find("from Dataset where uuid = :uuid",
+			Parameters.with("uuid", uuid)).singleResultOptional();
+		if (result.isEmpty()) {
+			throw new NotFoundException("Dataset with UUID = " + uuid +
+				" not found ");
+		}
+		Dataset resultDataset = result.get();
+		return resultDataset;
 	}
 
 	private void resolveVersion(DatasetHandler dh,
@@ -119,7 +111,7 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 
 	private void resolveLabel(Dataset dataset) {
 		try {
-			DatasetHandler dh = configuration.getDatasetHandler(dataset.getUuid());
+			DatasetHandler dh = configuration.getDatasetHandler( dataset.getUuid(), dataset.getDatasetType() );
 			String label = dh.getLabel();
 			dataset.setLabel(label);
 		}
@@ -132,11 +124,16 @@ public class DatasetRepository implements PanacheRepository<Dataset>,
 	private void resolveViewSetups(Dataset dataset)
 		throws SpimDataException
 	{
-		SpimData spimData = configuration.getDatasetHandler(dataset.getUuid())
+		SpimData spimData = configuration.getDatasetHandler( dataset.getUuid(), dataset.getDatasetType() )
 			.getSpimData();
 		dataset.setViewSetup(spimData.getSequenceDescription()
 			.getViewSetupsOrdered().stream().map(vs -> ViewSetup.builder().index(vs
 				.getId()).angleId(vs.getAngle().getId()).channelId(vs.getChannel()
 					.getId()).build()).collect(Collectors.toList()));
+	}
+
+	public DatasetType getDatasetTypeByUUID( String uuid )
+	{
+		return findByUUID( uuid ).getDatasetType();
 	}
 }

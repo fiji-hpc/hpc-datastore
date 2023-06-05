@@ -44,7 +44,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import cz.it4i.fiji.datastore.DatasetServerEndpoint.RootResponse;
 import cz.it4i.fiji.datastore.core.Version;
-import cz.it4i.fiji.datastore.register_service.Dataset;
 import cz.it4i.fiji.datastore.register_service.DatasetRepository;
 import cz.it4i.fiji.datastore.register_service.OperationMode;
 import cz.it4i.fiji.datastore.security.Authorization;
@@ -65,6 +64,9 @@ public class SharedDatasetServerEndpoint implements Serializable {
 
 	@Inject
 	ApplicationConfiguration configuration;
+
+	@Inject
+	DatasetRepository repository;
 
 	@Authorization
 //@formatter:off
@@ -124,7 +126,6 @@ public class SharedDatasetServerEndpoint implements Serializable {
 
 	}
 
-
 	@Authorization
 	// @formatter:off
 	@Path("datasets"
@@ -151,11 +152,10 @@ public class SharedDatasetServerEndpoint implements Serializable {
 		@PathParam(CHANNEL_PARAM) int channel, @PathParam(ANGLE_PARAM) int angle,
 		@PathParam(BLOCKS_PARAM) String blocks, InputStream inputStream)
 	{
-
 		return requestHandler.writeBlock(getDataSetserver(uuid, rX, rY, rZ,
 			version), x, y, z, time, channel, angle, blocks, inputStream);
-
 	}
+
 	@Authorization
 //@formatter:off
 	@Path("datasets"
@@ -179,6 +179,7 @@ public class SharedDatasetServerEndpoint implements Serializable {
 		return requestHandler.getType(getDataSetserver(uuid, rX, rY, rZ, version),
 			time, channel, angle);
 	}
+
 	@POST
 	@Path("datasets" + "/{" + UUID + "}" + "/{" + R_X_PARAM + "}" + "/{" +
 		R_Y_PARAM + "}" + "/{" + R_Z_PARAM + "}" + "/{" + VERSION_PARAM + "}" +
@@ -195,18 +196,7 @@ public class SharedDatasetServerEndpoint implements Serializable {
 		try {
 			final boolean mixedVersion = Version.MIXED_LATEST_VERSION_NAME.equals(
 				version);
-
-			DatasetHandler handler = configuration.getDatasetHandler(uuid);
-			try {
-				DatasetRepository datasetDAO=new DatasetRepository();
-				String type = datasetDAO.findTypebyUUID(uuid);
-
-				if(type.equals("Zarr")) {
-					handler = configuration.getDatasetHandler(uuid, "Zarr");
-				}
-			} catch (Exception e) {
-				log.error("getDatasetServer", e);
-			}
+			DatasetHandler handler = configuration.getDatasetHandler( uuid, repository.getDatasetTypeByUUID( uuid ) );
 			int versionInt = mixedVersion?handler.getLatestVersion():stringToIntVersion(version);
 			OperationMode mode = mixedVersion ? READ : READ_WRITE;
 			return new DatasetServerImpl(handler, singletonList(new int[] { rX, rY,

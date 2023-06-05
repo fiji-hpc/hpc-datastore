@@ -81,7 +81,7 @@ public final class GetSpimDataMinimalTS {
 		Map<ViewId, ViewRegistration> viewRegistrations = new HashMap<>();
 		Collection<ViewId> missingViews = new LinkedList<>();
 
-		DatasetHandler handler = configuration.getDatasetHandler(uuid);
+		DatasetHandler handler = configuration.getDatasetHandler( uuid, dataset.getDatasetType() );
 		SpimDataMinimal spimDataMinimal;
 		spimDataMinimal = SpimDataMapper.asSpimDataMinimal(handler.getSpimData());
 		SequenceDescriptionMinimal seqMinimal = spimDataMinimal
@@ -177,7 +177,7 @@ public final class GetSpimDataMinimalTS {
 			final int version = stringToIntVersion(versionStr);
 			// only for check that version exists
 			repository.findByUUIDVersion(uuid, version);
-			SpimData spimdata = configuration.getDatasetHandler(uuid).getSpimData(
+			SpimData spimdata = configuration.getDatasetHandler( uuid, repository.getDatasetTypeByUUID( uuid ) ).getSpimData(
 				version);
 			for (ViewSetup vs : spimdata.getSequenceDescription()
 				.getViewSetupsOrdered())

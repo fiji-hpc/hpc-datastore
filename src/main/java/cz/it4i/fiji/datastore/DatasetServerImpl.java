@@ -48,7 +48,7 @@ public class DatasetServerImpl implements Closeable, Serializable {
 
 	private final DatasetHandler datasetHandler;
 
-	public DatasetServerImpl(DatasetHandler aDatasetHandler,
+	public DatasetServerImpl( DatasetHandler aDatasetHandler,
 		List<int[]> resolutions,
 		int aVersion, boolean aMixedVersion, OperationMode aMode)
 		throws SpimDataException, IOException

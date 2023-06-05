@@ -37,6 +37,7 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 
 public class DatasetAssembler {
 
+	private static DatasetTypeConverter converter = new DatasetTypeConverter();
 	
 	public static Dataset createDomainObject(DatasetDTO dto) {
 		// @formatter:off
@@ -50,7 +51,7 @@ public class DatasetAssembler {
 				.channels(dto.getChannels()).channelResolution(createDomainObject(dto.getChannelResolution()))
 				.angles(dto.getAngles()).angleResolution(createDomainObject(dto.getAngleResolution()))
 				.compression(dto.getCompression())
-				.datasetType(dto.getDatasetType())
+				.datasetType( converter.convertToEntityAttribute( dto.getDatasetType() ) )
 				.resolutionLevel(createDomainObject(dto.getResolutionLevels()))
 				.label(dto.getLabel())
 				.build();
@@ -166,7 +167,7 @@ public class DatasetAssembler {
 				.channels(dataset.getChannels()).channelResolution(createDatatransferObject(dataset.getChannelResolution()))
 				.angles(dataset.getAngles()).angleResolution(createDatatransferObject(dataset.getAngleResolution()))
 				.compression(dataset.getCompression())
-				.datasetType(dataset.getDatasetType())
+				.datasetType( converter.convertToDatabaseColumn( dataset.getDatasetType() ) )
 				.resolutionLevels(createDatatransferObject(dataset.getResolutionLevel()))
 				.versions(dataset.getDatasetVersion().stream().map(DatasetVersion::getValue).collect(toList()))
 				.label(dataset.getLabel())

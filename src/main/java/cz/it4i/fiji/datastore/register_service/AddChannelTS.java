@@ -52,7 +52,7 @@ public class AddChannelTS {
 		IOException
 	{
 		DatasetHandler datasetHandler = _configuration.getDatasetHandler(dataset
-			.getUuid());
+				.getUuid(), dataset.getDatasetType() );
 
 		for (DatasetVersion version : dataset.getDatasetVersion()) {
 			SpimData spimData = datasetHandler.getSpimData(version.getValue());

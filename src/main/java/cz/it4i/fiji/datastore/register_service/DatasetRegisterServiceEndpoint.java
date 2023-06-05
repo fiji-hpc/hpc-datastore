@@ -41,7 +41,6 @@ import javax.ws.rs.core.UriInfo;
 
 import cz.it4i.fiji.datastore.core.DatasetDTO;
 import cz.it4i.fiji.datastore.security.Authorization;
-import cz.it4i.fiji.datastore.zarr.FileTypeEnum;
 import lombok.extern.log4j.Log4j2;
 import mpicbg.spim.data.SpimDataException;
 

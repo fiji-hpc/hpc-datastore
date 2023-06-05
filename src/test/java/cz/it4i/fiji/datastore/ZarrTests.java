@@ -1,6 +1,10 @@
 package cz.it4i.fiji.datastore;
 
-import cz.it4i.fiji.datastore.register_service.DatasetRepository;
+import static io.restassured.RestAssured.with;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.config.HttpClientConfig;
@@ -9,19 +13,27 @@ import io.restassured.config.RestAssuredConfig;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import org.apache.http.params.CoreConnectionPNames;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 import java.util.Random;
 
-import static io.restassured.RestAssured.with;
-import static org.junit.jupiter.api.Assertions.*;
+import javax.inject.Inject;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import cz.it4i.fiji.datastore.register_service.DatasetRepository;
+import cz.it4i.fiji.datastore.register_service.DatasetType;
+import cz.it4i.fiji.datastore.zarr.DatasetTypeEnum;
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
 @QuarkusTest()
 public class ZarrTests {
     private String uuid;
+
+	@Inject
+	DatasetRepository datasetRepository;
 
     @BeforeEach
     void initUUID() {
@@ -38,9 +50,8 @@ public class ZarrTests {
     public void isZarrCreated()
     {
         assertNotNull(uuid, "Dataset was not created");
-        DatasetRepository datasetDAO = new DatasetRepository();
-        String type = datasetDAO.findTypebyUUID(uuid);
-        assertEquals("Zarr", type);
+		DatasetType type = datasetRepository.findByUUID( uuid ).getDatasetType();
+		assertEquals( DatasetTypeEnum.ZARR, type );
 
     }
     private byte[] constructBlocks(int num, int dim) {
@@ -97,8 +108,8 @@ public class ZarrTests {
     @Test
     public void addChannels() {
         RestAssuredConfig config = RestAssured.config().httpClient(HttpClientConfig
-                .httpClientConfig().setParam(CoreConnectionPNames.CONNECTION_TIMEOUT,
-                        1000).setParam(CoreConnectionPNames.SO_TIMEOUT, 600000));
+				.httpClientConfig().setParam( "http.connection.timeout",
+						1000 ).setParam( "http.socket.timeout", 600000 ) );
 
         for (int i = 0; i < 2; i++) {
             Response result = withNoFollowRedirects().get("/datasets/" + uuid +

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -116,7 +117,8 @@ public class Dataset extends BaseEntity {
 
 	@Getter
 	@Setter
-	private String datasetType;
+	@Convert( converter = DatasetTypeConverter.class )
+	private DatasetType datasetType;
 
 	public ResolutionLevel getResolutionLevel(int[] resolution) {
 		return getResolutionLevelIndex().get(Arrays.toString(resolution));
