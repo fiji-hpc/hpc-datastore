@@ -315,6 +315,14 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.2</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <quarkus.http.test-host>localhost</quarkus.http.test-host>
+                        <quarkus.http.test-port>9080</quarkus.http.test-port>
+                        <quarkus.datasource.jdbc.url>jdbc:h2:/temp/DataStore_DataRoot/h2;MODE=PostgreSQL;INIT=CREATE SCHEMA IF NOT EXISTS datastore</quarkus.datasource.jdbc.url>
+                        <datastore.path>/temp/DataStore_DataRoot</datastore.path>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
 
             <!-- for COMMITrev_... reporting in .jars -->
