@@ -194,6 +194,7 @@ public class CellHandlerTS
 	{
 		String path = BdvN5Format.getPathName(key.setup, key.timepoint, key.level);
 		DatasetAttributes datasetAttributes = getDatasetAttributes(perPathDatasetAttribute, writer, path);
+		final int[][] blockSizes = metadata.getPerSetupMipmapInfo().get(key.setup).getSubdivisions();
 		long[] gridPosition = new long[cellMin.length];
 		for (int i = 0; i < gridPosition.length; i++) {
 			/*if (levelBlockSize[i] != cellDims[i] || cellMin[i] % cellDims[i] != 0) {
@@ -202,7 +203,7 @@ public class CellHandlerTS
 					Arrays.toString(levelBlockSize), Arrays.toString(cellMin), Arrays
 						.toString(cellDims)));
 			}*/
-			gridPosition[i] = cellMin[i] / cellDims[i];
+			gridPosition[i] = cellMin[i] / blockSizes[key.level][i];
 		}
 		DataBlock<?> result = writer.readBlock(path, datasetAttributes,
 			gridPosition);
