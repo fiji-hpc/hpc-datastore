@@ -261,8 +261,9 @@ public class CellHandlerTS
 		}
 		else if (parts[0].equals("init"))
 		{
-			return respondWithString("application/json", buildMetadataJsonString(
-				spimdataSupplier.get(), datasetSupplier.get()));
+			Response retVal = respondWithString("application/json", buildMetadataJsonString(
+					spimdataSupplier.get(), datasetSupplier.get()));
+			return retVal;
 		}
 		return Response.status(Status.BAD_REQUEST).build();
 	}
