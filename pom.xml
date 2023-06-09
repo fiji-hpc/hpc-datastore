@@ -5,7 +5,7 @@
     <groupId>cz.it4i.fiji</groupId>
     <artifactId>hpc-datastore</artifactId>
 
-    <version>1.7.2-SNAPSHOT</version>
+    <version>1.7.2</version>
     <name>HPCDataStore</name>
     <description>HPCDataStore</description>
     <url>ToDO</url>
