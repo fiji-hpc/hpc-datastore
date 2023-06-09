@@ -261,12 +261,16 @@ public class CellHandlerTS
 		}
 		else if (parts[0].equals("init"))
 		{
+			HPCDatastoreImageLoaderMetaData[] metadataArray = { null };
 			Response retVal = respondWithString("application/json", buildMetadataJsonString(
-					spimdataSupplier.get(), datasetSupplier.get()));
+					spimdataSupplier.get(), datasetSupplier.get(), metadataArray));
+			this.metadata = metadataArray[0];
 			return retVal;
 		}
 		return Response.status(Status.BAD_REQUEST).build();
 	}
+
+	HPCDatastoreImageLoaderMetaData metadata = null;
 
 	public Response runForDataset() {
 		final XmlIoSpimDataMinimal io = new XmlIoSpimDataMinimal();
@@ -300,17 +304,17 @@ public class CellHandlerTS
 	 * 
 	 */
 	private static String buildMetadataJsonString(SpimDataMinimal spimData,
-		Dataset dataset)
+		Dataset dataset, HPCDatastoreImageLoaderMetaData[] metaDataRetPtr)
 	{
 		final DatasetDTO datasetDTO = DatasetAssembler.createDatatransferObject(
 			dataset, spimData.getSequenceDescription().getTimePoints());
-		final HPCDatastoreImageLoaderMetaData metadata =
+		metaDataRetPtr[0] =
 			new HPCDatastoreImageLoaderMetaData(datasetDTO, spimData
 				.getSequenceDescription(), DataType.fromString(dataset.getVoxelType()));
 		final GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.registerTypeAdapter( AffineTransform3D.class, new AffineTransform3DJsonSerializer() );
 		gsonBuilder.enableComplexMapKeySerialization();
-		return gsonBuilder.create().toJson( metadata );
+		return gsonBuilder.create().toJson( metaDataRetPtr[0] );
 	}
 
 	private static String buildRemoteDatasetXML(XmlIoSpimDataMinimal io,
