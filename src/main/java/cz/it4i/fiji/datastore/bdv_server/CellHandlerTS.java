@@ -203,6 +203,7 @@ public class CellHandlerTS
 					Arrays.toString(levelBlockSize), Arrays.toString(cellMin), Arrays
 						.toString(cellDims)));
 			}*/
+			System.out.println("  dim "+i+": blockSize = "+blockSizes[key.level][i]);
 			gridPosition[i] = cellMin[i] / blockSizes[key.level][i];
 		}
 		DataBlock<?> result = writer.readBlock(path, datasetAttributes,
@@ -237,6 +238,10 @@ public class CellHandlerTS
 			final int setup = Integer.parseInt( parts[ 3 ] );
 			final int level = Integer.parseInt( parts[ 4 ] );
 			final Key key = new Key( timepoint, setup, level, index, parts );
+
+			System.out.println("legacy BDV cell request index="+index+", tp="+timepoint+", setupID="+setup+", level="+level);
+			System.out.println("legacy BDV cell request, full parts: " + cellString);
+
 			// TODO - there should be another type
 			byte[] data;
 			try
@@ -244,9 +249,11 @@ public class CellHandlerTS
 				final Cell< ? > cell = cache.get( key, loader );
 				DataBlock<short[]> dataBlock = (DataBlock<short[]>) cell.getData();
 				if (dataBlock == null) {
+					System.out.println("legacy BDV found NO data for it");
 					data = new byte[0];
 				}
 				else {
+					System.out.println("legacy BDV found data for it of size "+dataBlock.getNumElements());
 					data = dataBlock.toByteBuffer().array();
 				}
 			}
@@ -262,6 +269,7 @@ public class CellHandlerTS
 		}
 		else if (parts[0].equals("init"))
 		{
+			System.out.println("SOME INIT BDV LEGACY");
 			HPCDatastoreImageLoaderMetaData[] metadataArray = { null };
 			Response retVal = respondWithString("application/json", buildMetadataJsonString(
 					spimdataSupplier.get(), datasetSupplier.get(), metadataArray));
