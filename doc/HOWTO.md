@@ -44,5 +44,32 @@ This is principally the same as the above, except that the new communication pro
 appear as another channels in the BDV, including the special version `mixedLatest`. And BDV clients need to have `.jar` files from
 our Fiji update site in their class paths.
 
+# Migrating and/or Duplicating a dataset among multiple DataStore servers
+This operation comprises several steps, detailed below.
+
+## Physically copying N5/Zarr files into another DataStore server
+All image data are persistently held on a drive by means of (many) standard folders and regular files (and they are [organized as N5 (or Zarr) format](DESCRIPTION.md#storage-architecture) dictates), no special files such as links are used. It is easy to copy these files to another location using standard tools of your operating system. Note that the DataStore is also using a small database where the parameters of datasets are held to answer queries faster. The dataset in principle contains redundant/duplicate information, only stored more conveniently performance-wise.
+
+In particular, one can copy the dataset files into a root folder (possibly even on another computer) that is served by another DataStore server. In this case, however, make sure the full tree rooted with the UUID-named folder, which is the top-level folder of a dataset, is copied. The database file shall not be copied -- think of it as that it does not belong to a dataset, it belongs to a DataStore server, and we're moving a dataset here not the full server.
+
+## Notifying the DataStore of a newly added dataset
+If a UUID-named folder, which holds a dataset, is placed (possibly among other datasets) into a folder served by another DataStore, the server needs to be notified that a new dataset has just become available. This can be done ATM via command line:
+
+```
+curl -X POST http://localhost:9080/datasets/73c0f152-48ba-4936-833b-2ad97d9751cc
+```
+
+where `localhost:9080` is the URL where the notified server is working, and the UUID `73c0f152-48ba-4936-833b-2ad97d9751cc` is the name of the newly being added dataset. The notified server will now rescan the relevant folder structure (yes, the one that has been just copied in), will read the dataset's parameters, will update its own database file, and will start serving this dataset too immediately.
+
+This way, cloning of a dataset can be achieved.
+
+## Deleting a dataset from DataStore sever
+To turn the cloning operation into a move operation, it remains only to delete the dataset in the source DataStore server. This can be conveniently achieved from Fiji, using DataStore menu options `Plugins -> HPC DataStore -> Delete -> Delete dataset or its version`, choose "whole dataset" option. The dialog will ask the server to remove the dataset completely, which means deleting relevant entries in its database and deleting also the files and folders on a drive -- this operation has no undo.
+
+# Serving one and the same dataset from multiple DataStore servers
+If multiple servers are desired to be running and serving the same image data, it is mandatory that all the servers' processes can reach the same dataset UUID-named root folder. This can be achieved when the dataset is stored on a commonly shared filesystem within your institute. One then aside creates folders that each DataStore server will be serving, creates symbolic links in these folders that point to the source dataset UUID-named root folder, and starts the relevant servers and [notifies them one by one as explained above](HOWTO.md#notifying-the-datastore-of-a-newly-added-dataset). It basically pretends the data has been copied in, but instead a link is used to reach the data.
+
+All servers in this way are serving (reading and writing) the same data with changes to the data propagating immediately. It is, however, not advisable to change the geometry of the dataset served in this way, only pixel data is okay to change. Also, avoid removing the dataset from any server, it would delete the source dataset.
+
 -------------------
-More manuals on how to achieve various things should appear here. Very sorry for now.
+More manuals on how to achieve various things will be appearing here.
