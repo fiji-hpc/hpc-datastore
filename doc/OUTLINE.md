@@ -55,3 +55,8 @@ In this documentation of the DataStore project you can learn about the following
 - [Viewing DataStore content with BigDataViewer](HOWTO.md#viewing-datastore-content-with-bigdataviewer)
   - [Legacy BigDataServer and BDV](HOWTO.md#legacy-bigdataserver-and-bdv)
   - [DataStore and BDV](HOWTO.md#datastore-and-bdv)
+- [Migrating and/or Duplicating a dataset among multiple DataStore servers](HOWTO.md#migrating-andor-duplicating-a-dataset-among-multiple-datastore-servers)
+  - [Physically copying N5/Zarr files into another DataStore server](HOWTO.md#physically-copying-n5zarr-files-into-another-datastore-server)
+  - [Notifying the DataStore of a newly added dataset](HOWTO.md#notifying-the-datastore-of-a-newly-added-dataset)
+  - [Deleting a dataset from DataStore sever](HOWTO.md#deleting-a-dataset-from-datastore-sever)
+- [Serving one and the same dataset from multiple DataStore servers](HOWTO.md#serving-one-and-the-same-dataset-from-multiple-datastore-servers)
