@@ -25,8 +25,14 @@ import net.imglib2.cache.ref.SoftRefLoaderCache;
 import net.imglib2.img.cell.Cell;
 import net.imglib2.realtransform.AffineTransform3D;
 
-import org.janelia.saalfeldlab.n5.DataBlock;
 import org.janelia.saalfeldlab.n5.DataType;
+import org.janelia.saalfeldlab.n5.DataBlock;
+import org.janelia.saalfeldlab.n5.ByteArrayDataBlock;
+import org.janelia.saalfeldlab.n5.IntArrayDataBlock;
+import org.janelia.saalfeldlab.n5.LongArrayDataBlock;
+import org.janelia.saalfeldlab.n5.ShortArrayDataBlock;
+import org.janelia.saalfeldlab.n5.FloatArrayDataBlock;
+import org.janelia.saalfeldlab.n5.DoubleArrayDataBlock;
 import org.janelia.saalfeldlab.n5.DatasetAttributes;
 import org.janelia.saalfeldlab.n5.N5Writer;
 import org.jdom2.Document;
@@ -205,10 +211,58 @@ public class CellHandlerTS
 			}*/
 			gridPosition[i] = cellMin[i] / blockSizes[key.level][i];
 		}
-		DataBlock<?> result = writer.readBlock(path, datasetAttributes,
-			gridPosition);
+
+		DataBlock<?> result = writer.readBlock(path, datasetAttributes, gridPosition);
+		//if the data is not native to BDV (i.e., data type != gray16), we convert on the fly for BDV (to gray16)
+		//because that's what BDV expects and that's how it interprets the incoming buffers (e.g., if gray8 would
+		//be sent instead, expect black rectangles be displayed on the BDV screen)
+		if (! (result instanceof ShortArrayDataBlock) )
+			return convertBlock(result);
 
 		return result;
+	}
+
+	private ShortArrayDataBlock convertBlock(DataBlock<?> nonGray16Block) {
+		short[] shortArray;
+
+		if (nonGray16Block instanceof ByteArrayDataBlock) {
+			byte[] byteArray = ((ByteArrayDataBlock)nonGray16Block).getData();
+			shortArray = new short[ byteArray.length ];
+			for (int i=0; i <  shortArray.length; ++i) {
+				//double aux = byteArray[i];
+				//aux += aux < 0 ? 256 : 0; //signed byte -> unsigned short
+				//shortArray[i] = (short)aux;
+				shortArray[i] = byteArray[i];
+				shortArray[i] += shortArray[i] < 0 ? 256 : 0; //signed byte -> unsigned short
+			}
+			//
+		} else if (nonGray16Block instanceof IntArrayDataBlock) {
+			int[] data = ((IntArrayDataBlock)nonGray16Block).getData();
+			shortArray = new short[ data.length ];
+			for (int i=0; i < shortArray.length; ++i) shortArray[i] = (short)data[i];
+			//
+		} else if (nonGray16Block instanceof LongArrayDataBlock) {
+			long[] data = ((LongArrayDataBlock)nonGray16Block).getData();
+			shortArray = new short[ data.length ];
+			for (int i=0; i < shortArray.length; ++i) shortArray[i] = (short)data[i];
+			//
+		} else if (nonGray16Block instanceof FloatArrayDataBlock) {
+			float[] data = ((FloatArrayDataBlock)nonGray16Block).getData();
+			shortArray = new short[ data.length ];
+			for (int i=0; i < shortArray.length; ++i) shortArray[i] = (short)data[i];
+			//
+		} else if (nonGray16Block instanceof DoubleArrayDataBlock) {
+			double[] data = ((DoubleArrayDataBlock)nonGray16Block).getData();
+			shortArray = new short[ data.length ];
+			for (int i=0; i < shortArray.length; ++i) shortArray[i] = (short)data[i];
+			//
+		} else {
+			throw new IllegalArgumentException("Don't know how to convert "+nonGray16Block.getClass().getName()
+					+" to ShortArrayDataBlock during the legacy BDV on-the-fly data transform");
+		}
+
+		return new ShortArrayDataBlock(nonGray16Block.getSize(),
+				nonGray16Block.getGridPosition(), shortArray);
 	}
 
 	public DatasetAttributes getDatasetAttributes(
