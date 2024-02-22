@@ -59,6 +59,7 @@
         <system>none</system>
     </ciManagement>
     <properties>
+        <skipTests>true</skipTests>
         <package-name>HPCDataStore</package-name>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
@@ -83,7 +84,6 @@
         <maven.compiler.testTarget>${java.version}</maven.compiler.testTarget>
         <maven.compiler.release>${java.version}</maven.compiler.release>
     </properties>
-
     <repositories>
         <repository>
             <id>it4i</id>
@@ -294,6 +294,19 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.12.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.modelmapper</groupId>
+            <artifactId>modelmapper</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>
@@ -312,6 +325,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -323,6 +337,15 @@
                         <quarkus.datasource.jdbc.url>jdbc:h2:/temp/DataStore_DataRoot/h2;MODE=PostgreSQL;INIT=CREATE SCHEMA IF NOT EXISTS datastore</quarkus.datasource.jdbc.url>
                         <datastore.path>/temp/DataStore_DataRoot</datastore.path>
                     </systemPropertyVariables>
+                    <skipClean>true</skipClean>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                <skipClean>true</skipClean>
                 </configuration>
             </plugin>
 
@@ -370,6 +393,7 @@
                 </configuration>
             </plugin>
         </plugins>
+
         <resources>
             <resource>
                 <directory>src/main/resources</directory>

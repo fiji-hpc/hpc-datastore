@@ -1,34 +1,46 @@
-/*******************************************************************************
- * IT4Innovations - National Supercomputing Center
- * Copyright (c) 2017 - 2021 All Right Reserved, https://www.it4i.cz
- *
- * This file is subject to the terms and conditions defined in
- * file 'LICENSE', which is part of this project.
- ******************************************************************************/
 package cz.it4i.fiji.datastore.security;
 
 import java.util.Collection;
 import java.util.LinkedList;
 
 import cz.it4i.fiji.datastore.BaseEntity;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.log4j.Log4j2;
 
-@SuperBuilder
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+
+
+@Log4j2
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 @Setter
-class User extends BaseEntity {
-
+@Entity
+public class User{
 
 	private static final long serialVersionUID = 1L;
 
-	@Builder.Default
+	@OneToMany(cascade = CascadeType.ALL)
 	private Collection<ACL> acl = new LinkedList<>();
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	private String oauthAlias;
+	private String clientToken;
+	private String clientID;
+
 	public User(Long id, Collection<ACL> acls) {
-		super(id);
+		this.id = id;
 		acl = acls;
 	}
 
@@ -36,9 +48,6 @@ class User extends BaseEntity {
 		if (!acl.stream().allMatch(a -> a.isWrite())) {
 			throw new UnauthorizedAccessException(userID);
 		}
-
 	}
-
-
 
 }

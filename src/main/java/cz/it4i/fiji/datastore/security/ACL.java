@@ -13,13 +13,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.persistence.Entity;
+
+
 @AllArgsConstructor
 @Builder
 @Data
 @EqualsAndHashCode(callSuper = true)
-class ACL extends BaseEntity {
+@Entity
+public class ACL extends BaseEntity {
 
 	private static final long serialVersionUID = 1L;
 
 	private boolean write;
+
+	public ACL() {
+	}
 }
