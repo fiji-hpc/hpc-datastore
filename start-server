@@ -2,7 +2,7 @@
 useUpToThisAmountOfRAM=10G
 
 if [ ! $# -eq 7 ]; then
-	echo "Start me with four parameters, e.g.:"
+	echo "Start me with the following parameters, e.g.:"
 	echo "./start-server /temp/RootDataFolder/ 192.168.3.123 9080 1234567890-abc123def456.apps.googleusercontent.com 456545465 1232212313 1"
 	echo
 	echo "1st param: Path to an existing folder under which datasets will be kept,"
@@ -11,10 +11,10 @@ if [ ! $# -eq 7 ]; then
 	echo "           IP of the outside network interface if the server shall be reachable"
 	echo "           also from outside of this box, otherwise 'localhost' is fine too"
 	echo "3rd param: Port to which the main (24/7 controlling) server will bind to"
-	echo "4rd param: Client ID - you need get it from google developer console"
-	echo "5rd param: Client Secret - you need get it from google developer console"
-	echo "6rd param: User ID - ID assigned to user by Google"
-	echo "7rd param: Internal user ID - internal ID"
+	echo "4rd param: Client ID     - to the Google OAuth2 service, get it from google developer console"
+	echo "5rd param: Client Secret - to the Google OAuth2 service, get it from google developer console"
+	echo "6rd param: Google user ID   - an ID assigned to the user by Google..."
+	echo "7rd param: Internal user ID - ...is mapped to this internal ID"
 	echo
 	echo "Note: Check your firewall settings..."
 	echo "Note: Currently the server will consume up to $useUpToThisAmountOfRAM of main memory,"
@@ -23,10 +23,10 @@ else
 	java -Xmx${useUpToThisAmountOfRAM} -Dquarkus.datasource.jdbc.url="jdbc:h2:$1/h2;MODE=PostgreSQL;INIT=CREATE SCHEMA IF NOT EXISTS datastore" \
 	          -Ddatastore.path=$1 \
 	          -Dquarkus.http.host=$2 -Dquarkus.https.port=$3 \
-                  -Dquarkus.http.limits.max-body-size=200M \
-		  -Xverify:none \
-                  -Dquarkus.http.ssl.certificate.key-store-file=META-INF/resources/server.keystore \
-                  -Dcz.it4i.fiji.datastore.security.servers=google,sub,https://accounts.google.com/o/oauth2/v2/auth,https://www.googleapis.com/oauth2/v3/userinfo,https://www.googleapis.com/oauth2/v4/token,$4,$5 \
- 		  -Dcz.it4i.fiji.datastore.security.users=google:$6:$7:write \
+	          -Dquarkus.http.limits.max-body-size=200M \
+	          -Xverify:none \
+	          -Dquarkus.http.ssl.certificate.key-store-file=META-INF/resources/server.keystore \
+	          -Dcz.it4i.fiji.datastore.security.servers=google,sub,https://accounts.google.com/o/oauth2/v2/auth,https://www.googleapis.com/oauth2/v3/userinfo,https://www.googleapis.com/oauth2/v4/token,$4,$5 \
+	          -Dcz.it4i.fiji.datastore.security.users=google:$6:$7:write \
 	          -jar target/quarkus-app/quarkus-run.jar
 fi
