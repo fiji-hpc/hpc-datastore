@@ -1,4 +1,4 @@
-set myVar="C:\Users\sebas\Documents\GitHub\hpc-datastore"
+set dataFolder="C:\Users\sebas\Documents\GitHub\hpc-datastore"
 set ip="localhost"
 set port=8443
 set pports="35000,35100"
@@ -6,9 +6,9 @@ set clientID="554143119581-1kmphimgugsrfm45rd65bdja8h3bh27k.apps.googleuserconte
 set clientSecret="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"
 
 java ^
--Xmx1G ^
--Dquarkus.datasource.jdbc.url="jdbc:h2:%myVar%/myDb;MODE=PostgreSQL;INIT=CREATE SCHEMA IF NOT EXISTS datastore" ^
--Ddatastore.path=%myVar% -Ddatastore.ports=%pports% ^
+-Xmx2G ^
+-Dquarkus.datasource.jdbc.url="jdbc:h2:%dataFolder%/h2;MODE=PostgreSQL;INIT=CREATE SCHEMA IF NOT EXISTS datastore" ^
+-Ddatastore.path=%dataFolder% -Ddatastore.ports=%pports% ^
 -Dquarkus.http.host=%ip% -Dquarkus.http.port=%port% ^
 -Dquarkus.http.ssl-port=%port% ^
 -Dquarkus.http.ssl.certificate.key-store-file=META-INF/resources/server.keystore ^
@@ -17,4 +17,4 @@ java ^
 -Dcz.it4i.fiji.datastore.security.users=google:100198484073624931665:1:write ^
 -Dcz.it4i.fiji.datastore.security.on="YES" ^
 -Xverify:none ^
--jar target/quarkus-app/quarkus-run.jar
+-jar ../../../target/quarkus-app/quarkus-run.jar

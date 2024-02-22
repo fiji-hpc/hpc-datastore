@@ -49,7 +49,5 @@ cookies.txt
 # Mac #
 .DS_Store
 
-myDb.mv.db
-
+# DataStore server key
 src/main/resources/META-INF/resources/emptyStore.keystore
-start-server-https.cmd
